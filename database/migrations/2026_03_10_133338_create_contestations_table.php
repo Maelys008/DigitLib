@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('club_members', function (Blueprint $table) {
+        Schema::create('contestations', function (Blueprint $table) {
             $table->id()->autoIncrement();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('club_id')->constrained('clubs')->onDelete('cascade');
-            $table->string('date_joined');
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('incident_id')->constrained('incidents');
+            $table->string('message');
+            $table->string('justification');
+            $table->string('status')->default('en attente');
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('club_members');
+        Schema::dropIfExists('contestations');
     }
 };

@@ -6,11 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class Book extends Model
 {
+
+    protected $fillable =
+    [
+        'library_id',
+        'title',
+        'author',
+        'genre',
+        'isbn',
+        'description',
+        'year_of_publication'
+    ];
+
+    
+    protected $casts =
+    [
+        'year_of_publication' => 'date'
+    ];
+
+
     public function library()
     {
         return $this->belongsTo(Library::class);
     }
-    
+
     public function copies()
     {
         return $this->hasMany(Copy::class);
@@ -20,5 +39,4 @@ class Book extends Model
     {
         return $this->hasMany(Reservation::class);
     }
-
 }

@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Library extends Model
 {
+
+    protected $fillable = [
+        'name',
+        'adress',
+        'description',
+        'parent_id',
+        'administrator_id'
+    ];
+
     public function books()
     {
         return $this->hasMany(Book::class);
@@ -21,13 +30,11 @@ class Library extends Model
         return $this->hasMany(Incident::class);
     }
 
-    
-
     public function administrator()
     {
         return $this->belongsTo(User::class, 'administrator_id');
     }
-    
+
 
     public function internal_members()
     {

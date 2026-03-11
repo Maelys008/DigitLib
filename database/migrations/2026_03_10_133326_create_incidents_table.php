@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('copies', function (Blueprint $table) {
+        Schema::create('incidents', function (Blueprint $table) {
             $table->id()->autoIncrement();
-            $table->foreignId('book_id')->constrained('books');
-            $table->string('codeQR');
-            $table->string('book_status');
-            $table->string('status');
-            $table->string('date_added');
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('library_id')->constrained('libraries');
+            $table->string('description');
+            $table->date('date');
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('copies');
+        Schema::dropIfExists('incidents');
     }
 };

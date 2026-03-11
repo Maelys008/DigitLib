@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('message');
             $table->string('object_type');
             $table->string('object');
-            $table->string('status');
-            $table->string('date_sent');
+            $table->string('status')->default('non lu');
+            $table->date('date_sent');
             $table->timestamps();
         });
     }

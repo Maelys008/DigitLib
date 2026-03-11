@@ -6,11 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    public function club_member(){
+
+
+    protected $fillable =
+    [
+        'member_id',
+        'club_id',
+        'message',
+
+    ];
+
+
+    public function club_member()
+    {
         return $this->belongsTo(Club_member::class, 'member_id');
     }
 
-    public function club(){
+    public function club()
+    {
         return $this->belongsTo(Club::class, 'club_id');
     }
 }

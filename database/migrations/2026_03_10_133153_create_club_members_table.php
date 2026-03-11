@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reservations', function (Blueprint $table) {
+        Schema::create('club_members', function (Blueprint $table) {
             $table->id()->autoIncrement();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('book_id')->constrained('books');
-            $table->string('status');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('club_id')->constrained('clubs')->onDelete('cascade');
+            $table->date('date_joined');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reservations');
+        Schema::dropIfExists('club_members');
     }
 };

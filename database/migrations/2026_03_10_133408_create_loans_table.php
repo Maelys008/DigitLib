@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('internal_members', function (Blueprint $table) {
+        Schema::create('loans', function (Blueprint $table) {
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('library_id')->constrained('libraries');
-            $table->string('date_add');
+            $table->foreignId('copy_id')->constrained('copies');
+            $table->date('loan_date');
+            $table->date('expected_return_date');
+            $table->date('actual_return_date')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('internal_members');
+        Schema::dropIfExists('loans');
     }
 };

@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_assignments', function (Blueprint $table) {
+        Schema::create('internal_members', function (Blueprint $table) {
             $table->id()->autoIncrement();
-            $table->foreignId('internal_member_id')->constrained('internal_members')->onDelete('cascade');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('library_id')->constrained('libraries');
+            $table->date('date_add');
             $table->timestamps();
-            $table->string('date_assignment');
         });
     }
 
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_assignments');
+        Schema::dropIfExists('internal_members');
     }
 };

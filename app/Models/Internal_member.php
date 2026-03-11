@@ -6,6 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Internal_member extends Model
 {
+
+
+
+protected $fillable =
+    [
+        'user_id',
+        'library_id',
+        'date_add'
+    ];
+
+    protected $casts = [
+        'date_add' => 'date',
+    ];
     public function library()
     {
         return $this->belongsTo(Library::class);

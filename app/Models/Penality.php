@@ -6,6 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Penality extends Model
 {
+    
+protected $fillable =
+    [
+        'user_id',
+        'loan_id',
+        'amount',
+        'reason',
+        'status',
+    ];
+
+   
      public function user()
     {
         return $this->belongsTo(User::class);

@@ -6,14 +6,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
-    public function user(){
+    protected $fillable =
+    [
+        'user_id',
+        'copy_id',
+        'loan_date',
+        'expected_return_date',
+        'actual_return_date'
+    ];
+
+    protected $casts = [
+        'loan_date' => 'date',
+        'expected_return_date' => 'date',
+        'actual_return_date' => 'date',
+    ];
+
+
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function copy(){
+    public function copy()
+    {
         return $this->belongsTo(Copy::class);
     }
-    public function penalities(){
+    public function penalities()
+    {
         return $this->hasMany(Penality::class);
     }
 }

@@ -15,14 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('tel')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role');
-            $table->string('identity_hash');
-            $table->string('status');
-            $table->string('badge_id');
-            $table->string('is_check');
-            
+            $table->string('role')->default('reader');      
+            $table->string('identity_hash')->nullable();     
+            $table->string('status')->default('active');     
+            $table->string('badge_id')->nullable();          
+            $table->boolean('is_check')->default(false);
+                    
             
             $table->rememberToken();
             $table->timestamps();

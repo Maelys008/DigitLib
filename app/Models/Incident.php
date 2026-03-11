@@ -6,6 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Incident extends Model
 {
+
+    protected $fillable =
+    [
+        'user_id',
+        'library_id',
+        'description',
+        'date'
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -16,9 +29,8 @@ class Incident extends Model
         return $this->belongsTo(Library::class);
     }
 
-     public function contestations()
+    public function contestations()
     {
         return $this->hasMany(Contestation::class);
     }
-
 }
