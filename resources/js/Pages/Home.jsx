@@ -1,5 +1,5 @@
 // resources/js/Pages/Home.jsx
-
+import React from 'react';
 import MobileLayout from '@/Layouts/MobileLayout';
 import { currentUser, livres, genres, bibliotheques, notifications } from '../data/mockData';
 import TopBar from '@/Components/TopBar';
