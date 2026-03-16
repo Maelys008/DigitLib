@@ -2,7 +2,7 @@
 
 import MobileLayout from '@/Layouts/MobileLayout';
 import { genres } from '../data/mockData';
-import { genreIcons } from '../constants/genreIcons';
+import { genreIcons } from '../Constants/genreIcons';
 import GenreListItem from '@/Components/GenreListItem';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from '@inertiajs/react';

@@ -7,7 +7,7 @@ import { ArrowLeft, MoreVertical, Heart, Share2, BookOpen, User, Calendar, Star 
 import { Link, router, usePage } from '@inertiajs/react'; // Ajoute usePage ici
 import HorizontalScroll from '@/Components/HorizontalScroll';
 import BookCard from '@/Components/BookCard';
-import { getPastelColor } from '@/constants/colors';
+import { getPastelColor } from '@/Constants/colors';
 import BookHeader from '@/Components/BookDetails/BookHeader'; 
 import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
 import BorrowButton from '@/Components/BookDetails/BorrowButton';
