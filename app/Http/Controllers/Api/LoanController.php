@@ -16,9 +16,18 @@ class LoanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Loan::with(['user', 'copy.book'])->get();
+        $user = $request->user();
+
+        if ($user->role == 'admin') {
+            return Loan::with(['user', 'copy.book'])->get();
+        }
+
+        return Loan::with(['copy.book'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     /**
@@ -42,7 +51,7 @@ class LoanController extends Controller
 
 
         $alreadyHasBook = Loan::where('user_id', $user->id)
-            ->whereNull('actual_return_date')             ->whereHas('copy', function ($query) use ($book) {
+            ->whereNull('actual_return_date')->whereHas('copy', function ($query) use ($book) {
                 $query->where('book_id', $book->id);
             })
             ->exists();
@@ -95,41 +104,59 @@ class LoanController extends Controller
      */
     public function update(Request $request, $id)
     {
+
+        $request->validate([
+            'amount' => 'nullable|numeric',
+            'reason' => 'nullable|string',
+        ]);
+
         $loan = Loan::with(['copy.book', 'user'])->find($id);
+
         if (!$loan || $loan->actual_return_date) {
-            return response()->json(['message' => 'Emprunt invalide ou déjà rendu'], 422);
+            return response()->json(['message' => 'Prêt invalide ou déjà clos'], 422);
         }
 
-        return DB::transaction(function () use ($loan) {
+        return DB::transaction(function () use ($loan, $request) {
             $now = now();
             $user = $loan->user;
 
-            if ($now->lessThanOrEqualTo($loan->expected_return_date)) {
-                $user->increment('score');
-                $msg = "Rendu à temps ! +1 point.";
-            } else {
-                $user->decrement('score');
-                $msg = "Rendu en retard. -1 point.";
 
-                Penality::create([
+            $loan->update(['actual_return_date' => $now]);
+
+
+            $loan->copy->update(['status' => 'disponible']);
+            $loan->copy->book->increment('nb_available');
+
+
+            $isLate = $now->greaterThan($loan->expected_return_date);
+            if ($isLate) {
+                $user->decrement('score');
+            } else {
+                $user->increment('score');
+            }
+            
+
+
+            $penalty = null;
+            if ($isLate || $request->has('amount')) {
+                $penalty = Penality::create([
                     'user_id' => $user->id,
                     'loan_id' => $loan->id,
-                    'amount' => 500,
-                    'reason' => "Retard de retour",
+                    'amount' => $request->amount ?? 500,
+                    'reason' => $request->reason ?? "Retour tardif",
                     'status' => 'non payé',
                 ]);
             }
 
-            $loan->update(['actual_return_date' => $now]);
-            $loan->copy->update(['status' => 'disponible']);
-            $loan->copy->book->increment('nb_available');
-
             return response()->json([
-                'message' => $msg,
-                'new_score' => $user->score
+                'message' => "Retour validé par le bibliothécaire",
+                'new_score' => $user->score,
+                'penalty' => $penalty
             ], 200);
         });
     }
+
+
     /**
      * Remove the specified resource from storage.
      */

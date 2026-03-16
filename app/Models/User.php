@@ -29,7 +29,6 @@ class User extends Authenticatable
         'identity_hash',
         'status',
         'badge_id',
-        'is_check'
     ];
 
     /**
@@ -53,7 +52,6 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'identity_hash' => 'hashed',
-            'is_check' => 'boolean'
         ];
     }
 

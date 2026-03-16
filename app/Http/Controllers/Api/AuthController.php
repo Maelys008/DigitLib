@@ -25,7 +25,9 @@ class AuthController extends Controller
                 'message' => 'Identifiants incorrects'
             ], 401);
         }
-
+        $user->update([
+            'status' => 'active',
+        ]);
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -66,18 +68,32 @@ class AuthController extends Controller
             'tel' => 'required|string|unique:users,tel',
         ]);
 
-        $user = $request->user(); 
+        $user = $request->user();
 
         $user->update([
             'name' => $request->name,
             'tel' => $request->tel,
             'identity_hash' => $request->identity_hash,
-            'status' => 'active', 
+            'status' => 'active',
         ]);
 
         return response()->json([
             'message' => 'Profil complété avec succès.',
             'user' => $user
         ]);
+    }
+
+    public function logout(Request $request)
+    {
+        /** @var \Laravel\Sanctum\PersonalAccessToken $user */
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        $user->update([
+            'status' => 'desactive',
+        ]);
+
+        return response()->json([
+            'message' => 'Déconnexion réussie.'
+        ], 200);
     }
 }

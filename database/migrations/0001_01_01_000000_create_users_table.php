@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('identity_hash')->nullable();     
             $table->string('status')->default('active');     
             $table->string('badge_id')->nullable();          
-            $table->boolean('is_check')->default(false);            
             $table->rememberToken();
             $table->timestamps();
         });

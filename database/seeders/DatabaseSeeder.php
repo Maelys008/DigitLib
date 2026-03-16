@@ -57,7 +57,6 @@ class DatabaseSeeder extends Seeder
                 'badge_id' => $badges[array_rand($badges)]->id,
                 'score' => rand(0, 100),
                 'status' => 'active',
-                'is_check' => true,
             ]);
         }
 
