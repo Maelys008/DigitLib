@@ -15,7 +15,9 @@ class Book extends Model
         'genre',
         'isbn',
         'description',
-        'year_of_publication'
+        'year_of_publication',
+        'nb_copy', 
+        'nb_available'
     ];
 
     

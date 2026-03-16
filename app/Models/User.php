@@ -7,21 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\Rules\In;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens,HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
-     */
+     **/
     protected $fillable = [
         'name',
         'email',
         'tel',
+        'score',
         'password',
         'role',
         'identity_hash',
@@ -93,7 +95,7 @@ class User extends Authenticatable
 
     public function badge()
     {
-        return $this->belongsTo(Badge::class);
+        return $this->belongsTo(Badge::class, 'badge_id');
     }
 
     public function managedLibraries()
@@ -103,7 +105,7 @@ class User extends Authenticatable
 
     public function internal_members()
     {
-        return $this->hasMany(Internal_member::class);
+        return $this->hasMany(Internal_member::class,'user_id');
     }
     public function ownerClubs()
     {
@@ -113,4 +115,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Club_member::class);
     }
+    public function socialAccounts()
+    {
+        return $this->hasMany(Social_account::class);
+    }
+
+
 }

@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('year_of_publication');
             $table->string('cover_image');
-            $table->string('nb_copy');
-            $table->string('nb_available');
+            $table->integer('nb_copy')->default(0);
+            $table->integer('nb_available')->default(0);
             $table->timestamps();
         });
     }

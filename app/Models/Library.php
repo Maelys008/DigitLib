@@ -38,7 +38,7 @@ class Library extends Model
 
     public function internal_members()
     {
-        return $this->hasMany(Internal_member::class, 'parent_id');
+        return $this->hasMany(Internal_member::class, 'library_id');
     }
     public function children()
     {
