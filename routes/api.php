@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\InternalMemberController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\PenalityController;
@@ -23,10 +24,26 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('loans', LoanController::class);
     Route::post('/completeProfile', [AuthController::class, 'completeProfile']);
 
-    Route::post('/libraries/join', [LibraryController::class, 'join'])->middleware('auth:sanctum');
+    Route::post('/libraries/join', [LibraryController::class, 'join']);
+    Route::apiResource('libraries', LibraryController::class);
+
     Route::patch('/penalities/{id}/pay', [PenalityController::class, 'payPenalty']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    
+});
+
+Route::middleware(['auth:sanctum','check.lib.admin'])->group(function (){
+
+    Route::get('/libraries/{library}/stats', function () {
+        return response()->json(['message' => 'Accès autorisé aux stats privées']);
+    });
+
+    Route::post('/libraries/{library}/members', [InternalMemberController::class, 'store']);
+    
+    // Route pour voir l'équipe
+    Route::get('/libraries/{library}/members', [InternalMemberController::class, 'index']);
 });
 
 Route::get('/books', [BookController::class, 'index']);

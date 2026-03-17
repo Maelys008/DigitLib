@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inscription;
+use App\Models\Library;
 use Illuminate\Http\Request;
 
 class LibraryController extends Controller
@@ -25,7 +26,7 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Vous êtes déjà membre de cette bibliothèque.'], 422);
         }
 
-        
+
         Inscription::create([
             'user_id' => $user->id,
             'library_id' => $request->library_id,
@@ -33,5 +34,26 @@ class LibraryController extends Controller
         ]);
 
         return response()->json(['message' => 'Félicitations, vous avez rejoint la bibliothèque !'], 201);
+    }
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'adress' => 'required|string',
+            'description' => 'nullable|string',
+            'parent_id' => 'nullable|exists:libraries,id',
+        ]);
+
+        $library = Library::create([
+            'name' => $request->name,
+            'parent_id' => $request->parent_id,
+            'adress' => $request->adress,
+            'description' => $request->description,
+            'administrator_id' => $request->user()->id, // L'utilisateur devient admin
+        ]);
+
+        $request->user()->update(['role' => 'admin']);
+
+        return response()->json($library, 201);
     }
 }

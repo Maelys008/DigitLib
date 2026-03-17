@@ -15,6 +15,19 @@ class Library extends Model
         'administrator_id'
     ];
 
+
+
+    public function allChildrenIds()
+    {
+        $ids = collect();
+
+        foreach ($this->children as $child) {
+            $ids->push($child->id);
+            $ids = $ids->merge($child->allChildrenIds());
+        }
+
+        return $ids;
+    }
     public function books()
     {
         return $this->hasMany(Book::class);
