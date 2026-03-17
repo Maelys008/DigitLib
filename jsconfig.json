@@ -1,9 +1,10 @@
 {
-  "compilerOptions": {
-    "jsx": "react-jsx",  // ← Pour utiliser le nouveau JSX transform
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["resources/js/*"]
-    }
-  }
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["resources/js/*"],
+            "ziggy-js": ["./vendor/tightenco/ziggy"]
+        }
+    },
+    "exclude": ["node_modules", "public"]
 }

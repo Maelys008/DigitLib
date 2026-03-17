@@ -1,14 +1,26 @@
 // resources/js/Components/GenreCard.jsx
 
+import { router } from '@inertiajs/react';
+
 export default function GenreCard({ 
   genre, 
   icon: Icon, 
   onClick,
   className = '' 
 }) {
+  
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      // Redirige vers la page du genre
+      router.visit(`/genres/${encodeURIComponent(genre.toLowerCase())}`);
+    }
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={`
         flex items-center gap-3 bg-[#F6F6F6] rounded-xl p-2 w-full text-left transition-all active:scale-95
         ${className}

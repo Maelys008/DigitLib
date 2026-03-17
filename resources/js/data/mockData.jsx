@@ -92,15 +92,15 @@ export const bibliotheques = [
 
 // Genres de livres
 export const genres = [
-  'Fiction',
-  'Science',
+  'Science-Fiction',
+  'Sciences',
   'Histoire',
   'Classique',
   'Mystère',
   'Fantasy',
-  'Romance',
+  'Roman',
   'Horreur',
-  'Biographie',
+  'Psychologie',
   'Philosophie',
   'Poésie',
   'Voyage',

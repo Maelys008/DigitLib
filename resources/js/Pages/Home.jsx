@@ -1,5 +1,5 @@
 // resources/js/Pages/Home.jsx
-import React from 'react';
+
 import MobileLayout from '@/Layouts/MobileLayout';
 import { currentUser, livres, genres, bibliotheques, notifications } from '../data/mockData';
 import TopBar from '@/Components/TopBar';
@@ -12,12 +12,14 @@ import GenreCard from '@/Components/GenreCard';
 import NewBookCard from '@/Components/NewBookCard';
 import EditeurChip from '@/Components/EditeurChip';
 import VerticalScroll from '@/Components/VerticalScroll';
+import { getBookCountByGenre } from '../utils/getBookCountByGenre';
 export default function Home() {
   // Données pour les différentes sections
 	const livresMemmbres = livres.filter(l => l.nb_disponibles > 0).slice(2, 17);
   const livresPopulaires = livres.filter(l => l.nb_disponibles > 0).slice(5, 17);
   const livresNouveaux = livres.slice(-6);
   const livresRomans = livres.filter(l => l.genre === 'Roman').slice(0, 17);
+	
   
   // Maisons d'édition (simulées pour la maquette)
  // Dans Home.jsx - Maisons d'édition (12 éléments)
@@ -73,6 +75,7 @@ const maisonsEdition = [
 											key={index}
 											genre={genre}
 											icon={IconComponent}
+											  bookCount={getBookCountByGenre(genre)}
 										/>
 									);
 								})}

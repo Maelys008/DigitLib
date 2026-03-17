@@ -1,14 +1,26 @@
-// resources/js/Components/GenreCard.jsx
+// resources/js/Components/GenreListItem.jsx
 
-export default function GenreCard({ 
+import { router } from '@inertiajs/react';
+
+export default function GenreListItem({ 
   genre, 
   icon: Icon, 
   bookCount, 
   onClick 
 }) {
+  
+  const handleClick = () => {
+    if (onClick) {
+      onClick(); // Si onClick est fourni par le parent, on l'utilise
+    } else {
+      // Sinon, redirige vers la page du genre
+      router.visit(`/genres/${encodeURIComponent(genre.toLowerCase())}`);
+    }
+  };
+
   return (
     <div 
-      onClick={onClick}
+      onClick={handleClick} // ← Utilise handleClick ici, pas onClick directement
       className="relative bg-[#F5F5F7] rounded-2xl p-4 h-40 w-full cursor-pointer transition-transform active:scale-95 overflow-hidden"
     >
       {/* Texte en haut à gauche */}
@@ -26,7 +38,6 @@ export default function GenreCard({
         {Icon ? (
           <Icon className="w-16 h-16 text-gray-700 opacity-80" />
         ) : (
-          /* Si tu utilises des images comme sur la capture, remplace par une balise img */
           <div className="w-full h-full bg-gray-200 rounded-lg animate-pulse" />
         )}
       </div>

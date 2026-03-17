@@ -22,15 +22,15 @@ import {
 } from "lucide-react";
 
 export const genreIcons = {
-  'Fiction': BookOpen,
-  'Science': FlaskConical,
+  'Science-Fiction': BookOpen,
+  'Sciences': FlaskConical,
   'Histoire': ScrollText,
   'Classique': Library,
   'Mystère': Skull,
   'Fantasy': Sparkles,
-  'Romance': Heart,
+  'Roman': Heart,
   'Horreur': Ghost,
-  'Biographie': UserRound,
+  'Psychologie': UserRound,
   'Philosophie': Brain,
   'Poésie': Feather,
   'Voyage': Compass,
