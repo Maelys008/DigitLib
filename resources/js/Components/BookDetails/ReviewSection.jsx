@@ -1,5 +1,3 @@
-// resources/js/Components/BookDetails/ReviewSection.jsx
-
 import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import SectionHeader from '@/Components/SectionHeader';
@@ -39,9 +37,8 @@ export default function ReviewSection({
         </div>
       )}
       
-      {/* Bouton Écrire un avis - OUVRE LE MODAL, pas de navigation */}
       <button
-        onClick={() => setIsModalOpen(true)} // ← Ouvre le modal, pas de router.visit
+        onClick={() => setIsModalOpen(true)} 
         className="w-full border border-purple-600 text-purple-600 font-medium py-3 rounded-xl mt-4 hover:bg-purple-50 transition-colors"
       >
         Écrire un avis

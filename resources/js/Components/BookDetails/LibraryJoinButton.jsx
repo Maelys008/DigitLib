@@ -1,20 +1,16 @@
-// resources/js/Components/BookDetails/LibraryJoinButton.jsx
-
 import { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function LibraryJoinButton({ 
   bibliothequeNom, 
   onJoin,
-  showWarning = false, // Nouvelle prop pour afficher l'avertissement
+  showWarning = false, 
   onWarningClose,
   className = '' 
 }) {
   const [isJoined, setIsJoined] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showLocalWarning, setShowLocalWarning] = useState(false);
-
-  // Synchroniser avec la prop showWarning
   useEffect(() => {
     if (showWarning) {
       setShowLocalWarning(true);
@@ -34,7 +30,7 @@ export default function LibraryJoinButton({
   const handleJoin = () => {
     setIsJoined(true);
     setShowSuccess(true);
-    setShowLocalWarning(false); // Cache l'avertissement si affiché
+    setShowLocalWarning(false); 
     
     if (onJoin) {
       onJoin();
@@ -48,7 +44,7 @@ export default function LibraryJoinButton({
 
   return (
     <div className="relative" id="join-library-button">
-      {/* Message d'avertissement (au-dessus du bouton) */}
+      {/* Message d'avertissement  */}
       {showLocalWarning && (
         <div className="mb-3 bg-orange-50 border border-orange-200 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
@@ -96,7 +92,7 @@ export default function LibraryJoinButton({
         )}
       </button>
 
-      {/* Message de succès (notification) */}
+      {/* Message de succès  */}
       {showSuccess && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-green-50 border border-green-200 rounded-xl p-4 shadow-lg animate-fade-in z-10">
           <div className="flex items-center gap-3">

@@ -1,5 +1,3 @@
-// resources/js/Components/BottomSheet.jsx
-
 import { Fragment } from 'react';
 import { Heart, BookmarkPlus, Share2, Download, CheckCircle, X } from 'lucide-react';
 
