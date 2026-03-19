@@ -1,5 +1,3 @@
-// resources/js/Components/VerticalScroll.jsx
-
 export default function VerticalScroll({ children, className = '' }) {
   return (
     <div className={`max-h-96 overflow-y-auto scrollbar-hide ${className}`}>

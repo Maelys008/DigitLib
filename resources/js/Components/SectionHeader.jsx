@@ -1,5 +1,3 @@
-// resources/js/Components/SectionHeader.jsx
-
 import { Link } from '@inertiajs/react';
 
 export default function SectionHeader({ 

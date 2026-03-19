@@ -1,5 +1,3 @@
-// resources/js/Components/EditeurChip.jsx
-
 export default function EditeurChip({ 
   children, 
   onClick,

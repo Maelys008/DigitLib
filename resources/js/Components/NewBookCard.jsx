@@ -2,14 +2,35 @@
 
 import { Heart, Star } from "lucide-react";
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; 
 
 export default function NewBookCard({ 
   livre, 
   onClick,
   className = '' 
 }) {
-  const [isLiked, setIsLiked] = useState(false);
+  // Initialiser l'état à partir de localStorage
+  const [isLiked, setIsLiked] = useState(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return favorites.some(fav => fav.id === livre.id);
+  });
+
+  // Mettre à jour localStorage quand isLiked change
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    
+    if (isLiked) {
+      // Ajouter aux favoris si pas déjà présent
+      if (!favorites.some(fav => fav.id === livre.id)) {
+        const newFavorites = [...favorites, livre];
+        localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      }
+    } else {
+      // Retirer des favoris
+      const newFavorites = favorites.filter(fav => fav.id !== livre.id);
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+    }
+  }, [isLiked, livre]);
 
   const handleClick = () => {
     if (onClick) {
@@ -49,18 +70,18 @@ export default function NewBookCard({
             {livre.titre}
           </h3>
           
-					<button
-						onClick={handleLikeClick}
-						className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-					>
-						<Heart 
-							className={`w-5 h-5 transition-colors ${
-								isLiked 
-									? 'fill-[#1C1C1C] text-[#1C1C1C]'  
-									: 'text-gray-400 hover:text-[#1C1C1C]'  // Gris, devient rouge au hover
-							}`} 
-						/>
-					</button>
+          <button
+            onClick={handleLikeClick}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+          >
+            <Heart 
+              className={`w-5 h-5 transition-colors ${
+                isLiked 
+                  ? 'fill-[#1C1C1C] text-[#1C1C1C]'  
+                  : 'text-gray-400 hover:text-[#1C1C1C]'
+              }`} 
+            />
+          </button>
         </div>
 
         {/* Auteur */}

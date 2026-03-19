@@ -1,5 +1,3 @@
-// resources/js/Components/GenreCard.jsx
-
 import { router } from '@inertiajs/react';
 
 export default function GenreCard({ 
@@ -13,7 +11,6 @@ export default function GenreCard({
     if (onClick) {
       onClick();
     } else {
-      // Redirige vers la page du genre
       router.visit(`/genres/${encodeURIComponent(genre.toLowerCase())}`);
     }
   };
@@ -26,12 +23,9 @@ export default function GenreCard({
         ${className}
       `}
     >
-      {/* Cadre carré blanc avec bordure grise fine */}
       <div className="w-14 h-14 bg-white border border-gray-900 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
         {Icon && <Icon className="w-8 h-8 text-gray-700" />}
       </div>
-      
-      {/* Nom du genre avec texte plus gras */}
       <span className="text-sm font-bold text-gray-900">
         {genre}
       </span>
