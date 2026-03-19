@@ -26,7 +26,6 @@
   animation: slide-up 0.3s ease-out;
 }
 
-/* Animation pour les messages qui apparaissent */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -36,8 +35,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
 }

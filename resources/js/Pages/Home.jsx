@@ -1,5 +1,3 @@
-// resources/js/Pages/Home.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { currentUser, livres, genres, bibliotheques, notifications } from '../data/mockData';
 import TopBar from '@/Components/TopBar';
@@ -21,8 +19,7 @@ export default function Home() {
   const livresRomans = livres.filter(l => l.genre === 'Roman').slice(0, 17);
 	
   
-  // Maisons d'édition (simulées pour la maquette)
- // Dans Home.jsx - Maisons d'édition (12 éléments)
+  // Maisons d'édition 
 const maisonsEdition = [
   { id: 1, nom: 'BOMBORA' },
   { id: 2, nom: 'ROSEM' }, 
@@ -37,9 +34,7 @@ const maisonsEdition = [
   { id: 11, nom: 'POL' },
   { id: 12, nom: 'DENOËL' }
 ];
-   const genresAccueil = genres.slice(0, 6);
-
-  // Notifications non lues
+  const genresAccueil = genres.slice(0, 6);
   const notificationsNonLues = notifications.filter(n => n.statut === 'non_lu');
   return (
     <MobileLayout>
@@ -63,7 +58,7 @@ const maisonsEdition = [
         </HorizontalScroll>
       </div>
 
-        {/* SECTION 2: Genres - Depuis mockData avec icônes de genreIcons */}
+        {/* SECTION 2: Genres */}
 	
 						<div className="px-6 mt-6">
 							<SectionHeader titre="Genres" voirToutLien="/genres" />
@@ -123,7 +118,7 @@ const maisonsEdition = [
         </HorizontalScroll>
       </div>
 
-      {/* SECTION 6: Roman */}
+      {/* SECTION 6: livres dispo selon le genre*/}
       <div className="px-6 mt-6 mb-20">
      <SectionHeader titre="Romans" voirToutLien="/romans" />
         <HorizontalScroll>

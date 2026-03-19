@@ -17,7 +17,6 @@ export default function MobileLayout({ children, title }) {
         {children}
       </main>
       <BottomNav />
-
       {/* Modal de profil */}
       <ProfileModal 
         isOpen={showProfile}

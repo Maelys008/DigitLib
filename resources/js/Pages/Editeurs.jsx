@@ -1,5 +1,3 @@
-// resources/js/Pages/Editeurs.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from '@inertiajs/react';
