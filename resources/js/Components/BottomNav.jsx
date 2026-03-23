@@ -1,18 +1,19 @@
-// resources/js/Components/BottomNav.jsx
-
-import { Link, usePage } from "@inertiajs/react";
-import { Home, Search, QrCode, User, Settings } from "lucide-react";
+import { Link, usePage, router } from "@inertiajs/react";
+import { Home, Search, QrCode, User, Settings,Heart } from "lucide-react";
 
 export default function BottomNav() {
-
   const { url } = usePage();
+
+  const handleProfileClick = () => {
+    window.dispatchEvent(new CustomEvent('openProfile'));
+  };
 
   const navItems = [
     { path: "/", icon: Home, label: "Accueil" },
     { path: "/search", icon: Search, label: "Recherche" },
     { path: "/scanner", icon: QrCode, label: "Scanner" },
-    { path: "/profile", icon: User, label: "Profil" },
-    { path: "/settings", icon: Settings, label: "Paramètres" },
+    { path: "/library", icon: Heart, label: "Bibliothèque" },
+    { path: "#", icon: User, label: "Profil", onClick: handleProfileClick },
   ];
 
   return (
@@ -21,6 +22,25 @@ export default function BottomNav() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = url === item.path;
+
+          if (item.onClick) {
+            return (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                className={`flex flex-col items-center justify-center px-4 py-2 rounded-lg transition-all ${
+                  isActive
+                    ? "text-purple-600 bg-purple-50"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                <Icon className={`w-6 h-6 ${isActive ? "scale-110" : ""}`} />
+                <span className="text-xs mt-1 font-medium">
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
 
           return (
             <Link

@@ -1,16 +1,12 @@
-// resources/js/Pages/AllReviews.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { ArrowLeft } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import ReviewCard from '@/Components/BookDetails/ReviewCard';
-import { avis } from '../data/mockData'; // Importe les avis
+import { avis } from '../data/mockData'; 
 
 export default function AllReviews() {
   const { props } = usePage();
   const { bookId, bookTitle } = props;
-  
-  // Récupère seulement les avis de ce livre
   const avisDuLivre = avis.filter(a => a.livre_id === bookId);
 
   return (

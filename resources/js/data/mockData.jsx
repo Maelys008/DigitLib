@@ -43,7 +43,9 @@ export const currentUser = {
   badge_id: 3,
   badge: badges[2], // Lecteur Premium
   identite_verifiee: true,
-  date_creation: "2025-01-15"
+  date_creation: "2025-01-15",
+  photo: null 
+
 };
 
 // Liste des bibliothèques
@@ -479,10 +481,6 @@ export const historiqueEmprunts = [
     statut: "rendu"
   }
 ];
-// resources/js/data/mockData.js
-
-// Ajoute cette constante à la fin du fichier (avant les exports)
-
 export const avis = [
   {
     id: 1,
@@ -547,5 +545,50 @@ export const avis = [
     note: 4.5,
     date: "Il y a 1 semaine",
     commentaire: "Magnifique histoire qui touche le cœur des petits et des grands. Le langage simple mais profond de Saint-Exupéry est unique."
+  }
+];
+// Liste des étagères de l'utilisateur
+export const etageres = [
+  {
+    id: 1,
+    nom: "Neuf",
+    livreCount: 34,
+    image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200&h=200&fit=crop",
+    description: "Romans récents et nouveautés"
+  },
+  {
+    id: 2,
+    nom: "Fantastique",
+    livreCount: 15,
+    image: "https://images.unsplash.com/photo-1518744386442-2d48ac47a7eb?w=200&h=200&fit=crop",
+    description: "Magie, créatures et mondes imaginaires"
+  },
+  {
+    id: 3,
+    nom: "Psychologie",
+    livreCount: 7,
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=200&fit=crop",
+    description: "Développement personnel et psychologie"
+  },
+  {
+    id: 4,
+    nom: "Divers",
+    livreCount: 56,
+    image: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=200&h=200&fit=crop",
+    description: "Un peu de tout"
+  },
+  {
+    id: 5,
+    nom: "Compréhension",
+    livreCount: 1,
+    image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=200&fit=crop",
+    description: "Livres qui font réfléchir"
+  },
+  {
+    id: 6,
+    nom: "Là où la logique...",
+    livreCount: 2,
+    image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=200&h=200&fit=crop",
+    description: "Romans philosophiques"
   }
 ];

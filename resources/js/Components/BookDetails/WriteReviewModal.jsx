@@ -1,5 +1,3 @@
-// resources/js/Components/BookDetails/WriteReviewModal.jsx
-
 import { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 
@@ -13,8 +11,6 @@ export default function WriteReviewModal({
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-
-  // Reset quand le modal s'ouvre
   useEffect(() => {
     if (isOpen) {
       setRating(0);
@@ -27,8 +23,7 @@ export default function WriteReviewModal({
     e.preventDefault();
     console.log('Avis soumis:', { rating, comment, bookId });
     setIsSubmitted(true);
-    
-    // Fermer après 2 secondes
+
     setTimeout(() => {
       onClose();
     }, 5000);
@@ -43,11 +38,7 @@ export default function WriteReviewModal({
         className="fixed inset-0 bg-black/50 z-50 transition-opacity"
         onClick={onClose}
       />
-      
-     {/* Bottom Sheet - plus haut */}
     	<div className="fixed inset-x-0 bottom-0 top-16 bg-white rounded-t-3xl z-50 animate-slide-up overflow-y-auto">
-  
-				{/* Poignée de fermeture */}
 				<div className="flex justify-center pt-4 pb-2 sticky top-0 bg-white border-b border-gray-100">
 					<div 
 						className="w-12 h-1 bg-gray-300 rounded-full cursor-pointer"
@@ -56,17 +47,16 @@ export default function WriteReviewModal({
 				</div>
         
         {/* Contenu */}
-       <div className="px-6 py-8"> {/* Augmenté un peu le padding pour l'espace */}
+       <div className="px-6 py-8"> 
 					{isSubmitted ? (
 						<div className="text-center flex flex-col items-center">
 							<div className="mb-6 flex justify-center">
 								<svg 
 									xmlns="http://www.w3.org/2000/svg" 
-									/* On utilise w-32 ou w-40 pour un effet "GROS" pouce comme sur la capture */
 									className="w-32 h-32 text-gray-800" 
 									fill="none" 
 									viewBox="0 0 24 24" 
-									strokeWidth="1.2" /* Trait légèrement plus fin pour le style "croquis" */
+									strokeWidth="1.2"
 									stroke="currentColor"
 								 >
 									<path 
@@ -77,17 +67,13 @@ export default function WriteReviewModal({
 								</svg>
 							</div>
 							
-							{/* Titre - Texte exact de l'image traduit */}
 							<h2 className="text-2xl font-bold text-black mb-2">
 								Merci pour votre avis
 							</h2>
 							
-							{/* Sous-titre */}
 							<p className="text-gray-500 text-sm leading-tight max-w-[250px] mb-8">
 								Votre avis peut être pour quelqu'un décisif
 							</p>
-							
-							{/* Bouton Noir (comme sur l'image) */}
 							<button
 								onClick={onClose}
 								className="w-full py-4 bg-[#1C1C1C] text-white font-medium rounded-2xl hover:bg-black transition-all"
@@ -100,8 +86,7 @@ export default function WriteReviewModal({
             <form onSubmit={handleSubmit}>
               <h2 className="text-lg font-bold text-gray-900 mb-2">Avis et note</h2>
               <p className="text-sm text-gray-500 mb-6">{bookTitle}</p>
-              
-              {/* Étoiles */}
+              {/* Etoile */}
               <div className="mb-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   {[1, 2, 3, 4, 5, 6, 7].map((star) => (
@@ -127,8 +112,6 @@ export default function WriteReviewModal({
                   {rating > 0 ? `${rating} étoile(s)` : 'Tapez pour évaluer'}
                 </p>
               </div>
-
-              {/* Texte */}
               <div className="mb-6">
                 <textarea
                   rows={4}
@@ -139,8 +122,6 @@ export default function WriteReviewModal({
                   required
                 />
               </div>
-
-              {/* Boutons */}
               <div className="flex gap-3">
                 <button
                   type="button"

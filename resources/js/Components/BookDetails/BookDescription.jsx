@@ -1,1 +1,0 @@
-  // Section "À propos" avec "Lire la suite"

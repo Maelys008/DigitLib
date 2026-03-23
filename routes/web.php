@@ -46,6 +46,65 @@ Route::get('/genres/{genre}', function ($genre) {
         'genre' => $genre
     ]);
 })->name('genre.books');
+Route::get('/search', function () {
+    return Inertia::render('SearchPage');
+})->name('search');
+Route::get('/scanner', function () {
+    return Inertia::render('ScannerPage');
+})->name('scanner');
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->name('profile');
+Route::get('/profile/edit', function () {
+    return Inertia::render('EditProfile');
+})->name('profile.edit');
+Route::get('/profile/cards', function () {
+    return Inertia::render('MyCards');
+})->name('profile.cards');
+Route::get('/profile/settings', function () {
+    return Inertia::render('Settings');
+})->name('profile.settings');
+Route::get('/library', function () {
+    return Inertia::render('Library');
+})->name('library');
+// Page des étagères
+Route::get('/shelves', function () {
+    return Inertia::render('Shelves');
+})->name('shelves');
+
+// Création d'étagère
+Route::get('/shelves/create', function () {
+    return Inertia::render('CreateShelf');
+})->name('shelves.create');
+
+// Détail d'une étagère
+Route::get('/shelves/{id}', function ($id) {
+    return Inertia::render('ShelfDetail', [
+        'id' => $id
+    ]);
+})->name('shelves.detail');
+// Favoris
+Route::get('/favorites', function () {
+    return Inertia::render('Favorites');
+})->name('favorites');
+
+// Livres lus
+Route::get('/read-books', function () {
+    return Inertia::render('ReadBooks');
+})->name('read.books');
+// Détail d'une étagère
+Route::get('/shelves/{id}', function ($id) {
+    return Inertia::render('ShelfDetail', [
+        'id' => (int)$id
+    ]);
+})->name('shelves.detail');
+
+// Édition d'une étagère
+Route::get('/shelves/{id}/edit', function ($id) {
+    return Inertia::render('EditShelf', [
+        'id' => (int)$id
+    ]);
+})->name('shelves.edit');
 /*Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

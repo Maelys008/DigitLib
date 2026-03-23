@@ -1,10 +1,8 @@
-// resources/js/Pages/BookDetail.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
-import { livres ,avis} from '../data/mockData';
+import { livres , avis} from '../data/mockData';
 import { useState } from 'react';
-import { ArrowLeft, MoreVertical, Heart, Share2, BookOpen, User, Calendar, Star } from 'lucide-react';
-import { Link, router, usePage } from '@inertiajs/react'; // Ajoute usePage ici
+import { BookOpen, User, Calendar, Star } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react'; 
 import HorizontalScroll from '@/Components/HorizontalScroll';
 import BookCard from '@/Components/BookCard';
 import { getPastelColor } from '@/Constants/colors';
@@ -16,26 +14,18 @@ import ReviewSection from '@/Components/BookDetails/ReviewSection';
 
 export default function BookDetail() {
   const [isLiked, setIsLiked] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
 	const [isLibraryJoined, setIsLibraryJoined] = useState(false);
   const { props } = usePage();
-  const { id } = props; // Récupère l'ID depuis la route
+  const { id } = props; 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-
-  
-  // Cherche le livre dans les données mockées
   const livre = livres.find(l => l.id === id);
-  
-  // Simulation de livres recommandés (même genre)
   const livresRecommandes = livres?.filter(l => l.genre === livre?.genre && l.id !== livre?.id).slice(0, 17) || [];
-   
   const handleLibraryJoin = () => {
     setIsLibraryJoined(true);
-    setShowJoinWarning(false); // Cache le warning si affiché
+    setShowJoinWarning(false);
   };
 	 const handleBorrow = () => {
     console.log('Livre emprunté !');
-    // Logique d'emprunt
   };
 	const [showJoinWarning, setShowJoinWarning] = useState(false);
      const avisDuLivre = avis.filter(a => a.livre_id === id);
@@ -54,7 +44,6 @@ export default function BookDetail() {
 
   return (
     <MobileLayout>
-      {/* HEADER avec image de couverture - utilise BookHeader */}
       <BookHeader 
         imageUrl={livre.image_couverture}
         titre={livre.titre}
@@ -66,8 +55,6 @@ export default function BookDetail() {
 
 				{/* SECTION INFOS PRINCIPALES */}
 			<div className="px-6 pt-4">
-						
-						{/* MÉTADONNÉES - Chaque dans sa propre case */}
 						<div className="grid grid-cols-4 gap-2 mb-4">
 							{/* Auteur */}
 							<div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
@@ -132,17 +119,16 @@ export default function BookDetail() {
         bibliothequeNom={livre.bibliotheque?.nom || 'Bibliothèque'}
         isLibraryJoined={isLibraryJoined}
         onBorrow={handleBorrow}
-        onShowWarning={setShowJoinWarning} // Passe la fonction pour activer le warning
+        onShowWarning={setShowJoinWarning}
       />
 
         {/* SECTION AVIS */}
 							<ReviewSection 
-								reviews={avisDuLivre} // Passe les avis filtrés
+								reviews={avisDuLivre} 
 								bookId={livre.id}
 								bookTitle={livre.titre}
 						/>
-
-        {/* SECTION LIVRES RECOMMANDÉS */}
+						
 				{livresRecommandes.length > 0 && (
 					<div className="mb-6">
 						<div className="flex items-center justify-between mb-3">

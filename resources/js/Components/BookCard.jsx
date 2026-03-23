@@ -1,5 +1,3 @@
-// resources/js/Components/BookCard.jsx
-
 import { BookOpen, MapPin, Bookmark, Star } from "lucide-react";
 import { router } from "@inertiajs/react";
 
@@ -8,8 +6,6 @@ export default function BookCard({
   onClick,
   variant = 'default', // 'default', 'horizontal', 'cover', 'small'
   showNote = false,
-  showBadge = false,
-  badgeText = 'Par abonnement',
   backgroundColor = null, // Pour les cartes avec fond coloré (rose, vert, etc.)
   className = ''
 }) {
@@ -52,8 +48,6 @@ export default function BookCard({
             </div>
           )}
         </div>
-
-        {/* Infos compactes */}
         <div className="p-2">
           <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 mb-0.5">
             {livre.titre}
@@ -69,19 +63,12 @@ export default function BookCard({
               <span className="text-xs text-gray-700">{livre.note}</span>
             </div>
           )}
-          
-          {/* Badge optionnel */}
-          {showBadge && (
-            <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-              {badgeText}
-            </span>
-          )}
         </div>
       </div>
     );
   }
 
-  // Variant pour les cartes avec image de couverture uniquement (comme dans certaines maquettes)
+  // Variant pour les cartes avec image de couverture uniquement 
   if (variant === 'cover') {
     return (
       <div 
@@ -113,7 +100,7 @@ export default function BookCard({
     );
   }
 
-  // Variant par défaut (version complète pour les pages de détail, catalogue, etc.)
+  // Variant par défaut 
   return (
     <div 
       onClick={handleClick}
@@ -134,7 +121,6 @@ export default function BookCard({
           className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-md hover:bg-white transition-colors"
           onClick={(e) => {
             e.stopPropagation();
-            // TODO: Handle bookmark
             console.log('Bookmark clicked for:', livre.titre);
           }}
         >

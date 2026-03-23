@@ -1,5 +1,3 @@
-// resources/js/Components/GenreListItem.jsx
-
 import { router } from '@inertiajs/react';
 
 export default function GenreListItem({ 
@@ -11,19 +9,17 @@ export default function GenreListItem({
   
   const handleClick = () => {
     if (onClick) {
-      onClick(); // Si onClick est fourni par le parent, on l'utilise
+      onClick();
     } else {
-      // Sinon, redirige vers la page du genre
       router.visit(`/genres/${encodeURIComponent(genre.toLowerCase())}`);
     }
   };
 
   return (
     <div 
-      onClick={handleClick} // ← Utilise handleClick ici, pas onClick directement
+      onClick={handleClick} 
       className="relative bg-[#F5F5F7] rounded-2xl p-4 h-40 w-full cursor-pointer transition-transform active:scale-95 overflow-hidden"
     >
-      {/* Texte en haut à gauche */}
       <div className="flex flex-col">
         <span className="text-lg font-bold text-gray-900 leading-tight">
           {genre}
@@ -32,8 +28,6 @@ export default function GenreListItem({
           {bookCount} livres
         </span>
       </div>
-
-      {/* Image/Icône en bas à droite */}
       <div className="absolute bottom-2 right-2 w-20 h-20 flex items-center justify-center">
         {Icon ? (
           <Icon className="w-16 h-16 text-gray-700 opacity-80" />

@@ -1,5 +1,3 @@
-// resources/js/Components/BookDetails/BorrowButton.jsx
-
 import { useState } from 'react';
 import { AlertCircle, BookOpen, CheckCircle } from 'lucide-react';
 
@@ -7,7 +5,7 @@ export default function BorrowButton({
   bibliothequeNom,
   isLibraryJoined,
   onBorrow,
-  onShowWarning, // Nouvelle prop pour communiquer avec le parent
+  onShowWarning, 
   className = '' 
 }) {
   const [showWarning, setShowWarning] = useState(false);
@@ -16,7 +14,6 @@ export default function BorrowButton({
 
   const handleClick = () => {
     if (!isLibraryJoined) {
-      // Activer l'affichage du warning dans le parent
       if (onShowWarning) {
         onShowWarning(true);
       }
@@ -44,7 +41,7 @@ export default function BorrowButton({
 
   return (
     <div className="relative mb-6">
-      {/* Message de succès d'emprunt (reste ici) */}
+      {/* Message de succès d'emprunt */}
       {showSuccess && (
         <div className="mb-3 bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
           <div className="flex items-center gap-3">

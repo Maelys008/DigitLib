@@ -1,5 +1,3 @@
-// resources/js/Components/BookDetails/ReviewCard.jsx
-
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 
@@ -14,8 +12,6 @@ export default function ReviewCard({
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
-
-  // Couleur d'arrière-plan basée sur le nom (pour avoir des couleurs différentes)
   const getAvatarColor = (name) => {
     const colors = [
       'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 
@@ -60,7 +56,7 @@ export default function ReviewCard({
         </div>
         
         {/* Commentaire */}
-        <div className="pl-13"> {/* Décalage pour aligner avec le texte sous l'avatar */}
+        <div className="pl-13"> 
           <p className="text-sm text-gray-600 leading-relaxed">
             {displayedComment}
             {shouldTruncate && (
