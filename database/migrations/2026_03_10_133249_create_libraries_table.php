@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->string('name');
             $table->string('adress');
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('libraries');
             $table->foreignId('administrator_id')->constrained('users')->onDelete('cascade');
+            $table->string('library_image')->nullable();
             $table->timestamps();
         });
     }

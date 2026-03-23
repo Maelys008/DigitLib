@@ -14,7 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'check.lib.admin' => \App\Http\Middleware\CheckLibraryAdmin::class,
+            'check.lib.staff' => \App\Http\Middleware\CheckLibraryStaff::class,
+
         ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,

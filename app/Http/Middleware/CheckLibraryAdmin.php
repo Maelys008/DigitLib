@@ -16,28 +16,26 @@ class CheckLibraryAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-    $user = $request->user();
-    $libraryId = $request->route('library') ?? $request->library_id;
+        $user = $request->user();
+        $libraryId = $request->route('library') ?? $request->library_id;
 
-    if (!$libraryId) return $next($request);
+        if (!$libraryId) return $next($request);
 
-    $library = Library::find($libraryId);
+        $library = Library::find($libraryId);
 
-    if ($this->isUserAdminOf($user->id, $library)) {
-        return $next($request);
+        if ($this->isUserAdminOf($user->id, $library)) {
+            return $next($request);
+        }
+
+        return response()->json(['message' => 'Accès refusé : Vous n\'êtes pas l\'administrateur.'], 403);
     }
 
-    return response()->json(['message' => 'Accès refusé : Vous n\'êtes pas l\'administrateur.'], 403);
-}
+    private function isUserAdminOf($userId, $library)
+    {
+        if (!$library) return false;
 
-// Fonction récursive pour remonter la généalogie
-private function isUserAdminOf($userId, $library)
-{
-    if (!$library) return false;
-    
-    if ($library->administrator_id == $userId) return true;
+        if ($library->administrator_id == $userId) return true;
 
-    return $this->isUserAdminOf($userId, $library->parent);
-}
+        return $this->isUserAdminOf($userId, $library->parent);
     }
-
+}

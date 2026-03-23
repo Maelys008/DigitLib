@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Badge;
 use App\Models\Book;
 use App\Models\Copy;
 use App\Models\Loan;
+use App\Models\Notification;
 use App\Models\Penality;
 use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -41,6 +44,18 @@ class LoanController extends Controller
 
         $user = $request->user();
         $book = Book::with('library')->find($request->book_id);
+
+        $user->load('badge');
+        $maxAllowed = $user->badge ? $user->badge->maximum_book : 2;
+        $currentLoansCount = $user->loans()->whereNull('actual_return_date')->count();
+
+        if ($currentLoansCount >= $maxAllowed) {
+            return response()->json([
+                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . ".",
+                'max_allowed' => $maxAllowed,
+                'current_loans' => $currentLoansCount
+            ], 403);
+        }
 
 
         if (!$user->inscriptions()->where('library_id', $book->library_id)->exists()) {
@@ -119,32 +134,57 @@ class LoanController extends Controller
         return DB::transaction(function () use ($loan, $request) {
             $now = now();
             $user = $loan->user;
+            $book = $loan->copy->book;
 
 
             $loan->update(['actual_return_date' => $now]);
-
-
             $loan->copy->update(['status' => 'disponible']);
-            $loan->copy->book->increment('nb_available');
+            $book->increment('nb_available');
 
+            $firstReservation = Reservation::where('book_id', $book->id)
+                ->where('status', 'active')
+                ->orderBy('created_at', 'asc')
+                ->first();
 
+            if ($firstReservation) {
+                Notification::create([
+                    'user_id' => $firstReservation->user_id,
+                    'type' => 'book_available', 
+                    'message' => "Bonne nouvelle ! Le livre '{$book->title}' que vous attendiez est de nouveau disponible.",
+                    'object_type' => 'book',
+                    'object' => $book->id,
+                    'date_sent' => now(),
+                ]);
+
+                // pour ne pas envoyer 10 fois la notif si le livre repart et revient
+                $firstReservation->update(['status' => 'notified']);
+            }
             $isLate = $now->greaterThan($loan->expected_return_date);
             if ($isLate) {
                 $user->decrement('score');
             } else {
                 $user->increment('score');
             }
-            
 
+            $this->refreshUserGrade($user);
 
             $penalty = null;
             if ($isLate || $request->has('amount')) {
                 $penalty = Penality::create([
                     'user_id' => $user->id,
                     'loan_id' => $loan->id,
-                    'amount' => $request->amount ?? 500,
-                    'reason' => $request->reason ?? "Retour tardif",
+                    'amount' => $request->amount ,
+                    'reason' => $request->reason,
                     'status' => 'non payé',
+                ]);
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'penalty',
+                    'message' => "Une pénalité de " . ($request->amount) . " FCFA a été ajoutée suite à : \n" . "raison : " . ($request->reason),
+                    'object_type' => 'loan',
+                    'object' => $loan->id,
+                    'date_sent' => now(),
                 ]);
             }
 
@@ -163,5 +203,24 @@ class LoanController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+    private function refreshUserGrade($user)
+    {
+        $newBadge = Badge::where('condition_of_obtaining', '<=', $user->score)
+            ->orderBy('condition_of_obtaining', 'desc')
+            ->first();
+
+        if ($newBadge && $user->badge_id !== $newBadge->id) {
+            $user->update(['badge_id' => $newBadge->id]);
+
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'badge_upgrade',
+                'message' => "Felicitation ! Vous avez atteint le rang {$newBadge->name}",
+                'object_type' => "badge",
+                'object' => $newBadge->name,
+                'date_sent' => now(),
+            ]);
+        }
     }
 }

@@ -12,10 +12,16 @@ class Library extends Model
         'adress',
         'description',
         'parent_id',
-        'administrator_id'
+        'administrator_id',
+        'library_image'
     ];
 
+    protected $appends = ['library_url','members_count'];
 
+    public function getLibraryUrlAttribute()
+    {
+        return $this->library_image ? asset('storage/' . $this->library_image) : null;
+    }
 
     public function allChildrenIds()
     {
@@ -61,5 +67,10 @@ class Library extends Model
     public function parent()
     {
         return $this->belongsTo(Library::class, 'parent_id');
+    }
+
+    public function getMembersCountAttribute()
+    {
+        return $this->inscriptions()->count();
     }
 }
