@@ -12,9 +12,28 @@ class Library extends Model
         'adress',
         'description',
         'parent_id',
-        'administrator_id'
+        'administrator_id',
+        'library_image'
     ];
 
+    protected $appends = ['library_url','members_count'];
+
+    public function getLibraryUrlAttribute()
+    {
+        return $this->library_image ? asset('storage/' . $this->library_image) : null;
+    }
+
+    public function allChildrenIds()
+    {
+        $ids = collect();
+
+        foreach ($this->children as $child) {
+            $ids->push($child->id);
+            $ids = $ids->merge($child->allChildrenIds());
+        }
+
+        return $ids;
+    }
     public function books()
     {
         return $this->hasMany(Book::class);
@@ -48,5 +67,10 @@ class Library extends Model
     public function parent()
     {
         return $this->belongsTo(Library::class, 'parent_id');
+    }
+
+    public function getMembersCountAttribute()
+    {
+        return $this->inscriptions()->count();
     }
 }

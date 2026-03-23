@@ -16,15 +16,23 @@ class Book extends Model
         'isbn',
         'description',
         'year_of_publication',
-        'nb_copy', 
-        'nb_available'
+        'nb_copy',
+        'nb_available',
+        'cover_image',
     ];
 
-    
+
     protected $casts =
     [
         'year_of_publication' => 'date'
     ];
+    protected $appends = ['cover_url'];
+
+    public function getCoverUrlAttribute()
+    {
+        return $this->cover_image ? asset('storage/' . $this->cover_image) : null;
+    }
+    
 
 
     public function library()

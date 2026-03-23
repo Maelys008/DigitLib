@@ -10,13 +10,9 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-<<<<<<< HEAD
         "laravel/socialite": "^5.25",
-        "laravel/tinker": "^2.10.1"
-=======
         "laravel/tinker": "^2.10.1",
         "tightenco/ziggy": "^2.0"
->>>>>>> fab80e6 (update: Ajout des fichiers par défaut après installation du breeze react)
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

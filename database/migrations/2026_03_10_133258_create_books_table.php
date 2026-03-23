@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('author');
             $table->string('genre');
             $table->string('isbn');
-            $table->string('description')->nullable();
+            $table->unique(['isbn', 'library_id']);
+            $table->text('description')->nullable();
             $table->string('year_of_publication');
             $table->string('cover_image');
             $table->integer('nb_copy')->default(0);

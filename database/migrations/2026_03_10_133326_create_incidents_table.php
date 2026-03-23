@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('library_id')->constrained('libraries');
-            $table->string('description');
+            $table->text('description');
             $table->date('date');
             $table->timestamps();
         });

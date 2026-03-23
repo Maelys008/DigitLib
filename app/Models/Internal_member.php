@@ -13,11 +13,7 @@ protected $fillable =
     [
         'user_id',
         'library_id',
-        'date_add'
-    ];
-
-    protected $casts = [
-        'date_add' => 'date',
+        ''
     ];
     public function library()
     {

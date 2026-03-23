@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('badges', function (Blueprint $table) {
-            $table->id()->autoIncrement();
-            $table->string('name');
-            $table->integer('condition_of_obtaining');
-            $table->integer('maximum_book');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('otp_code')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
         });
     }
 
@@ -25,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('badges');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['otp_code', 'otp_expires_at']);
+        });
     }
 };
