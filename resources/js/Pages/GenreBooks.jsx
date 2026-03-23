@@ -13,7 +13,7 @@ export default function GenreBooks() {
   );
 
   const handleGoBack = () => {
-    router.visit('/');
+    router.visit('/genres');
   };
 
   return (

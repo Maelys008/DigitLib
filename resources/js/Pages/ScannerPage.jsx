@@ -1,4 +1,3 @@
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { ScanLine, QrCode, BookOpen, User } from 'lucide-react';
 import { useState } from 'react';

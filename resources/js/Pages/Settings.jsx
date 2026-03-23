@@ -23,7 +23,6 @@ export default function Settings() {
   const handleChangeLanguage = (type) => {
     console.log(`Changer langue ${type}`);
   };
-t
 const Toggle = ({ checked, onChange, label, icon: Icon }) => (
   <label className="flex items-center justify-between py-3 cursor-pointer w-full">
     <div className="flex items-center gap-3">

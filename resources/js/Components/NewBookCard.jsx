@@ -1,5 +1,3 @@
-// resources/js/Components/NewBookCard.jsx
-
 import { Heart, Star } from "lucide-react";
 import { router } from "@inertiajs/react";
 import { useState, useEffect } from "react"; 
@@ -84,12 +82,10 @@ export default function NewBookCard({
           </button>
         </div>
 
-        {/* Auteur */}
         <p className="text-sm text-gray-500 line-clamp-1 mb-2">
           {livre.auteur}
         </p>
 
-        {/* Note dans une case noire */}
         <div className="flex justify-end mt-2">
           {livre.note && (
             <div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
