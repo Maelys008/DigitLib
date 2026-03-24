@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Badge;
 use App\Models\Book;
 use App\Models\Copy;
+use App\Models\Library;
+use App\Models\Incident;
+use App\Models\Internal_member;
 use App\Models\Loan;
 use App\Models\Notification;
 use App\Models\Penality;
@@ -43,10 +46,22 @@ class LoanController extends Controller
         ]);
 
         $user = $request->user();
+
+        $hasUnpaidPenalties = Penality::where('user_id', $user->id)
+            ->where('status', 'non payé')
+            ->exists();
+
+        if ($hasUnpaidPenalties) {
+            return response()->json(['message' => 'Emprunt bloqué : Vous avez des pénalités non payées.'], 403);
+        }
         $book = Book::with('library')->find($request->book_id);
 
+        $library = $book->library;
+
+        
         $user->load('badge');
-        $maxAllowed = $user->badge ? $user->badge->maximum_book : 2;
+        $maxAllowed = $user->badge->maximum_book??1;
+
         $currentLoansCount = $user->loans()->whereNull('actual_return_date')->count();
 
         if ($currentLoansCount >= $maxAllowed) {
@@ -78,7 +93,13 @@ class LoanController extends Controller
         }
 
         if ($book->nb_available > 0) {
-            return DB::transaction(function () use ($user, $book) {
+            // Durée d’emprunt (jours)
+            $loanDuration = $library->loan_duration;
+
+            // Pénalité journalière
+            $penaltyPerDay = $library->daily_penalty_amount;
+
+            return DB::transaction(function () use ($user, $book, $loanDuration, $penaltyPerDay) {
                 $copy = $book->copies()->where('status', 'disponible')->first();
 
                 if (!$copy) {
@@ -89,11 +110,10 @@ class LoanController extends Controller
                     'user_id' => $user->id,
                     'copy_id' => $copy->id,
                     'loan_date' => now(),
-                    'expected_return_date' => now()->addDays(14),
+                    'expected_return_date' => now()->addDays($loanDuration),
                 ]);
 
                 $returnDate = \Carbon\Carbon::parse($loan->expected_return_date)->format('d/m/Y');
-                $penaltyPerDay = 500;
 
                 Notification::create([
                     'user_id' => $user->id,
@@ -210,6 +230,34 @@ class LoanController extends Controller
     }
 
 
+    public function returnBook(Request $request, $loanId)
+    {
+        $loan = Loan::findOrFail($loanId);
+        $library = $loan->copy->book->library;
+
+        // Vérification de permission
+        $isInternal = Internal_member::where('user_id', $request->user()->id)
+            ->where('library_id', $library->id)
+            ->whereHas('role_assignments.role', function ($q) {
+                $q->where('permissions', 'like', '%all%');
+            })->exists();
+
+        if (!$isInternal) return response()->json(['error' => 'Action non autorisée'], 403);
+
+        // Si une pénalité existe, on la retourne dans la réponse
+        $penalty = Penality::where('loan_id', $loan->id)->where('status', 'non payé')->first();
+
+        $loan->update(['actual_return_date' => now()]);
+        $loan->copy->update(['status' => 'disponible']);
+
+        return response()->json([
+            'message' => 'Livre rendu avec succès',
+            'penalty_due' => $penalty ? $penalty->amount : 0
+        ]);
+    }
+
+
+
     /**
      * Remove the specified resource from storage.
      */
@@ -253,15 +301,31 @@ class LoanController extends Controller
             }
         })
 
-        // $loans = Loan::whereHas('copy', function ($query) use ($libraryIds) {
-        //     $query->whereIn('library_id', $libraryIds);
-        // })
+            // $loans = Loan::whereHas('copy', function ($query) use ($libraryIds) {
+            //     $query->whereIn('library_id', $libraryIds);
+            // })
             ->with(['user:id,name,email', 'copy.book:id,title'])
             ->orderBy('expected_return_date', 'asc');
-            
 
-            $loans = $loansQuery->get();
+
+        $loans = $loansQuery->get();
 
         return response()->json($loans);
+    }
+
+
+    public function libraryIncidents(Request $request)
+    {
+        $user = $request->user();
+
+        // On récupère les bibliothèques où l'utilisateur est membre interne
+        $myLibraryIds = Internal_member::where('user_id', $user->id)->pluck('library_id');
+
+        // On ne montre que les incidents de ces bibliothèques
+        $incidents = Incident::whereIn('library_id', $myLibraryIds)
+            ->with(['user:id,name,email', 'loan.copy.book'])
+            ->get();
+
+        return response()->json($incidents);
     }
 }

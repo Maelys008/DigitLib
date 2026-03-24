@@ -85,7 +85,7 @@ class AuthController extends Controller
             'otp_expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::to($user->email)->send(new SendOtpMail($otp));
+        Mail::to($user->email)->send(new SendOtpMail($otp, $user->email));
 
         return response()->json(['message' => 'Un nouveau code a été envoyé.']);
     }
@@ -146,7 +146,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Code expiré'], 422);
         }
 
-        // ✅ Activation
+        
         $user->update([
             'email_verified_at' => now(),
             'otp_code' => null,

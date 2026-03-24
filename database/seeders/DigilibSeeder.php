@@ -64,8 +64,8 @@ class DigilibSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
         DB::table('libraries')->insert([
-            ['id' => 3, 'name' => 'Bibliothèque Nationale du Bénin', 'adress' => 'Cotonou, Avenue Steinmetz', 'description' => 'La plus grande bibliothèque du pays avec plus de 50 000 ouvrages', 'parent_id' => null, 'administrator_id' => 1, 'library_image' => 'library_images/fHPBiNs4X7yXoQ1cXabEfeKBr2OWNXkQdI8pSG9H.jpg', 'created_at' => '2026-03-23 08:15:26', 'updated_at' => '2026-03-23 08:15:26', 'loan_duration' => 14, 'max_books_per_user' => null, 'daily_penalty_amount' => 0],
-            ['id' => 4, 'name' => 'Annexe Nationale - Akpakpa', 'adress' => 'Cotonou, Akpakpa', 'description' => 'Annexe de la Bibliothèque Nationale', 'parent_id' => 3, 'administrator_id' => 1, 'library_image' => null, 'created_at' => '2026-03-23 08:21:59', 'updated_at' => '2026-03-23 08:21:59', 'loan_duration' => 14, 'max_books_per_user' => null, 'daily_penalty_amount' => 0],
+            ['id' => 3, 'name' => 'Bibliothèque Nationale du Bénin', 'adress' => 'Cotonou, Avenue Steinmetz', 'description' => 'La plus grande bibliothèque du pays avec plus de 50 000 ouvrages', 'parent_id' => null, 'administrator_id' => 1, 'library_image' => 'library_images/fHPBiNs4X7yXoQ1cXabEfeKBr2OWNXkQdI8pSG9H.jpg', 'created_at' => '2026-03-23 08:15:26', 'updated_at' => '2026-03-23 08:15:26', 'loan_duration' => 14, 'daily_penalty_amount' => 0],
+            ['id' => 4, 'name' => 'Annexe Nationale - Akpakpa', 'adress' => 'Cotonou, Akpakpa', 'description' => 'Annexe de la Bibliothèque Nationale', 'parent_id' => 3, 'administrator_id' => 1, 'library_image' => null, 'created_at' => '2026-03-23 08:21:59', 'updated_at' => '2026-03-23 08:21:59', 'loan_duration' => 14, 'daily_penalty_amount' => 0],
         ]);
 
 

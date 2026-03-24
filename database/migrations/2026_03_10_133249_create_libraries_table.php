@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('administrator_id')->constrained('users')->onDelete('cascade');
             $table->string('library_image')->nullable();
             $table->integer('loan_duration')->default(14); 
-            $table->integer('max_books_per_user')->nullable();
+            // $table->integer('max_books_per_user')->nullable();//infini
             $table->decimal('daily_penalty_amount', 8, 2)->default(0);
             $table->timestamps();
         });
