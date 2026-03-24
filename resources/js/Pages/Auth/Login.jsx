@@ -1,17 +1,23 @@
+// resources/js/Pages/Auth/Login.jsx
+
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Login() {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({ email: '', password: '' });
+    setApiError('');
     
     let hasError = false;
     if (!email) {
@@ -26,11 +32,14 @@ export default function Login() {
     if (hasError) return;
     
     setIsLoading(true);
-    // Simuler connexion
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await login(email, password);
+    setIsLoading(false);
+    
+    if (result.success) {
       router.visit('/');
-    }, 1000);
+    } else {
+      setApiError(result.message);
+    }
   };
 
   const handleSkip = () => {
@@ -58,6 +67,12 @@ export default function Login() {
             Entrez votre email et mot de passe
           </p>
         </div>
+
+        {apiError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            {apiError}
+          </div>
+        )}
 
         {/* Formulaire */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,16 +125,16 @@ export default function Login() {
             )}
           </div>
 
-         {/* Mot de passe oublié */}
-        <div className="text-right">
-        <button 
-            type="button" 
-            onClick={() => router.visit('/forgot-password')}
-            className="text-gray-400 text-sm hover:text-gray-600 transition-colors"
-        >
-            Mot de passe oublié ?
-        </button>
-        </div>
+          {/* Mot de passe oublié */}
+          <div className="text-right">
+            <button 
+              type="button" 
+              onClick={() => router.visit('/forgot-password')}
+              className="text-gray-400 text-sm hover:text-gray-600 transition-colors"
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
 
           {/* Bouton Connexion */}
           <button
@@ -138,7 +153,6 @@ export default function Login() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-         {/* Boutons sociaux */}
             <div className="flex justify-between gap-3 mb-8">
                 <button className="flex-1 h-14 bg-[#F5F5F5] rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors">
                     <span className="text-2xl font-bold">f</span>

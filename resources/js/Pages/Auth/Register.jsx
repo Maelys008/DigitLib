@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import api from '../../services/api';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,7 +24,7 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     
@@ -38,7 +40,6 @@ export default function Register() {
       newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     }
     
-    // Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = 'Veuillez entrer une adresse email valide';
@@ -50,15 +51,19 @@ export default function Register() {
     }
     
     setIsLoading(true);
-    // Stocker les données et passer à l'étape 2
-    localStorage.setItem('tempUser', JSON.stringify({
-      email: formData.email,
-      password: formData.password
-    }));
-    setTimeout(() => {
-      setIsLoading(false);
-      router.visit('/register/verify');
-    }, 500);
+    setApiError('');
+    
+    const result = await api.register(formData.email, formData.password, formData.confirmPassword);
+    
+    setIsLoading(false);
+    
+    if (result.success) {
+      // Stocker l'email pour la vérification OTP
+      localStorage.setItem('tempEmail', formData.email);
+      router.visit('/verify-otp');
+    } else {
+      setApiError(result.message);
+    }
   };
 
   const handleSkip = () => {
@@ -84,6 +89,12 @@ export default function Register() {
             Entrez votre email et mot de passe
           </p>
         </div>
+
+        {apiError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            {apiError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
@@ -177,7 +188,6 @@ export default function Register() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-       {/* Boutons sociaux */}
             <div className="flex justify-between gap-3 mb-8">
                 <button className="flex-1 h-14 bg-[#F5F5F5] rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors">
                     <span className="text-2xl font-bold">f</span>

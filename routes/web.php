@@ -5,33 +5,26 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// ============================================
-// ROUTES D'AUTHENTIFICATION
-// ============================================
-
-// Connexion
+// Routes d'authentification
 Route::get('/login', function () {
     return Inertia::render('Auth/Login');
 })->name('login');
 
-// Inscription - Étape 1 (Email, Mot de passe, Confirmation)
 Route::get('/register', function () {
     return Inertia::render('Auth/Register');
 })->name('register');
 
-// Vérification d'identité - Étape 2 (ANIP + Téléphone)
-Route::get('/register/verify', function () {
-    return Inertia::render('Auth/VerifyIdentity');
-})->name('verify.identity');
-
-// Vérification OTP - Étape 3 (Code à 6 chiffres)
-Route::get('/verify/otp', function () {
+Route::get('/verify-otp', function () {
     return Inertia::render('Auth/VerifyOtp');
 })->name('verify.otp');
 
-// ============================================
-// ROUTES PRINCIPALES
-// ============================================
+Route::get('/complete-profile', function () {
+    return Inertia::render('Auth/CompleteProfile');
+})->name('complete.profile');
+
+Route::get('/forgot-password', function () {
+    return Inertia::render('Auth/ForgotPassword');
+})->name('password.request');
 
 Route::get('/', function () {
     return Inertia::render('Home');

@@ -1,14 +1,18 @@
+// resources/js/Pages/Auth/VerifyOtp.jsx
+
 import { useState, useEffect, useRef } from 'react';
 import { Shield, AlertCircle, ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import api from '../../services/api';
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(120);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
-
-  const generatedOtp = '123456'; 
+  
+  const email = localStorage.getItem('tempEmail') || '';
 
   useEffect(() => {
     if (timer > 0) {
@@ -54,7 +58,7 @@ export default function VerifyOtp() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const otpCode = otp.join('');
     
@@ -63,30 +67,40 @@ export default function VerifyOtp() {
       return;
     }
     
-    if (otpCode !== generatedOtp) {
-      setError('Code incorrect');
+    setIsLoading(true);
+    
+    const result = await api.verifyOtp(email, otpCode);
+    
+    setIsLoading(false);
+    
+    if (result.success) {
+      // Nettoyer
+      localStorage.removeItem('tempEmail');
+      router.visit('/complete-profile');
+    } else {
+      setError(result.message);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-      return;
     }
-    
-    // Récupérer les données utilisateur
-    const userData = JSON.parse(localStorage.getItem('tempUser') || '{}');
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.removeItem('tempUser');
-    
-    router.visit('/');
   };
 
-  const handleResend = () => {
-    setTimer(120);
-    setOtp(['', '', '', '', '', '']);
-    setError('');
-    inputRefs.current[0]?.focus();
+  const handleResend = async () => {
+    setIsLoading(true);
+    const result = await api.resendOtp(email);
+    setIsLoading(false);
+    
+    if (result.success) {
+      setTimer(120);
+      setOtp(['', '', '', '', '', '']);
+      setError('');
+      inputRefs.current[0]?.focus();
+    } else {
+      setError(result.message);
+    }
   };
 
   const handleBack = () => {
-    router.visit('/register/verify');
+    router.visit('/register');
   };
 
   const formatTime = (seconds) => {
@@ -110,9 +124,9 @@ export default function VerifyOtp() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Code de vérification</h1>
           <p className="text-gray-500 text-sm">
-            Nous avons envoyé un code à 6 chiffres au
+            Nous avons envoyé un code à 6 chiffres à
           </p>
-          <p className="text-black font-semibold mt-1">+229 XX XX XX XX XX</p>
+          <p className="text-black font-semibold mt-1">{email}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -148,7 +162,8 @@ export default function VerifyOtp() {
               <button
                 type="button"
                 onClick={handleResend}
-                className="text-sm text-black font-semibold"
+                disabled={isLoading}
+                className="text-sm text-black font-semibold hover:underline"
               >
                 Renvoyer le code
               </button>
@@ -157,9 +172,10 @@ export default function VerifyOtp() {
 
           <button
             type="submit"
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors"
+            disabled={isLoading}
+            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
           >
-            Vérifier
+            {isLoading ? 'Vérification...' : 'Vérifier'}
           </button>
         </form>
       </div>

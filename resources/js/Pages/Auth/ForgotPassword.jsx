@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import api from '../../services/api';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -8,7 +9,7 @@ export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     
@@ -25,18 +26,16 @@ export default function ForgotPassword() {
     
     setIsLoading(true);
     
-    // Vérifier si l'email existe dans localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userExists = users.some(u => u.email === email);
+    // Appel API pour mot de passe oublié
+    const result = await api.forgotPassword(email);
     
-    setTimeout(() => {
-      setIsLoading(false);
-      if (userExists) {
-        setIsSent(true);
-      } else {
-        setErrors({ email: 'Aucun compte associé à cet email' });
-      }
-    }, 1000);
+    setIsLoading(false);
+    
+    if (result.success) {
+      setIsSent(true);
+    } else {
+      setErrors({ email: result.message });
+    }
   };
 
   const handleBack = () => {

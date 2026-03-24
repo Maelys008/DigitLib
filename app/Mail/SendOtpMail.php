@@ -12,14 +12,17 @@ use Illuminate\Queue\SerializesModels;
 class SendOtpMail extends Mailable
 {
     use Queueable, SerializesModels;
+    
     public $code;
+    public $email;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($code)
+    public function __construct($code, $email, $name = null)
     {
         $this->code = $code;
+        $this->email = $email;
     }
 
     /**
@@ -28,7 +31,7 @@ class SendOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Votre code de vérification',
+            subject: 'Votre code de vérification DigiLib',
         );
     }
 
