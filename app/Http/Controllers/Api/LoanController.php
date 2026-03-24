@@ -23,9 +23,9 @@ class LoanController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role == 'admin') {
-            return Loan::with(['user', 'copy.book'])->get();
-        }
+        // if ($user->role == 'admin') {
+        //     return Loan::with(['user', 'copy.book'])->get();
+        // }
 
         return Loan::with(['copy.book'])
             ->where('user_id', $user->id)
@@ -92,6 +92,19 @@ class LoanController extends Controller
                     'expected_return_date' => now()->addDays(14),
                 ]);
 
+                $returnDate = \Carbon\Carbon::parse($loan->expected_return_date)->format('d/m/Y');
+                $penaltyPerDay = 500;
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'loan_success',
+                    'message' => "Emprunt réussi ! Vous devez rendre le livre avant le {$returnDate}. " .
+                        "Au-delà, une pénalité journalière de {$penaltyPerDay} sera appliquée.",
+                    'object_type' => 'loan',
+                    'object' => $loan->id,
+                    'date_sent' => now(),
+                ]);
+
                 $copy->update(['status' => 'emprunté']);
                 $book->decrement('nb_available');
 
@@ -149,7 +162,7 @@ class LoanController extends Controller
             if ($firstReservation) {
                 Notification::create([
                     'user_id' => $firstReservation->user_id,
-                    'type' => 'book_available', 
+                    'type' => 'book_available',
                     'message' => "Bonne nouvelle ! Le livre '{$book->title}' que vous attendiez est de nouveau disponible.",
                     'object_type' => 'book',
                     'object' => $book->id,
@@ -173,7 +186,7 @@ class LoanController extends Controller
                 $penalty = Penality::create([
                     'user_id' => $user->id,
                     'loan_id' => $loan->id,
-                    'amount' => $request->amount ,
+                    'amount' => $request->amount,
                     'reason' => $request->reason,
                     'status' => 'non payé',
                 ]);
@@ -222,5 +235,33 @@ class LoanController extends Controller
                 'date_sent' => now(),
             ]);
         }
+    }
+
+    public function libraryDashboard(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        $libraryIds = $user->managedLibraries()->pluck('id');
+        $loansQuery = Loan::whereHas('copy.book', function ($q) use ($libraryIds, $request) {
+            $q->whereIn('library_id', $libraryIds);
+            if ($request->filled('library_id')) {
+                $q->where('library_id', $request->library_id);
+            }
+        })
+
+        // $loans = Loan::whereHas('copy', function ($query) use ($libraryIds) {
+        //     $query->whereIn('library_id', $libraryIds);
+        // })
+            ->with(['user:id,name,email', 'copy.book:id,title'])
+            ->orderBy('expected_return_date', 'asc');
+            
+
+            $loans = $loansQuery->get();
+
+        return response()->json($loans);
     }
 }

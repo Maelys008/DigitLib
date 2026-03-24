@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'identity_hash',
+        'email_verified_at',
         'status',
         'badge_id',
         'otp_code',

@@ -27,7 +27,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('books', BookController::class)
         ->except(['index', 'show']);
 
-    Route::apiResource('loans', LoanController::class);
+    Route::get('/loans', [LoanController::class, 'index']);
+
+    // Route pour que l'ADMIN voie les emprunts de sa bibliothèque
+    Route::get('/library-loans', [LoanController::class, 'libraryDashboard']);
+
+    // Route emprunter
+    Route::post('/loans', [LoanController::class, 'store']);
+
+    // Route pour valider un retour
+    Route::put('/loans/{id}', [LoanController::class, 'update']);
+    
     Route::post('/completeProfile', [AuthController::class, 'completeProfile']);
 
     Route::post('/libraries/join', [LibraryController::class, 'join']);
@@ -46,7 +56,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/clubs/{id}/messages', [ClubController::class, 'getMessages']);
     Route::post('/clubs/{id}/messages', [ClubController::class, 'sendMessage']);
     Route::delete('/messages/{messageId}', [ClubController::class, 'deleteMessage']);
-    
+
     // Quitter un club
     Route::delete('/clubs/{id}/leave', [ClubController::class, 'leave']);
 

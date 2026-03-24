@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 //use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\DigilibSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,8 +14,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RoleSeeder::class,
-            BadgeSeeder::class,
+            DigilibSeeder::class
+            // RoleSeeder::class,
+            // BadgeSeeder::class,
             // UserSeeder::class,
             // LibraryAndBookSeeder::class,
             // ClubSeeder::class,
