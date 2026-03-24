@@ -19,10 +19,12 @@ return new class extends Migration
             $table->integer('score')->default(0);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('role')->default('reader');      
-            $table->string('identity_hash')->nullable();     
-            $table->string('status')->default('active');     
-            $table->string('badge_id')->nullable();          
+            $table->string('role')->default('reader');
+            $table->string('identity_hash')->nullable();
+            $table->string('status')->default('active');
+            $table->string('badge_id')->nullable();
+            $table->string('otp_code')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
