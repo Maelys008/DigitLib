@@ -1,3 +1,5 @@
+// resources/js/contexts/AuthContext.jsx
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
@@ -60,6 +62,9 @@ export function AuthProvider({ children }) {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
+  const isLibrarian = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
+  const isReader = user?.role === 'reader' || user?.role === null;
 
   const value = {
     user,
@@ -71,6 +76,9 @@ export function AuthProvider({ children }) {
     logout,
     updateUser,
     isAuthenticated: !!user,
+    isLibrarian,
+    isAdmin,
+    isReader,
   };
 
   return (

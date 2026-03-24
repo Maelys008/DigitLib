@@ -152,4 +152,12 @@ Route::get('/read-books', function () {
     return Inertia::render('ReadBooks');
 })->name('read.books');
 
+Route::get('/librarian/create', function () {
+    return Inertia::render('Librarian/CreateLibrary');
+})->name('librarian.create');
+
+Route::get('/librarian/dashboard', function () {
+    return Inertia::render('Librarian/Dashboard');
+})->name('librarian.dashboard');
+
 require __DIR__.'/auth.php';

@@ -177,15 +177,50 @@ class ApiService {
       return [];
     }
   }
-
-  async joinLibrary(libraryId) {
-    try {
-      const response = await this.axios.post('/libraries/join', { library_id: libraryId });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+async createLibrary(formData) {
+  try {
+    const response = await this.axios.post('/libraries', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la création' 
+    };
   }
+}
+
+async getUserLibraries() {
+  try {
+    // Essaie d'abord l'API
+    const response = await this.axios.get('/libraries');
+    return response.data;
+  } catch (error) {
+    console.error('API error, using fallback data');
+    // Fallback : retourner des données mockées depuis localStorage
+    const savedLibrary = localStorage.getItem('user_library');
+    if (savedLibrary) {
+      return [JSON.parse(savedLibrary)];
+    }
+    return [];
+  }
+}
+async joinLibrary(libraryId) {
+  try {
+    const response = await this.axios.post('/libraries/join', {
+      library_id: libraryId
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de l\'inscription' 
+    };
+  }
+}
   async getLoans() {
     try {
       const response = await this.axios.get('/loans');
