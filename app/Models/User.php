@@ -33,6 +33,7 @@ class User extends Authenticatable
         'badge_id',
         'otp_code',
         'otp_expires_at',
+        'email_verified_at',
     ];
 
     /**

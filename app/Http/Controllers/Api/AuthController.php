@@ -65,7 +65,7 @@ class AuthController extends Controller
 
         // $token = $user->createToken('auth_token')->plainTextToken;
 
-        Mail::to($user->email)->send(new SendOtpMail($otp));
+       Mail::to($user->email)->send(new SendOtpMail($otp, $user->email));
 
         return response()->json([
             'message' => 'Code envoyé par email'
