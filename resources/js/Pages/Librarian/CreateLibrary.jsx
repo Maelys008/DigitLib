@@ -1,5 +1,3 @@
-// resources/js/Pages/Librarian/CreateLibrary.jsx
-
 import { useState, useRef } from 'react';
 import { ArrowLeft, Building, CheckCircle, Camera, X } from 'lucide-react';
 import { router } from '@inertiajs/react';

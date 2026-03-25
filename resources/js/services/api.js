@@ -11,8 +11,6 @@ class ApiService {
         'X-Requested-With': 'XMLHttpRequest',
       },
     });
-
-    // Interceptor pour ajouter le token
     this.axios.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('auth_token');
@@ -23,8 +21,6 @@ class ApiService {
       },
       (error) => Promise.reject(error)
     );
-
-    // Interceptor pour gérer les erreurs 401
     this.axios.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -68,8 +64,6 @@ class ApiService {
       };
     }
   }
-
-  // Renvoyer OTP
   async resendOtp(email) {
     try {
       const response = await this.axios.post('/resend-otp', { email });
@@ -81,8 +75,6 @@ class ApiService {
       };
     }
   }
-
-  // Connexion
   async login(email, password) {
     try {
       const response = await this.axios.post('/login', { email, password });
@@ -139,15 +131,56 @@ class ApiService {
     }
   }
 
-  async getBooks(params = {}) {
-    try {
-      const response = await this.axios.get('/books', { params });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching books:', error);
-      return [];
-    }
+async getBooks(params = {}) {
+  try {
+    const response = await this.axios.get('/books', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    return { data: [] };
   }
+}
+
+async createBook(formData) {
+  try {
+    const response = await this.axios.post('/books', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Create book error:', error.response?.data);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de l\'ajout' 
+    };
+  }
+}
+
+async updateBook(id, formData) {
+  try {
+    formData.append('_method', 'PUT');
+    const response = await this.axios.post(`/books/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la modification' 
+    };
+  }
+}
+
+async deleteBook(id) {
+  try {
+    await this.axios.delete(`/books/${id}`);
+    return { success: true };
+  } catch (error) {
+    throw error;
+  }
+}
 
   async getBook(id) {
     try {
@@ -177,6 +210,16 @@ class ApiService {
       return [];
     }
   }
+  async getLibraryMembers(libraryId) {
+  try {
+    // Essaie d'abord via les membres internes
+    const response = await this.axios.get(`/libraries/${libraryId}/members`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library members:', error);
+    return [];
+  }
+}
 async createLibrary(formData) {
   try {
     const response = await this.axios.post('/libraries', formData, {
@@ -195,12 +238,10 @@ async createLibrary(formData) {
 
 async getUserLibraries() {
   try {
-    // Essaie d'abord l'API
     const response = await this.axios.get('/libraries');
     return response.data;
   } catch (error) {
     console.error('API error, using fallback data');
-    // Fallback : retourner des données mockées depuis localStorage
     const savedLibrary = localStorage.getItem('user_library');
     if (savedLibrary) {
       return [JSON.parse(savedLibrary)];
@@ -218,6 +259,47 @@ async joinLibrary(libraryId) {
     return { 
       success: false, 
       message: error.response?.data?.message || 'Erreur lors de l\'inscription' 
+    };
+  }
+}
+
+// Récupérer les membres internes d'une bibliothèque
+async getInternalMembers(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/members`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching internal members:', error);
+    return [];
+  }
+}
+
+// Ajouter un membre interne
+async addInternalMember(data) {
+  try {
+    const response = await this.axios.post(`/libraries/${data.library_id}/members`, {
+      email: data.email,
+      library_id: data.library_id,  
+      role_id: data.role_id
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Add member error:', error.response?.data);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de l\'ajout' 
+    };
+  }
+}
+
+async removeInternalMember(memberId) {
+  try {
+    const response = await this.axios.delete(`/internal-members/${memberId}`);
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la suppression' 
     };
   }
 }

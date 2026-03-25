@@ -3,7 +3,8 @@ import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
-import { AuthProvider } from './contexts/AuthContext'; // ← Ajoute cette ligne
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext'; 
 
 createInertiaApp({
   resolve: name => {
@@ -13,7 +14,9 @@ createInertiaApp({
   setup({ el, App, props }) {
     createRoot(el).render(
       <AuthProvider>          
-        <App {...props} />
+       <ThemeProvider>
+          <App {...props} />
+        </ThemeProvider>
       </AuthProvider>
     )
   },
