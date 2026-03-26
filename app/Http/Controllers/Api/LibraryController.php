@@ -12,6 +12,21 @@ use Illuminate\Support\Facades\DB;
 
 class LibraryController extends Controller
 {
+     public function index()
+    {
+        $user = auth()->user();
+        
+        // Récupérer les bibliothèques où l'utilisateur est admin
+        $libraries = Library::where('administrator_id', $user->id)->get();
+        
+        // Ajouter les informations supplémentaires
+        foreach ($libraries as $library) {
+            $library->books_count = $library->books()->count();
+            $library->members_count = $library->inscriptions()->count();
+        }
+        
+        return response()->json($libraries);
+    }
     public function join(Request $request)
     {
         $request->validate([

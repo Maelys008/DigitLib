@@ -33,7 +33,7 @@ export default function WriteReviewModal({
 
   return (
     <>
-      {/* Overlay sombre */}
+    
       <div 
         className="fixed inset-0 bg-black/50 z-50 transition-opacity"
         onClick={onClose}
@@ -46,7 +46,7 @@ export default function WriteReviewModal({
 					/>
 				</div>
         
-        {/* Contenu */}
+        
        <div className="px-6 py-8"> 
 					{isSubmitted ? (
 						<div className="text-center flex flex-col items-center">
@@ -82,11 +82,11 @@ export default function WriteReviewModal({
 							</button>
 						</div>
 					)  : (
-            /* Formulaire */
+           
             <form onSubmit={handleSubmit}>
               <h2 className="text-lg font-bold text-gray-900 mb-2">Avis et note</h2>
               <p className="text-sm text-gray-500 mb-6">{bookTitle}</p>
-              {/* Etoile */}
+            
               <div className="mb-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   {[1, 2, 3, 4, 5, 6, 7].map((star) => (

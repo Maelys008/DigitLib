@@ -239,9 +239,13 @@ async createLibrary(formData) {
 async getUserLibraries() {
   try {
     const response = await this.axios.get('/libraries');
+    console.log('Réponse API /libraries:', response.data);
     return response.data;
   } catch (error) {
-    console.error('API error, using fallback data');
+    console.error('API error:', error);
+    console.error('Erreur détaillée:', error.response?.data);
+    
+    // Fallback vers localStorage
     const savedLibrary = localStorage.getItem('user_library');
     if (savedLibrary) {
       return [JSON.parse(savedLibrary)];

@@ -7,8 +7,6 @@ export default function ReviewCard({
   className = '' 
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
-  // Obtenir les initiales pour l'avatar
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
@@ -29,9 +27,7 @@ export default function ReviewCard({
   return (
     <div className={`${variant === 'list' ? 'border-b border-gray-100 last:border-0' : ''}`}>
       <div className={`${variant === 'list' ? 'py-4' : 'bg-gray-50 rounded-xl p-4'} ${className}`}>
-        {/* En-tête avec avatar, nom, date et note */}
         <div className="flex items-start gap-3 mb-2">
-          {/* Avatar */}
           <div className={`w-10 h-10 rounded-full ${getAvatarColor(review.nom)} flex items-center justify-center text-white font-medium text-sm flex-shrink-0`}>
             {getInitials(review.nom)}
           </div>
@@ -43,7 +39,7 @@ export default function ReviewCard({
                 <p className="text-xs text-gray-400 mt-0.5">{review.date}</p>
               </div>
               
-              {/* Note dans une case noire */}
+           
 						<div className="flex justify-end mt-2">
 							{review.note && (
 								<div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
@@ -55,7 +51,7 @@ export default function ReviewCard({
           </div>
         </div>
         
-        {/* Commentaire */}
+     
         <div className="pl-13"> 
           <p className="text-sm text-gray-600 leading-relaxed">
             {displayedComment}

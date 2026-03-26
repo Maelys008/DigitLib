@@ -20,7 +20,7 @@ export default function ReviewSection({
         voirToutLien={`/book/${bookId}/reviews`}
       />
       
-      {/* Avis en horizontal scroll */}
+    
       {reviews.length > 0 ? (
         <HorizontalScroll>
           {reviews.map((review) => (
@@ -44,7 +44,7 @@ export default function ReviewSection({
         Écrire un avis
       </button>
 
-      {/* Modal */}
+
       <WriteReviewModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

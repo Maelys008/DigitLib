@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { BookOpen, Calendar, User, Library, Info } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import BookDetailHeader from '@/Components/liberian/BookDetailHeader';
 
 export default function BookDetail() {
   const { props } = usePage();
   const { id } = props;
+  const { user } = useAuth(); 
   const [book, setBook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 

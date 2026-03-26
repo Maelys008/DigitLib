@@ -1,5 +1,3 @@
-// resources/js/componentsLibrarian/AddBookModal.jsx
-
 import { useState, useRef } from 'react';
 import { X, Camera } from 'lucide-react';
 
@@ -39,7 +37,7 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId }) {
   const handleNumberChange = (e) => {
     const value = parseInt(e.target.value) || 1;
     const newNbCopy = value;
-    const newNbAvailable = value; // Par défaut, nb_available = nb_copy
+    const newNbAvailable = value; 
     
     setFormData(prev => ({ 
       ...prev, 
@@ -47,7 +45,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId }) {
       nb_available: newNbAvailable
     }));
     
-    // Vérification
     if (newNbCopy !== newNbAvailable) {
       setWarning('⚠️ Le nombre d\'exemplaires doit être égal au nombre de livres disponibles');
     } else {
@@ -62,7 +59,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId }) {
     
     setFormData(prev => ({ ...prev, nb_available: newNbAvailable }));
     
-    // Vérification
     if (currentNbCopy !== newNbAvailable) {
       setWarning('⚠️ Le nombre de livres disponibles doit être égal au nombre total d\'exemplaires');
     } else {
@@ -82,8 +78,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Vérification finale avant soumission
     if (formData.nb_copy !== formData.nb_available) {
       setError('⚠️ Le nombre d\'exemplaires et le nombre de livres disponibles doivent être identiques');
       return;
