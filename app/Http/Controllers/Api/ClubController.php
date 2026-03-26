@@ -18,7 +18,7 @@ class ClubController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|:clubs,name|max:255',
+            'name' => 'required|string|unique:clubs,name|max:255',
             'description' => 'nullable|string',
         ]);
 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('loan_id')->constrained('loans');
-            $table->string('amount');
+            $table->decimal('amount');
             $table->string('reason');
             $table->string('status')->default('non paye');
             $table->timestamps();

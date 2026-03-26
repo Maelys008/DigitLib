@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->string('name_role');
             $table->string('permissions');
-            //$table->json('permissions');
             $table->timestamps();
         });
     }

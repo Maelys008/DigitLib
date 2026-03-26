@@ -1,3 +1,4 @@
+-- Active: 1774254394739@@127.0.0.1@3307
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -15,6 +16,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('library_id')->constrained('libraries');
+            $table->foreignId('loan_id')->nullable()->constrained('loans')->onDelete('cascade');
             $table->text('description');
             $table->date('date');
             $table->timestamps();

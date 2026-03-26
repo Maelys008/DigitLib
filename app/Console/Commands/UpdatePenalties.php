@@ -14,7 +14,7 @@ class UpdatePenalties extends Command
      *
      * @var string
      */
-    protected $signature = 'app:update-penalties';
+    protected $signature = 'loans:update-penalties';
 
     /**
      * The console command description.
@@ -36,7 +36,7 @@ class UpdatePenalties extends Command
 
         foreach ($loans as $loan) {
             $library = $loan->copy->book->library;
-            $daysLate = now()->diffInDays($loan->expected_return_date);
+            $daysLate = (int) now()->diffInDays($loan->expected_return_date, true);
 
             // Calcul du montant basé sur les réglages de la bibliothèque
             $dailyAmount = $library->daily_penalty_amount ?? 0;
