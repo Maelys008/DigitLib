@@ -60,10 +60,6 @@ Route::get('/editeurs', function () {
     return Inertia::render('Editeurs');
 })->name('editeurs');
 
-// ============================================
-// ROUTES LIVRES
-// ============================================
-
 Route::get('/book/{id}', function ($id) {
     return Inertia::render('BookDetail', [
         'id' => (int)$id
@@ -78,10 +74,6 @@ Route::get('/book/{id}/reviews', function ($id) {
     ]);
 })->name('book.reviews');
 
-// ============================================
-// ROUTES RECHERCHE ET SCANNER
-// ============================================
-
 Route::get('/search', function () {
     return Inertia::render('SearchPage');
 })->name('search');
@@ -90,9 +82,6 @@ Route::get('/scanner', function () {
     return Inertia::render('ScannerPage');
 })->name('scanner');
 
-// ============================================
-// ROUTES PROFIL
-// ============================================
 
 Route::get('/profile', function () {
     return Inertia::render('Profile');
@@ -114,15 +103,9 @@ Route::get('/profile/support', function () {
     return Inertia::render('Support');
 })->name('profile.support');
 
-// ============================================
-// ROUTES BIBLIOTHÈQUE
-// ============================================
-
 Route::get('/library', function () {
     return Inertia::render('Library');
 })->name('library');
-
-// Étagères
 Route::get('/shelves', function () {
     return Inertia::render('Shelves');
 })->name('shelves');
@@ -143,7 +126,6 @@ Route::get('/shelves/{id}/edit', function ($id) {
     ]);
 })->name('shelves.edit');
 
-// Favoris et livres lus
 Route::get('/favorites', function () {
     return Inertia::render('Favorites');
 })->name('favorites');
@@ -152,4 +134,30 @@ Route::get('/read-books', function () {
     return Inertia::render('ReadBooks');
 })->name('read.books');
 
+Route::get('/librarian/create', function () {
+    return Inertia::render('Librarian/CreateLibrary');
+})->name('librarian.create');
+
+Route::get('/librarian/dashboard', function () {
+    return Inertia::render('Librarian/Dashboard');
+})->name('librarian.dashboard');
+Route::get('/librarian/books', function () {
+    return Inertia::render('Librarian/Books');
+})->name('librarian.books');
+Route::get('/librarian/books/{id}', function ($id) {
+    return Inertia::render('Librarian/BookDetail', [
+        'id' => (int)$id
+    ]);
+})->name('librarian.books.detail');
+Route::get('/librarian/books/{id}/edit', function ($id) {
+    return Inertia::render('Librarian/EditBook', [
+        'id' => (int)$id
+    ]);
+})->name('librarian.books.edit');
+Route::get('/librarian/internal-members', function () {
+    return Inertia::render('Librarian/InternalMembers');
+})->name('librarian.internal-members');
+Route::get('/librarian/settings', function () {
+    return Inertia::render('Librarian/Settings');
+})->name('librarian.settings');
 require __DIR__.'/auth.php';
