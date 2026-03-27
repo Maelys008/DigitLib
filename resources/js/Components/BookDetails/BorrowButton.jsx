@@ -17,22 +17,17 @@ export default function BorrowButton({
       if (onShowWarning) {
         onShowWarning(true);
       }
-      
-      // Scroller jusqu'au bouton rejoindre
       const joinButton = document.getElementById('join-library-button');
       if (joinButton) {
         joinButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     } else {
-      // Bibliothèque déjà rejointe, on peut emprunter
       setIsBorrowed(true);
       setShowSuccess(true);
       
       if (onBorrow) {
         onBorrow();
       }
-      
-      // Cacher le message de succès après 3 secondes
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
@@ -41,7 +36,6 @@ export default function BorrowButton({
 
   return (
     <div className="relative mb-6">
-      {/* Message de succès d'emprunt */}
       {showSuccess && (
         <div className="mb-3 bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
           <div className="flex items-center gap-3">
@@ -59,8 +53,7 @@ export default function BorrowButton({
           </div>
         </div>
       )}
-
-      {/* Bouton d'emprunt */}
+      
       <button
         onClick={handleClick}
         disabled={isBorrowed}

@@ -14,15 +14,21 @@ use Illuminate\Support\Facades\Storage;
 class LibraryController extends Controller
 {
 
-    // public function index()
-    //     {
-    //         $libraries = Library::withCount('inscriptions')
-    //             ->with('administrator:id,name', 'parent:id,name')
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-    //         return response()->json($libraries);
-    //     }
+    public function index()
+    {
+        $user = auth()->user();
+        
+        // Récupérer les bibliothèques où l'utilisateur est admin
+        $libraries = Library::where('administrator_id', $user->id)->get();
+        
+        // Ajouter les informations supplémentaires
+        foreach ($libraries as $library) {
+            $library->books_count = $library->books()->count();
+            $library->members_count = $library->inscriptions()->count();
+        }
+        
+        return response()->json($libraries);
+    }
 
 
     public function show(Library $library)

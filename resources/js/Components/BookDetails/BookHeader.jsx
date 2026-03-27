@@ -26,7 +26,6 @@ export default function BookHeader({
           alt=""
           className="w-full h-full object-cover scale-110 blur-xl brightness-70"
         />
-        {/* Overlay sombre pour faire ressortir la couverture centrale */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
       <div className="relative pt-16 pb-8 flex flex-col items-center">
@@ -59,8 +58,6 @@ export default function BookHeader({
           </h1>
         </div>
       </div>
-
-      {/* Bottom Sheet Modal:Le menu */}
       <BottomSheet 
         isOpen={showBottomSheet}
         onClose={() => setShowBottomSheet(false)}

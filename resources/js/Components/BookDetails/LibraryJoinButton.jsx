@@ -15,7 +15,6 @@ export default function LibraryJoinButton({
     if (showWarning) {
       setShowLocalWarning(true);
       
-      // Auto-hide après 5 secondes
       const timer = setTimeout(() => {
         setShowLocalWarning(false);
         if (onWarningClose) onWarningClose();
@@ -35,8 +34,6 @@ export default function LibraryJoinButton({
     if (onJoin) {
       onJoin();
     }
-    
-    // Cache le message après 3 secondes
     setTimeout(() => {
       setShowSuccess(false);
     }, 3000);
@@ -44,7 +41,6 @@ export default function LibraryJoinButton({
 
   return (
     <div className="relative" id="join-library-button">
-      {/* Message d'avertissement  */}
       {showLocalWarning && (
         <div className="mb-3 bg-orange-50 border border-orange-200 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
@@ -69,7 +65,6 @@ export default function LibraryJoinButton({
         </div>
       )}
 
-      {/* Bouton principal */}
       <button
         onClick={handleJoin}
         disabled={isJoined}
@@ -92,7 +87,7 @@ export default function LibraryJoinButton({
         )}
       </button>
 
-      {/* Message de succès  */}
+  
       {showSuccess && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-green-50 border border-green-200 rounded-xl p-4 shadow-lg animate-fade-in z-10">
           <div className="flex items-center gap-3">

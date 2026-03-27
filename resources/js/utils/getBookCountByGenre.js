@@ -1,12 +1,19 @@
-// resources/js/utils/getBookCountByGenre.js
+import { livres as mockLivres } from '../data/mockData';
 
-import { livres } from '../data/mockData';
+export const getBookCountByGenre = (genre, booksList = null) => {
 
-export const getBookCountByGenre = (genre) => {
-  const count = livres.filter(livre => 
-    livre.genre.toLowerCase() === genre.toLowerCase()
+  const booksToUse = booksList || mockLivres;
+  
+  const count = booksToUse.filter(livre => 
+    livre.genre?.toLowerCase() === genre.toLowerCase()
   ).length;
   
-  // Formatage avec séparateur de milliers
-  return count.toLocaleString('fr-FR') ;
+  return count.toLocaleString('fr-FR');
+};
+
+export const getBookCountByGenreLegacy = (genre) => {
+  const count = mockLivres.filter(livre => 
+    livre.genre.toLowerCase() === genre.toLowerCase()
+  ).length;
+  return count.toLocaleString('fr-FR');
 };

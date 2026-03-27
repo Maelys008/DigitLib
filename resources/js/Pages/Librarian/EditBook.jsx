@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Camera, X, Save } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
 // Liste des genres disponibles 
@@ -14,6 +15,7 @@ const genresList = [
 export default function EditBook() {
   const { props } = usePage();
   const { id } = props;
+  const { user } = useAuth(); // ← Ajout de useAuth pour cohérence
   const [book, setBook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);

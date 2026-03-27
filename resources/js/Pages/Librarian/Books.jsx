@@ -14,14 +14,17 @@ export default function Books() {
   const [showAddBookModal, setShowAddBookModal] = useState(false);
 
   useEffect(() => {
-    const savedLibrary = localStorage.getItem('user_library');
-    if (savedLibrary) {
-      const lib = JSON.parse(savedLibrary);
-      setLibrary(lib);
-      loadBooks(lib);
+    if (user) {
+      const key = `user_library_${user.id}`;
+      const savedLibrary = localStorage.getItem(key);
+      if (savedLibrary) {
+        const lib = JSON.parse(savedLibrary);
+        setLibrary(lib);
+        loadBooks(lib);
+      }
     }
     setIsLoading(false);
-  }, []);
+  }, [user]); 
 
   const loadBooks = async (lib) => {
     try {
@@ -48,7 +51,7 @@ export default function Books() {
 
   const handleEditBook = (book) => {
     console.log('Modifier livre:', book);
-    // À implémenter
+
   };
 
   const handleDeleteBook = async (bookId) => {
@@ -100,6 +103,12 @@ export default function Books() {
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Gestion des livres</h1>
           </div>
+          <button
+            onClick={() => setShowAddBookModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Ajouter un livre
+          </button>
         </div>
       </div>
 

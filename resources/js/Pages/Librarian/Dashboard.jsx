@@ -24,20 +24,72 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedLibrary = localStorage.getItem('user_library');
-    if (savedLibrary) {
-      const lib = JSON.parse(savedLibrary);
-      setLibrary(lib);
-      loadBooks(lib);
-      loadMembers(lib);  
-    }
-    setIsLoading(false);
-  }, []);
+    const loadLibrary = async () => {
+      if (!user) {
+        console.log('Pas d\'utilisateur connecté');
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('Utilisateur connecté:', user);
+      console.log('user.id:', user.id);
+      
+      setIsLoading(true);
+      
+      // 1. Essayer de charger depuis localStorage
+      const key = `user_library_${user.id}`;
+      let savedLibrary = localStorage.getItem(key);
+      
+      if (savedLibrary) {
+        console.log('Bibliothèque trouvée dans localStorage:', savedLibrary);
+        const lib = JSON.parse(savedLibrary);
+        setLibrary(lib);
+        await loadBooks(lib);
+        await loadMembers(lib);
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('Pas de bibliothèque dans localStorage, appel API...');
+      
+      // 2. Si pas dans localStorage, charger depuis l'API
+      try {
+        // Récupérer toutes les bibliothèques
+        const libraries = await api.getUserLibraries();
+        console.log('Bibliothèques reçues de l\'API:', libraries);
+        
+        // Trouver la bibliothèque où l'utilisateur est admin
+        const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
+        console.log('Bibliothèque trouvée pour user.id:', userLibrary);
+        
+        if (userLibrary) {
+          // Sauvegarder dans localStorage pour la prochaine fois
+          localStorage.setItem(key, JSON.stringify(userLibrary));
+          setLibrary(userLibrary);
+          await loadBooks(userLibrary);
+          await loadMembers(userLibrary);
+        } else {
+          console.log('Aucune bibliothèque trouvée pour cet utilisateur');
+        }
+      } catch (error) {
+        console.error('Erreur chargement bibliothèque depuis API:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadLibrary();
+  }, [user]);
 
   const loadBooks = async (lib) => {
     try {
+      console.log('Chargement des livres pour library_id:', lib.id);
       const response = await api.getBooks({ library_id: lib.id });
+      console.log('Réponse API books:', response);
+      
       const booksData = response.data?.data || [];
+      console.log('Nombre de livres trouvés:', booksData.length);
+      
       setBooks(booksData);
       
       let totalCopies = 0;
@@ -72,7 +124,7 @@ export default function Dashboard() {
     }
   };
 
-  // Navigation vers la page de gestion des livres
+  // Navigation
   const handleManageBooks = () => {
     router.visit('/librarian/books');
   };
@@ -101,7 +153,7 @@ export default function Dashboard() {
         <DashboardHeader />
         <div className="p-6 text-center">
           <LibraryIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Aucune bibliothèque</p>
+          <p className="text-gray-500">Aucune bibliothèque trouvée</p>
           <button 
             onClick={() => router.visit('/librarian/create')} 
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"

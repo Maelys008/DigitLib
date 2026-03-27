@@ -34,49 +34,49 @@ export default function CreateLibrary() {
     }
   };
 
-// resources/js/Pages/Librarian/CreateLibrary.jsx
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError('');
-
-  const formDataToSend = new FormData();
-  formDataToSend.append('name', formData.name);
-  formDataToSend.append('adress', formData.adress);
-  formDataToSend.append('description', formData.description);
-  if (libraryImage) {
-    formDataToSend.append('library_image', libraryImage);
-  }
-
-  try {
-    const response = await api.createLibrary(formDataToSend);
-
-    if (response.success) {
-      setSuccess(true);
-      const newLibrary = response.data.library;
-      localStorage.setItem('user_library', JSON.stringify(newLibrary));
-      
-      updateUser({ ...user, role: 'admin' });
-      setTimeout(() => {
-        router.visit('/librarian/dashboard');
-      }, 2000);
-    } else {
-      setError(response.message);
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('adress', formData.adress);
+    formDataToSend.append('description', formData.description);
+    if (libraryImage) {
+      formDataToSend.append('library_image', libraryImage);
     }
-  } catch (err) {
-    setError('Erreur lors de la création de la bibliothèque');
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    try {
+      const response = await api.createLibrary(formDataToSend);
+
+      if (response.success) {
+        setSuccess(true);
+        const newLibrary = response.data.library;
+      
+        const key = `user_library_${user.id}`;
+        localStorage.setItem(key, JSON.stringify(newLibrary));
+        
+        updateUser({ ...user, role: 'admin' });
+        setTimeout(() => {
+          router.visit('/librarian/dashboard');
+        }, 2000);
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError('Erreur lors de la création de la bibliothèque');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBack = () => {
     router.visit('/settings');
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* En-tête sans BottomNav */}
       <div className="flex items-center px-6 pt-6 pb-4 border-b border-gray-100">
         <button 
           onClick={handleBack}
@@ -90,7 +90,7 @@ const handleSubmit = async (e) => {
       <div className="flex-1 px-6 py-8">
         {!success ? (
           <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
-            {/* Illustration */}
+            
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <Building className="w-10 h-10 text-white" />
@@ -112,7 +112,7 @@ const handleSubmit = async (e) => {
               </div>
             )}
 
-            {/* Upload d'image */}
+          
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Image de la bibliothèque

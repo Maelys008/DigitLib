@@ -1,17 +1,31 @@
 import MobileLayout from '@/Layouts/MobileLayout';
-import { useState } from 'react';
-import { ArrowLeft, Moon, Globe, Bell, ChevronRight, LogOut, BookOpen, Users, Clock, AlertCircle, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Moon, Globe, Bell, ChevronRight, LogOut, BookOpen, Users, Clock, AlertCircle, Home, Library } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext'; // ← Import du thème
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function LibrarianSettings() {
   const { user, logout } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme(); // ← Utilise le thème
+  const { darkMode, toggleDarkMode } = useTheme();
   const [interfaceLang, setInterfaceLang] = useState('Français');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoReturnReminder, setAutoReturnReminder] = useState(true);
   const [lateFeeNotification, setLateFeeNotification] = useState(true);
+  const [library, setLibrary] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      // ✅ Utiliser la clé avec l'ID utilisateur
+      const key = `user_library_${user.id}`;
+      const savedLibrary = localStorage.getItem(key);
+      if (savedLibrary) {
+        setLibrary(JSON.parse(savedLibrary));
+      }
+    }
+    setIsLoading(false);
+  }, [user]);
 
   const handleNavigateToNotifications = () => {
     router.visit('/librarian/notifications');
@@ -58,6 +72,16 @@ export default function LibrarianSettings() {
     </label>
   );
 
+  if (isLoading) {
+    return (
+      <div className="px-6 py-4 dark:bg-gray-900 min-h-screen">
+        <div className="flex items-center justify-center h-screen">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-6 py-4 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center gap-4 mb-6">
@@ -77,9 +101,21 @@ export default function LibrarianSettings() {
         </button>
       </div>
 
+      {/* Informations de la bibliothèque */}
+      {library && (
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-3 mb-3">
+            <Library className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Votre bibliothèque</h2>
+          </div>
+          <p className="text-gray-900 dark:text-white font-medium">{library.name}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{library.adress}</p>
+        </div>
+      )}
+
       <div className="space-y-6">
         
-       
+        {/* Apparence */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Apparence</h2>
           <Toggle 
@@ -90,6 +126,7 @@ export default function LibrarianSettings() {
           />
         </div>
 
+        {/* Langue */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Langue</h2>
           <button 
@@ -107,6 +144,7 @@ export default function LibrarianSettings() {
           </button>
         </div>
 
+        {/* Notifications */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Notifications</h2>
           <Toggle 
@@ -132,30 +170,21 @@ export default function LibrarianSettings() {
           />
         </div>
 
+        {/* Gestion */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Gestion</h2>
           <button
-            onClick={() => router.visit('/librarian/library-info')}
+            onClick={() => router.visit('/librarian/books')}
             className="w-full flex items-center justify-between py-3"
           >
             <div className="flex items-center gap-3">
               <BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-gray-700 dark:text-gray-300">Informations de la bibliothèque</span>
+              <span className="text-gray-700 dark:text-gray-300">Gestion des livres</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </button>
           <button
-            onClick={() => router.visit('/librarian/borrowing-rules')}
-            className="w-full flex items-center justify-between py-3 border-t border-gray-100 dark:border-gray-800"
-          >
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              <span className="text-gray-700 dark:text-gray-300">Règles d'emprunt</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-          </button>
-          <button
-            onClick={() => router.visit('/librarian/staff')}
+            onClick={() => router.visit('/librarian/internal-members')}
             className="w-full flex items-center justify-between py-3 border-t border-gray-100 dark:border-gray-800"
           >
             <div className="flex items-center gap-3">
@@ -166,6 +195,7 @@ export default function LibrarianSettings() {
           </button>
         </div>
 
+        {/* Déconnexion */}
         <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
           <button
             onClick={handleLogout}

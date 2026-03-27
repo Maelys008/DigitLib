@@ -14,15 +14,12 @@ export default function BottomSheet({ isOpen, onClose, onLike, isLiked }) {
 
   return (
     <>
-      {/* Overlay sombre */}
       <div 
         className="fixed inset-0 bg-black/50 z-50 transition-opacity"
         onClick={onClose}
       />
       
-      {/* Bottom Sheet */}
       <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up">
-        {/* Poignée de fermeture */}
         <div className="flex justify-center pt-4 pb-2">
           <div 
             className="w-12 h-1 bg-gray-300 rounded-full cursor-pointer"
@@ -30,12 +27,11 @@ export default function BottomSheet({ isOpen, onClose, onLike, isLiked }) {
           />
         </div>
         
-        {/* Titre du livre */}
+      
         <div className="px-6 pb-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Options</h3>
         </div>
         
-        {/* Liste des options */}
         <div className="px-4 py-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -55,7 +51,6 @@ export default function BottomSheet({ isOpen, onClose, onLike, isLiked }) {
           })}
         </div>
         
-        {/* Bouton fermer */}
         <div className="px-6 pb-6 pt-2">
           <button
             onClick={onClose}
