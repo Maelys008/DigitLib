@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('object_type');
             $table->string('object');
             $table->string('status')->default('non lu');
-            $table->date('date_sent');
+            $table->dateTime('date_sent');
             $table->timestamps();
         });
     }

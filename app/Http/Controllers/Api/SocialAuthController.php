@@ -30,10 +30,16 @@ class SocialAuthController extends Controller
                 ['email' => $socialUser->getEmail()],
                 [
                     'name' => $socialUser->getName(),
-                    'password' => null, 
-                    'status' => 'inactive', 
+                    'password' => null,
+                    'status' => 'active',
+                    'email_verified_at' => now(),
                 ]
             );
+
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+                $user->save();
+            }
 
             
             $user->socialAccounts()->firstOrCreate([

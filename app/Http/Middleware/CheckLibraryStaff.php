@@ -45,7 +45,7 @@ class CheckLibraryStaff
             return $next($request);
         }
 
-        return response()->json(['message' => 'Action réservée au staff de la bibliothèque.'], 403);
+        return response()->json(['message' => 'Action réservée à l\'équipe de gestion de la bibliothèque.'], 403);
     }
 
     /**

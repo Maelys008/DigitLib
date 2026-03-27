@@ -13,6 +13,7 @@ protected $fillable =
         'user_id',
         'book_id',
         'status',
+        'expires_at',
         
     ];
 

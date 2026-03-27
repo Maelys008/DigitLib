@@ -15,6 +15,7 @@ class DigilibSeeder extends Seeder
         DB::table('users')->truncate();
         DB::table('badges')->truncate();
         DB::table('libraries')->truncate();
+        DB::table('genres')->truncate();
         DB::table('books')->truncate();
         DB::table('copies')->truncate();
         DB::table('inscriptions')->truncate();
@@ -68,6 +69,32 @@ class DigilibSeeder extends Seeder
             ['id' => 4, 'name' => 'Annexe Nationale - Akpakpa', 'adress' => 'Cotonou, Akpakpa', 'description' => 'Annexe de la Bibliothèque Nationale', 'parent_id' => 3, 'administrator_id' => 1, 'library_image' => null, 'created_at' => '2026-03-23 08:21:59', 'updated_at' => '2026-03-23 08:21:59', 'loan_duration' => 14, 'daily_penalty_amount' => 0],
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Genres
+        |--------------------------------------------------------------------------
+        */
+        DB::table('genres')->insert([
+            ['id' =>1,'name' => 'Science-Fiction', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>2, 'name' => 'Sciences', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>3, 'name' => 'Histoire', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>4, 'name' => 'Classique', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>5, 'name' => 'Mystère', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>6, 'name' => 'Fantasy', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>7, 'name' => 'Roman', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>8, 'name' => 'Horreur', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>9, 'name' => 'Psychologie', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>10, 'name' => 'Philosophie', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>11, 'name' => 'Poésie', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>12, 'name' => 'Voyage', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>13, 'name' => 'Cuisine', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>14, 'name' => 'Programmation', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>15, 'name' => 'Art', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>16, 'name' => 'Jeunesse', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>17, 'name' => 'Thriller', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' =>18, 'name' => 'Développement personnel', 'created_at' =>now(), 'updated_at' =>now()],
+        ]);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -75,9 +102,9 @@ class DigilibSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
         DB::table('books')->insert([
-            ['id' => 7, 'library_id' => 3, 'title' => "Introduction à l'Intelligence Artificielle", 'author' => 'Stuart Russell', 'genre' => 'Sciences', 'isbn' => '978-0-134-61099-3', 'description' => 'Ce livre est une référence incontournable pour comprendre les bases de l’intelligence artificielle.', 'year_of_publication' => '2020-08-10 00:00:00', 'cover_image' => 'covers/pi38HRjAOuqDgSsk6vLeqaYsu1lSM8I3ATIVqZH4.jpg', 'nb_copy' => 1, 'nb_available' => 0, 'created_at' => '2026-03-23 09:21:30', 'updated_at' => '2026-03-23 09:38:01'],
-            ['id' => 8, 'library_id' => 3, 'title' => 'Une si longue lettre', 'author' => 'Mariama Bâ', 'genre' => 'Roman', 'isbn' => '978-2-070-40444-9', 'description' => 'Ce roman prend la forme d’une longue lettre.', 'year_of_publication' => '1979-08-10 00:00:00', 'cover_image' => 'covers/n32QZqRwklC89OmrfhVmXpXIGWFvPDHvKVLVMEIW.jpg', 'nb_copy' => 2, 'nb_available' => 1, 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:38:15'],
-            ['id' => 9, 'library_id' => 3, 'title' => "Histoire du Royaume d'Abomey", 'author' => 'Edna G. Bay', 'genre' => 'Histoire', 'isbn' => '978-0-852-55548-5', 'description' => 'Ce livre retrace l’histoire du royaume d’Abomey.', 'year_of_publication' => '1998-08-10 00:00:00', 'cover_image' => 'covers/3ypI0XQdu2SsBm59n3MIbl5Qp9XH4EMTiAxssqhR.jpg', 'nb_copy' => 2, 'nb_available' => 2, 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
+            ['id' => 7, 'library_id' => 3, 'title' => "Introduction à l'Intelligence Artificielle", 'author' => 'Stuart Russell', 'genre_id' => 3, 'isbn' => '978-0-134-61099-3', 'description' => 'Ce livre est une référence incontournable pour comprendre les bases de l’intelligence artificielle.', 'year_of_publication' => '2020-08-10 00:00:00', 'cover_image' => 'covers/pi38HRjAOuqDgSsk6vLeqaYsu1lSM8I3ATIVqZH4.jpg', 'nb_copy' => 1, 'nb_available' => 0, 'created_at' => '2026-03-23 09:21:30', 'updated_at' => '2026-03-23 09:38:01'],
+            ['id' => 8, 'library_id' => 3, 'title' => 'Une si longue lettre', 'author' => 'Mariama Bâ', 'genre_id' => 8, 'isbn' => '978-2-070-40444-9', 'description' => 'Ce roman prend la forme d’une longue lettre.', 'year_of_publication' => '1979-08-10 00:00:00', 'cover_image' => 'covers/n32QZqRwklC89OmrfhVmXpXIGWFvPDHvKVLVMEIW.jpg', 'nb_copy' => 2, 'nb_available' => 1, 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:38:15'],
+            ['id' => 9, 'library_id' => 3, 'title' => "Histoire du Royaume d'Abomey", 'author' => 'Edna G. Bay', 'genre_id' => 4, 'isbn' => '978-0-852-55548-5', 'description' => 'Ce livre retrace l’histoire du royaume d’Abomey.', 'year_of_publication' => '1998-08-10 00:00:00', 'cover_image' => 'covers/3ypI0XQdu2SsBm59n3MIbl5Qp9XH4EMTiAxssqhR.jpg', 'nb_copy' => 2, 'nb_available' => 2, 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
         ]);
 
         /*
@@ -86,11 +113,11 @@ class DigilibSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
         DB::table('copies')->insert([
-            ['id' => 1, 'book_id' => 7, 'codeQR' => 'QR-2ULHCFDZ', 'book_status' => 'neuf', 'status' => 'emprunté', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:21:30', 'updated_at' => '2026-03-23 09:38:01'],
-            ['id' => 2, 'book_id' => 8, 'codeQR' => 'QR-IM8DHTZH', 'book_status' => 'neuf', 'status' => 'emprunté', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:38:15'],
-            ['id' => 3, 'book_id' => 8, 'codeQR' => 'QR-ZO9PV2FE', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:22:37'],
-            ['id' => 4, 'book_id' => 9, 'codeQR' => 'QR-IU4CQOFN', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
-            ['id' => 5, 'book_id' => 9, 'codeQR' => 'QR-4GZB4UA0', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
+            ['id' => 1, 'book_id' => 7, 'codeQR' => 'QR-2ULHCFDZ', 'condition' => 'neuf', 'status' => 'emprunté', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:21:30', 'updated_at' => '2026-03-23 09:38:01'],
+            ['id' => 2, 'book_id' => 8, 'codeQR' => 'QR-IM8DHTZH', 'condition' => 'neuf', 'status' => 'emprunté', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:38:15'],
+            ['id' => 3, 'book_id' => 8, 'codeQR' => 'QR-ZO9PV2FE', 'condition' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:22:37', 'updated_at' => '2026-03-23 09:22:37'],
+            ['id' => 4, 'book_id' => 9, 'codeQR' => 'QR-IU4CQOFN', 'condition' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
+            ['id' => 5, 'book_id' => 9, 'codeQR' => 'QR-4GZB4UA0', 'condition' => 'neuf', 'status' => 'disponible', 'date_added' => '2026-03-23', 'created_at' => '2026-03-23 09:42:54', 'updated_at' => '2026-03-23 09:42:54'],
         ]);
 
         /*

@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('book_id')->constrained('books');
             $table->string('codeQR');
-            $table->string('book_status');
-            $table->string('status')->default('disponible');
+            $table->enum('condition', ['neuf', 'bon', 'abimé', 'très abimé'])->default('neuf');            $table->string('status')->default('disponible');
             $table->date('date_added');
             $table->timestamps();
         });

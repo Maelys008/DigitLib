@@ -17,7 +17,7 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Book::with('library');
+        $query = Book::with(['library', 'genre']);
 
         // if ($request->has('title')) {
         //     $query->where('title', 'like', '%' . $request->title . '%');
@@ -35,12 +35,15 @@ class BookController extends Controller
         //     $query->where('library_id', 'like', '%' . $request->library_id . '%');
         // }
 
+
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = '%' . $request->search . '%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('author', 'like', $searchTerm)
-                    ->orWhere('genre', 'like', $searchTerm);
+                    ->orWhereHas('genre', function($subQ) use ($searchTerm) {
+                         $subQ->where('name', 'like', $searchTerm);
+        });
             });
         }
 
@@ -63,8 +66,7 @@ class BookController extends Controller
         $query->orderBy($sortBy, $sortOrder);
 
         //pargination
-        $perPage = $request->input('per_page', 10);
-        $books = $query->paginate($perPage);
+       $books = $query->paginate($request->input('per_page', 10));
 
         return response()->json([
             'status' => 'success',
@@ -80,7 +82,7 @@ class BookController extends Controller
         $request->validate([
             'title' => 'required|string',
             'author' => 'required|string',
-            'genre' => 'required|string',
+            'genre_id' => 'required',
             'isbn' => 'required|string',
             'description' => 'required|string',
             'year_of_publication' => 'required|date',
@@ -119,7 +121,7 @@ class BookController extends Controller
             $newCopies[] = [
                 'book_id'    => $book->id,
                 'codeQR'     => 'QR-' . strtoupper(Str::random(8)),
-                'book_status' => 'neuf',
+                'condition' => 'neuf',
                 'status'     => 'disponible',
                 'date_added' => now(),
                 'created_at' => now(),
@@ -135,7 +137,7 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        $book = Book::with(['library', 'copies'])->find($id);
+        $book = Book::with(['library', 'copies', 'genre', 'reviews.user'])->find($id);
 
         if (! $book) {
             return response()->json([
@@ -161,7 +163,7 @@ class BookController extends Controller
         $request->validate([
             'title' => 'sometimes|string|max:255',
             'author' => 'sometimes|string|max:255',
-            'genre' => 'sometimes|string',
+            'genre_id' => 'sometimes',
             'description' => 'sometimes|string',
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',

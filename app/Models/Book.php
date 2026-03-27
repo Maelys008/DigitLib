@@ -26,7 +26,7 @@ class Book extends Model
     [
         'year_of_publication' => 'date'
     ];
-    protected $appends = ['cover_url'];
+    protected $appends = ['cover_url', 'average_rating'];
 
     public function getCoverUrlAttribute()
     {
@@ -49,4 +49,20 @@ class Book extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function genre()
+{
+    return $this->belongsTo(Genre::class);
+}
+
+public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
+
+// Calcul de la moyenne des étoiles
+public function getAverageRatingAttribute()
+{
+    return round($this->reviews()->avg('rating'), 1) ?: 0;
+}
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('copy_id')->constrained('copies');
+            $table->enum('condition_on_return', ['neuf', 'bon', 'abimé', 'très abimé'])->nullable();
             $table->date('loan_date');
             $table->date('expected_return_date');
             $table->date('actual_return_date')->nullable();

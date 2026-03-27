@@ -32,7 +32,7 @@ class Loan extends Model
     {
         return $this->belongsTo(Copy::class);
     }
-    public function penalities()
+    public function penalty()
     {
         return $this->hasOne(Penality::class);
     }

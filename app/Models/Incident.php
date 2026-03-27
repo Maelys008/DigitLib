@@ -33,4 +33,8 @@ class Incident extends Model
     {
         return $this->hasMany(Contestation::class);
     }
+    public function loan()
+    {
+        return $this->belongsTo(Loan::class);
+    }
 }

@@ -36,22 +36,29 @@ class UpdatePenalties extends Command
 
         foreach ($loans as $loan) {
             $library = $loan->copy->book->library;
-            $daysLate = (int) now()->diffInDays($loan->expected_return_date, true);
+            // Calculer la différence absolue en jours
+            $daysLate = (int) now()->diffInDays(Carbon::parse($loan->expected_return_date));
 
-            // Calcul du montant basé sur les réglages de la bibliothèque
+            if ($daysLate <= 0) continue; // Sécurité si l'heure n'est pas encore dépassée
+
             $dailyAmount = $library->daily_penalty_amount ?? 0;
             $totalPenalty = $daysLate * $dailyAmount;
 
-            // 2. Mettre à jour ou créer la pénalité
-            $penalty = Penality::updateOrCreate(
-                ['loan_id' => $loan->id],
-                [
-                    'user_id' => $loan->user_id,
-                    'amount' => $totalPenalty,
-                    'reason' => "Retard de {$daysLate} jours pour le livre: {$loan->copy->book->title}",
-                    'status' => 'non payé'
-                ]
-            );
+            // On ne met à jour que si la pénalité n'est pas encore marquée comme 'payé' 
+            // ou on crée une nouvelle si elle n'existe pas.
+            $penalty = Penality::where('loan_id', $loan->id)->first();
+
+            if (!$penalty || $penalty->status !== 'payé') {
+                Penality::updateOrCreate(
+                    ['loan_id' => $loan->id],
+                    [
+                        'user_id' => $loan->user_id,
+                        'amount' => $totalPenalty,
+                        'reason' => "Retard de {$daysLate} jours pour le livre: {$loan->copy->book->title}",
+                        'status' => 'non payé'
+                    ]
+                );
+            }
 
             // 3. Gestion de l'incident (Livre perdu après 30 jours)
             if ($daysLate >= 30) {

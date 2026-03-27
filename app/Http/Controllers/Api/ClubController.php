@@ -12,7 +12,7 @@ class ClubController extends Controller
 {
     public function index()
     {
-        return response()->json(Club::with('creactor')->get());
+        return response()->json(Club::with('creator')->get());
     }
 
     public function store(Request $request)

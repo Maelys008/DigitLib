@@ -13,7 +13,6 @@ protected $fillable =
     [
         'user_id',
         'library_id',
-        ''
     ];
     public function library()
     {

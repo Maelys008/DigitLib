@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reservations', function (Blueprint $table) {
-            $table->id()->autoIncrement();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('book_id')->constrained('books');
-            $table->string('status')->default('active');
-            $table->timestamp('expires_at')->nullable();
+        Schema::create('reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('book_id')->constrained();
+            $table->integer('rating')->default(5);
+            $table->text('comment');
+            $table->integer('likes_count')->default(0);
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reservations');
+    Schema::dropIfExists('reviews');
     }
 };

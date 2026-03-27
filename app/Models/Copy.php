@@ -10,7 +10,7 @@ class Copy extends Model
     [
         'book_id',
         'codeQR',
-        'book_status',
+        'condition',
         'date_added',
         'status'
     ];

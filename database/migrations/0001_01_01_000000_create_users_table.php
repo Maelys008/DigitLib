@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('role')->default('reader');
             $table->string('identity_hash')->nullable();
             $table->string('status')->default('active');
-            $table->string('badge_id')->nullable();
+            $table->foreignId('badge_id')->nullable()->constrained('badges')->nullOnDelete();
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expires_at')->nullable();
             $table->rememberToken();
@@ -51,7 +51,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
+        // Schema::dropIfExists('password_reset_tokens');
+        // Schema::dropIfExists('sessions');
     }
 };

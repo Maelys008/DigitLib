@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Badge;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\Rules\In;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -33,7 +33,7 @@ class User extends Authenticatable
         'badge_id',
         'otp_code',
         'otp_expires_at',
-        'email_verified_at',
+        
     ];
 
     /**
@@ -107,7 +107,7 @@ class User extends Authenticatable
         return $this->hasMany(Library::class, 'administrator_id');
     }
 
-    public function internal_members()
+    public function internalMembers()
     {
         return $this->hasMany(Internal_member::class, 'user_id');
     }
@@ -122,5 +122,15 @@ class User extends Authenticatable
     public function socialAccounts()
     {
         return $this->hasMany(Social_account::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function likedReviews()
+    {
+        return $this->belongsToMany(Review::class, 'review_likes')->withTimestamps();
     }
 }

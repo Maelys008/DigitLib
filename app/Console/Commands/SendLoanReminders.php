@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Loan;
 use App\Models\Notification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Illuminate\Console\Command;
 
 class SendLoanReminders extends Command
@@ -37,6 +38,12 @@ class SendLoanReminders extends Command
             ->get();
 
         foreach ($loans as $loan) {
+            $alreadyNotified = Notification::where('object', $loan->id) // Assure-toi que c'est object_id ou object selon ton schéma
+                ->where('type', 'reminder')
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+
+        if (!$alreadyNotified) {
             Notification::create([
                 'user_id' => $loan->user_id,
                 'type' => 'reminder',
@@ -48,5 +55,5 @@ class SendLoanReminders extends Command
         }
 
         $this->info(count($loans) . " notifications de rappel envoyées.");
-    }
+    }}
 }
