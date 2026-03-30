@@ -12,7 +12,7 @@ class Book extends Model
         'library_id',
         'title',
         'author',
-        'genre',
+        'genre_id',
         'isbn',
         'description',
         'year_of_publication',

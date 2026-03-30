@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Incident;
 use App\Models\Loan;
 use App\Models\Penality;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class UpdatePenalties extends Command

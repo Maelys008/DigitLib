@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\Copy;
 use App\Models\Library;
 use App\Models\Incident;
+use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Loan;
 use App\Models\Notification;
@@ -40,147 +41,134 @@ class LoanController extends Controller
      * Store a newly created resource in storage.
      */
 public function store(Request $request)
-{
-    // 1. Validation de l'entrée
-    $request->validate([
-        'book_id' => 'required|exists:books,id',
-    ]);
+    {
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+        ]);
 
-    $user = $request->user();
-    // On charge les relations nécessaires pour éviter les requêtes N+1
-    $book = Book::with(['library', 'copies'])->findOrFail($request->book_id);
-    $library = $book->library;
+        $user = $request->user();
+        $book = Book::with(['library', 'copies'])->findOrFail($request->book_id);
+        $library = $book->library;
 
-    // --- ÉTAPE 1 : VÉRIFICATIONS DE SÉCURITÉ ---
+        // 1. Pénalités impayées
+        $hasUnpaidPenalties = Penality::where('user_id', $user->id)
+            ->where('status', 'non payé')
+            ->exists();
 
-    // 2. Pénalités impayées
-    $hasUnpaidPenalties = Penality::where('user_id', $user->id)
-        ->where('status', 'non payé')
-        ->exists();
-
-    if ($hasUnpaidPenalties) {
-        return response()->json(['message' => 'Emprunt bloqué : Vous avez des pénalités non payées.'], 403);
-    }
-
-    // 3. Limite d'emprunt via badge
-    $user->load('badge');
-    $maxAllowed = $user->badge->maximum_book ?? 1;
-    $currentLoansCount = $user->loans()->whereNull('actual_return_date')->count();
-
-    if ($currentLoansCount >= $maxAllowed) {
-        return response()->json([
-            'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . ".",
-            'max_allowed' => $maxAllowed,
-            'current_loans' => $currentLoansCount
-        ], 403);
-    }
-
-    // 4. Vérifier inscription à la bibliothèque
-    if (!$user->inscriptions()->where('library_id', $book->library_id)->exists()) {
-        return response()->json([
-            'message' => "Vous devez rejoindre la bibliothèque '{$library->name}' pour emprunter."
-        ], 403);
-    }
-
-    // 5. Vérifier si l’utilisateur a déjà un exemplaire de CE livre en cours
-    $alreadyHasBook = Loan::where('user_id', $user->id)
-        ->whereNull('actual_return_date')
-        ->whereHas('copy', function ($query) use ($book) {
-            $query->where('book_id', $book->id);
-        })
-        ->exists();
-
-    if ($alreadyHasBook) {
-        return response()->json([
-            'message' => "Vous avez déjà un exemplaire de ce livre en votre possession."
-        ], 422);
-    }
-
-    // --- ÉTAPE 2 : GESTION DE LA TRANSACTION (EMPRUNT OU RÉSERVATION) ---
-
-    return DB::transaction(function () use ($user, $book, $library) {
-        
-        // 6. Vérifier si l'utilisateur a une réservation prioritaire (notifiée et non expirée)
-        $existingReservation = Reservation::where('user_id', $user->id)
-            ->where('book_id', $book->id)
-            ->whereIn('status', ['active', 'notified'])
-            ->first();
-
-        // 7. Chercher une copie disponible (avec verrouillage pour éviter la concurrence)
-        $copy = $book->copies()
-            ->where(function ($query) use ($user) {
-                $query->where('status', 'disponible')
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('status', 'réservé')
-                            ->whereHas('book.reservations', function ($r) use ($user) {
-                                $r->where('user_id', $user->id)
-                                    ->where('status', 'notified')
-                                    ->where('expires_at', '>', now());
-                            });
-                    });
-            })
-            ->lockForUpdate() // Crucial : empêche un autre utilisateur de prendre cette copie simultanément
-            ->first();
-
-        if ($copy) {
-            // --- LOGIQUE D'EMPRUNT ---
-            
-            // Clôturer la réservation si elle existe (qu'elle soit active ou notified)
-            if ($existingReservation) {
-                $existingReservation->update(['status' => 'completed']);
-            }
-
-            $loan = Loan::create([
-                'user_id' => $user->id,
-                'copy_id' => $copy->id,
-                'loan_date' => now(),
-                'expected_return_date' => now()->addDays($library->loan_duration),
-            ]);
-
-            $returnDate = \Carbon\Carbon::parse($loan->expected_return_date)->format('d/m/Y');
-
-            // Notification de succès
-            Notification::create([
-                'user_id' => $user->id,
-                'type' => 'loan_success',
-                'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. " .
-                             "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
-                'object_type' => 'loan',
-                'object' => $loan->id,
-                'date_sent' => now(),
-            ]);
-
-            $originalStatus = $copy->status;
-            $copy->update(['status' => 'emprunté']);
-
-            // Décrémenter le stock global seulement si on a pris une copie qui était "disponible"
-            // (Si elle était "réservée", le décompte avait déjà été fait au moment du retour précédent)
-            if ($originalStatus === 'disponible') {
-                $book->decrement('nb_available');
-            }
-
-            return response()->json(['message' => 'Livre emprunté avec succès', 'loan' => $loan], 201);
-
-        } else {
-            // --- LOGIQUE DE RÉSERVATION (LISTE D'ATTENTE) ---
-
-            if ($existingReservation) {
-                return response()->json(['message' => 'Vous êtes déjà sur la liste d\'attente pour ce livre.'], 422);
-            }
-
-            $reservation = Reservation::create([
-                'user_id' => $user->id,
-                'book_id' => $book->id,
-                'status' => 'active'
-            ]);
-
-            return response()->json([
-                'message' => 'Aucun exemplaire disponible. Vous avez été ajouté à la liste d\'attente.',
-                'reservation' => $reservation
-            ], 202);
+        if ($hasUnpaidPenalties) {
+            return response()->json(['message' => 'Emprunt bloqué : Vous avez des pénalités non payées.'], 403);
         }
-    });
-}
+
+        // 2. Limite d’emprunt via badge
+        $user->load('badge');
+        $maxAllowed = $user->badge->maximum_book ?? 1;
+        $currentLoansCount = $user->loans()->whereNull('actual_return_date')->count();
+
+        if ($currentLoansCount >= $maxAllowed) {
+            return response()->json([
+                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . ".",
+                'max_allowed' => $maxAllowed,
+                'current_loans' => $currentLoansCount
+            ], 403);
+        }
+
+        // 3. Inscription à la bibliothèque
+        if (!$user->inscriptions()->where('library_id', $book->library_id)->exists()) {
+            return response()->json([
+                'message' => "Vous devez rejoindre la bibliothèque '{$library->name}' pour emprunter."
+            ], 403);
+        }
+
+        // 4. Déjà un exemplaire de ce livre
+        $alreadyHasBook = Loan::where('user_id', $user->id)
+            ->whereNull('actual_return_date')
+            ->whereHas('copy', function ($query) use ($book) {
+                $query->where('book_id', $book->id);
+            })
+            ->exists();
+
+        if ($alreadyHasBook) {
+            return response()->json([
+                'message' => "Vous avez déjà un exemplaire de ce livre en votre possession."
+            ], 422);
+        }
+
+        // 5. Transaction emprunt / réservation
+        return DB::transaction(function () use ($user, $book, $library) {
+            $existingReservation = Reservation::where('user_id', $user->id)
+                ->where('book_id', $book->id)
+                ->whereIn('status', ['active', 'notified'])
+                ->first();
+
+            $copy = $book->copies()
+                ->where(function ($query) use ($user) {
+                    $query->where('status', 'disponible')
+                        ->orWhere(function ($q) use ($user) {
+                            $q->where('status', 'réservé')
+                                ->whereHas('book.reservations', function ($r) use ($user) {
+                                    $r->where('user_id', $user->id)
+                                        ->where('status', 'notified')
+                                        ->where('expires_at', '>', now());
+                                });
+                        });
+                })
+                ->lockForUpdate()
+                ->first();
+
+            if ($copy) {
+                // EMPRUNT
+                if ($existingReservation) {
+                    $existingReservation->update(['status' => 'completed']);
+                }
+
+                $loan = Loan::create([
+                    'user_id' => $user->id,
+                    'copy_id' => $copy->id,
+                    'loan_date' => now(),
+                    'expected_return_date' => now()->addDays($library->loan_duration),
+                ]);
+
+                $returnDate = \Carbon\Carbon::parse($loan->expected_return_date)->format('d/m/Y');
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'loan_success',
+                    'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. " .
+                                "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
+                    'object_type' => 'loan',
+                    'object' => $loan->id,
+                    'date_sent' => now(),
+                ]);
+
+                $originalStatus = $copy->status;
+                $copy->update(['status' => 'emprunté']);
+
+                if ($originalStatus === 'disponible') {
+                    $book->decrement('nb_available');
+                }
+
+                return response()->json(['message' => 'Livre emprunté avec succès', 'loan' => $loan], 201);
+            } else {
+                // RÉSERVATION
+                if ($existingReservation) {
+                    return response()->json(['message' => 'Vous êtes déjà sur la liste d\'attente pour ce livre.'], 422);
+                }
+
+                $reservation = Reservation::create([
+                    'user_id' => $user->id,
+                    'book_id' => $book->id,
+                    'status' => 'active'
+                ]);
+
+                return response()->json([
+                    'message' => 'Aucun exemplaire disponible. Vous avez été ajouté à la liste d\'attente.',
+                    'reservation' => $reservation
+                ], 202);
+            }
+        });
+    }
+
+    
     /**
      * Display the specified resource.
      */
@@ -194,7 +182,6 @@ public function store(Request $request)
      */
     public function update(Request $request, $id)
     {
-
         $request->validate([
             'amount' => 'nullable|numeric',
             'reason' => 'nullable|string',
@@ -210,9 +197,7 @@ public function store(Request $request)
             $now = now();
             $user = $loan->user;
             $copy = $loan->copy;
-            $book = $copy->book
-            
-
+            $book = $copy->book;
 
             $loan->update(['actual_return_date' => $now]);
 
@@ -223,12 +208,11 @@ public function store(Request $request)
 
             if ($firstReservation) {
                 $copy->update(['status' => 'réservé']);
-                // pour ne pas envoyer 10 fois la notif si le livre repart et revient
                 $firstReservation->update([
                     'status' => 'notified',
-                    'expires_at' => $now->addHours(24) // Priorité de 24h
-                    ]);
-            
+                    'expires_at' => $now->addHours(24)
+                ]);
+
                 Notification::create([
                     'user_id' => $firstReservation->user_id,
                     'type' => 'book_available',
@@ -237,11 +221,11 @@ public function store(Request $request)
                     'object' => $book->id,
                     'date_sent' => now(),
                 ]);
-} else {
-        $copy->update(['status' => 'disponible']);
-        $book->increment('nb_available');
-    }
-                
+            } else {
+                $copy->update(['status' => 'disponible']);
+                $book->increment('nb_available');
+            }
+
             $isLate = $now->greaterThan($loan->expected_return_date);
             if ($isLate) {
                 $user->decrement('score');
@@ -261,151 +245,10 @@ public function store(Request $request)
                     'status' => 'non payé',
                 ]);
 
-                Notification::create([public function store(Request $request)
-{
-    // 1. Validation de l'entrée
-    $request->validate([
-        'book_id' => 'required|exists:books,id',
-    ]);
-
-    $user = $request->user();
-    // On charge les relations nécessaires pour éviter les requêtes N+1
-    $book = Book::with(['library', 'copies'])->findOrFail($request->book_id);
-    $library = $book->library;
-
-    // --- ÉTAPE 1 : VÉRIFICATIONS DE SÉCURITÉ ---
-
-    // 2. Pénalités impayées
-    $hasUnpaidPenalties = Penality::where('user_id', $user->id)
-        ->where('status', 'non payé')
-        ->exists();
-
-    if ($hasUnpaidPenalties) {
-        return response()->json(['message' => 'Emprunt bloqué : Vous avez des pénalités non payées.'], 403);
-    }
-
-    // 3. Limite d'emprunt via badge
-    $user->load('badge');
-    $maxAllowed = $user->badge->maximum_book ?? 1;
-    $currentLoansCount = $user->loans()->whereNull('actual_return_date')->count();
-
-    if ($currentLoansCount >= $maxAllowed) {
-        return response()->json([
-            'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . ".",
-            'max_allowed' => $maxAllowed,
-            'current_loans' => $currentLoansCount
-        ], 403);
-    }
-
-    // 4. Vérifier inscription à la bibliothèque
-    if (!$user->inscriptions()->where('library_id', $book->library_id)->exists()) {
-        return response()->json([
-            'message' => "Vous devez rejoindre la bibliothèque '{$library->name}' pour emprunter."
-        ], 403);
-    }
-
-    // 5. Vérifier si l’utilisateur a déjà un exemplaire de CE livre en cours
-    $alreadyHasBook = Loan::where('user_id', $user->id)
-        ->whereNull('actual_return_date')
-        ->whereHas('copy', function ($query) use ($book) {
-            $query->where('book_id', $book->id);
-        })
-        ->exists();
-
-    if ($alreadyHasBook) {
-        return response()->json([
-            'message' => "Vous avez déjà un exemplaire de ce livre en votre possession."
-        ], 422);
-    }
-
-    // --- ÉTAPE 2 : GESTION DE LA TRANSACTION (EMPRUNT OU RÉSERVATION) ---
-
-    return DB::transaction(function () use ($user, $book, $library) {
-        
-        // 6. Vérifier si l'utilisateur a une réservation prioritaire (notifiée et non expirée)
-        $existingReservation = Reservation::where('user_id', $user->id)
-            ->where('book_id', $book->id)
-            ->whereIn('status', ['active', 'notified'])
-            ->first();
-
-        // 7. Chercher une copie disponible (avec verrouillage pour éviter la concurrence)
-        $copy = $book->copies()
-            ->where(function ($query) use ($user) {
-                $query->where('status', 'disponible')
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('status', 'réservé')
-                            ->whereHas('book.reservations', function ($r) use ($user) {
-                                $r->where('user_id', $user->id)
-                                    ->where('status', 'notified')
-                                    ->where('expires_at', '>', now());
-                            });
-                    });
-            })
-            ->lockForUpdate() // Crucial : empêche un autre utilisateur de prendre cette copie simultanément
-            ->first();
-
-        if ($copy) {
-            // --- LOGIQUE D'EMPRUNT ---
-            
-            // Clôturer la réservation si elle existe (qu'elle soit active ou notified)
-            if ($existingReservation) {
-                $existingReservation->update(['status' => 'completed']);
-            }
-
-            $loan = Loan::create([
-                'user_id' => $user->id,
-                'copy_id' => $copy->id,
-                'loan_date' => now(),
-                'expected_return_date' => now()->addDays($library->loan_duration),
-            ]);
-
-            $returnDate = \Carbon\Carbon::parse($loan->expected_return_date)->format('d/m/Y');
-
-            // Notification de succès
-            Notification::create([
-                'user_id' => $user->id,
-                'type' => 'loan_success',
-                'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. " .
-                             "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
-                'object_type' => 'loan',
-                'object' => $loan->id,
-                'date_sent' => now(),
-            ]);
-
-            $originalStatus = $copy->status;
-            $copy->update(['status' => 'emprunté']);
-
-            // Décrémenter le stock global seulement si on a pris une copie qui était "disponible"
-            // (Si elle était "réservée", le décompte avait déjà été fait au moment du retour précédent)
-            if ($originalStatus === 'disponible') {
-                $book->decrement('nb_available');
-            }
-
-            return response()->json(['message' => 'Livre emprunté avec succès', 'loan' => $loan], 201);
-
-        } else {
-            // --- LOGIQUE DE RÉSERVATION (LISTE D'ATTENTE) ---
-
-            if ($existingReservation) {
-                return response()->json(['message' => 'Vous êtes déjà sur la liste d\'attente pour ce livre.'], 422);
-            }
-
-            $reservation = Reservation::create([
-                'user_id' => $user->id,
-                'book_id' => $book->id,
-                'status' => 'active'
-            ]);
-
-            return response()->json([
-                'message' => 'Aucun exemplaire disponible. Vous avez été ajouté à la liste d\'attente.',
-                'reservation' => $reservation
-            ], 202);
-        }
-    });
-};
+                Notification::create([
                     'user_id' => $user->id,
                     'type' => 'penalty',
-                    'message' => "Une pénalité de " . ($request->amount) . " FCFA a été ajoutée suite à : \n" . "raison : " . ($request->reason),
+                    'message' => "Une pénalité de {$request->amount} FCFA a été ajoutée. Raison : {$request->reason}",
                     'object_type' => 'loan',
                     'object' => $loan->id,
                     'date_sent' => now(),
@@ -420,62 +263,51 @@ public function store(Request $request)
         });
     }
 
-
-   public function returnBook(Request $request, $loanId)
-{
-    $request->validate([
-        'condition_on_return' => 'required|in:neuf,bon,abimé,très abimé'
-    ]);
-
-    return DB::transaction(function () use ($loanId, $request) {
-        $loan = Loan::with(['copy.book', 'user'])->findOrFail($loanId);
-        $copy = $loan->copy;
-        $book = $copy->book;
-
-        // 1. Marquer le retour
-        $loan->update([
-            'actual_return_date' => now(),
-            'condition_on_return' => $request->condition_on_return
+    public function returnBook(Request $request, $loanId)
+    {
+        $request->validate([
+            'condition_on_return' => 'required|in:neuf,bon,abimé,très abimé'
         ]);
 
-        // 2. Mettre à jour l'état physique de la copie
-        $copy->update(['condition' => $request->condition_on_return]);
+        return DB::transaction(function () use ($loanId, $request) {
+            $loan = Loan::with(['copy.book', 'user'])->findOrFail($loanId);
+            $copy = $loan->copy;
+            $book = $copy->book;
 
-        // 3. GÉRER LA FILE D'ATTENTE (AUTOMATIQUE)
-        $nextReservation = Reservation::where('book_id', $book->id)
-            ->where('status', 'active')
-            ->orderBy('created_at', 'asc')
-            ->first();
-
-        if ($nextReservation) {
-            // Un utilisateur attend ! On lui réserve l'exemplaire
-            $copy->update(['status' => 'réservé']);
-            
-            $nextReservation->update([
-                'status' => 'notified',
-                'expires_at' => now()->addHours(24) // Il a 24h pour venir
+            $loan->update([
+                'actual_return_date' => now(),
+                'condition_on_return' => $request->condition_on_return
             ]);
 
-            // Notification pour le prochain utilisateur
-            Notification::create([
-                'user_id' => $nextReservation->user_id,
-                'type' => 'book_available',
-                'message' => "Bonne nouvelle ! Le livre '{$book->title}' est disponible. Vous avez 24h pour venir le récupérer.",
-                'object_type' => 'reservation',
-                'object' => $nextReservation->id,
-            ]);
-            
-            // Note : nb_available ne change pas car le livre reste bloqué pour la réservation
-        } else {
-            // Personne n'attend, le livre redevient libre pour tout le monde
-            $copy->update(['status' => 'disponible']);
-            $book->increment('nb_available');
-        }
+            $copy->update(['condition' => $request->condition_on_return]);
 
-        return response()->json(['message' => 'Livre retourné avec succès.']);
-    });
-}
+            $nextReservation = Reservation::where('book_id', $book->id)
+                ->where('status', 'active')
+                ->orderBy('created_at', 'asc')
+                ->first();
 
+            if ($nextReservation) {
+                $copy->update(['status' => 'réservé']);
+                $nextReservation->update([
+                    'status' => 'notified',
+                    'expires_at' => now()->addHours(24)
+                ]);
+
+                Notification::create([
+                    'user_id' => $nextReservation->user_id,
+                    'type' => 'book_available',
+                    'message' => "Bonne nouvelle ! Le livre '{$book->title}' est disponible. Vous avez 24h pour venir le récupérer.",
+                    'object_type' => 'reservation',
+                    'object' => $nextReservation->id,
+                ]);
+            } else {
+                $copy->update(['status' => 'disponible']);
+                $book->increment('nb_available');
+            }
+
+            return response()->json(['message' => 'Livre retourné avec succès.']);
+        });
+    }
 
 
     /**
@@ -485,6 +317,7 @@ public function store(Request $request)
     {
         //
     }
+    
     private function refreshUserGrade($user)
     {
         $newBadge = Badge::where('condition_of_obtaining', '<=', $user->score)
@@ -520,10 +353,6 @@ public function store(Request $request)
                 $q->where('library_id', $request->library_id);
             }
         })
-
-            // $loans = Loan::whereHas('copy', function ($query) use ($libraryIds) {
-            //     $query->whereIn('library_id', $libraryIds);
-            // })
             ->with(['user:id,name,email', 'copy.book:id,title'])
             ->orderBy('expected_return_date', 'asc');
 
@@ -539,7 +368,7 @@ public function store(Request $request)
         $user = $request->user();
 
         // On récupère les bibliothèques où l'utilisateur est membre interne
-        $myLibraryIds = Internal_member::where('user_id', $user->id)->pluck('library_id');
+        $myLibraryIds = Inscription::where('user_id', $user->id)->pluck('library_id');
 
         // On ne montre que les incidents de ces bibliothèques
         $incidents = Incident::whereIn('library_id', $myLibraryIds)
