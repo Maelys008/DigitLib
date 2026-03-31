@@ -93,7 +93,9 @@ class BookController extends Controller
         ]);
         // $request->validated();
         
-        $isbnExists = Book::where('isbn', $request->isbn)->exists();
+        $isbnExists = Book::where('isbn', $request->isbn )
+                        ->where('library_id', $request->library_id)
+                        ->exists();
         if ($isbnExists) {
             return response()->json([
                 'message' => 'Un livre avec cet ISBN existe déjà.'

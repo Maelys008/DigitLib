@@ -51,6 +51,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'sometimes|required|integer|min:1',
+            'daily_penalty_amount' => 'sometimes|required|numeric|min:0',
         ]);
 
         // Gérer l'image si fournie
@@ -110,6 +112,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'integer|min:1',
+            'daily_penalty_amount' => 'numeric|min:0',
         ]);
 
         // 1. Gérer l'image proprement
@@ -137,7 +141,9 @@ class LibraryController extends Controller
                 'parent_id' => $request->parent_id,
                 'adress' => $request->adress,
                 'description' => $request->description,
-                'administrator_id' => $user->id
+                'administrator_id' => $user->id,
+                'loan_duration' => $request->loan_duration,
+                'daily_penalty_amount' => $request->daily_penalty_amount,
             ]);
 
             $user->update(['role' => 'admin']);
