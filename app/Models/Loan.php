@@ -12,7 +12,8 @@ class Loan extends Model
         'copy_id',
         'loan_date',
         'expected_return_date',
-        'actual_return_date'
+        'actual_return_date',
+        'condition_on_return'
     ];
 
     protected $casts = [
