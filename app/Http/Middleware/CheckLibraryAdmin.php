@@ -12,14 +12,16 @@ class CheckLibraryAdmin
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         $libraryId = $request->route('library') ?? $request->library_id;
 
-        if (!$libraryId) return $next($request);
+        if (! $libraryId) {
+            return $next($request);
+        }
 
         $library = Library::find($libraryId);
 
@@ -32,9 +34,13 @@ class CheckLibraryAdmin
 
     private function isUserAdminOf($userId, $library)
     {
-        if (!$library) return false;
+        if (! $library) {
+            return false;
+        }
 
-        if ($library->administrator_id == $userId) return true;
+        if ($library->administrator_id == $userId) {
+            return true;
+        }
 
         return $this->isUserAdminOf($userId, $library->parent);
     }

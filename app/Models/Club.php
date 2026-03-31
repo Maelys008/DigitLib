@@ -6,18 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Club extends Model
 {
-
-
-
-protected $fillable =
-    [
-        'user_id',
-        'name',
-        'description'
-    ];
-
-   
-
+    protected $fillable =
+        [
+            'user_id',
+            'name',
+            'description',
+        ];
 
     public function creator()
     {
@@ -28,6 +22,7 @@ protected $fillable =
     {
         return $this->hasMany(Club_member::class);
     }
+
     public function messages()
     {
         return $this->hasMany(Message::class);

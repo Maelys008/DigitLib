@@ -4,16 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Contestation extends Model
+class Penalty extends Model
 {
     protected $fillable =
         [
             'user_id',
-            'incident_id',
-            'message',
-            'justification',
+            'loan_id',
+            'amount',
+            'reason',
             'status',
-
         ];
 
     public function user()
@@ -21,8 +20,8 @@ class Contestation extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function incident()
+    public function loan()
     {
-        return $this->belongsTo(Incident::class);
+        return $this->belongsTo(Loan::class);
     }
 }

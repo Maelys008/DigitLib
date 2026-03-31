@@ -12,8 +12,8 @@ class DigilibSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         // TRUNCATE (ordre important)
-        DB::table('users')->truncate();
         DB::table('badges')->truncate();
+        DB::table('users')->truncate();
         DB::table('libraries')->truncate();
         DB::table('genres')->truncate();
         DB::table('books')->truncate();
@@ -75,26 +75,25 @@ class DigilibSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
         DB::table('genres')->insert([
-            ['id' =>1,'name' => 'Science-Fiction', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>2, 'name' => 'Sciences', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>3, 'name' => 'Histoire', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>4, 'name' => 'Classique', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>5, 'name' => 'Mystère', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>6, 'name' => 'Fantasy', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>7, 'name' => 'Roman', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>8, 'name' => 'Horreur', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>9, 'name' => 'Psychologie', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>10, 'name' => 'Philosophie', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>11, 'name' => 'Poésie', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>12, 'name' => 'Voyage', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>13, 'name' => 'Cuisine', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>14, 'name' => 'Programmation', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>15, 'name' => 'Art', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>16, 'name' => 'Jeunesse', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>17, 'name' => 'Thriller', 'created_at' =>now(), 'updated_at' =>now()],
-            ['id' =>18, 'name' => 'Développement personnel', 'created_at' =>now(), 'updated_at' =>now()],
+            ['id' => 1, 'name' => 'Science-Fiction', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'name' => 'Sciences', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'name' => 'Histoire', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 4, 'name' => 'Classique', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 5, 'name' => 'Mystère', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 6, 'name' => 'Fantasy', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 7, 'name' => 'Roman', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 8, 'name' => 'Horreur', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 9, 'name' => 'Psychologie', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 10, 'name' => 'Philosophie', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 11, 'name' => 'Poésie', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 12, 'name' => 'Voyage', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 13, 'name' => 'Cuisine', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 14, 'name' => 'Programmation', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 15, 'name' => 'Art', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 16, 'name' => 'Jeunesse', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 17, 'name' => 'Thriller', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 18, 'name' => 'Développement personnel', 'created_at' => now(), 'updated_at' => now()],
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -136,7 +135,6 @@ class DigilibSeeder extends Seeder
             ['id' => 11, 'user_id' => 3, 'library_id' => 3, 'date' => '2026-03-23', 'created_at' => '2026-03-23 09:50:08', 'updated_at' => '2026-03-23 09:50:08'],
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | LOANS
@@ -161,16 +159,14 @@ class DigilibSeeder extends Seeder
         | ROLES
         |--------------------------------------------------------------------------
         */
-         DB::table('roles')->insert([
+        DB::table('roles')->insert([
             ['name_role' => 'Super Admin', 'permissions' => 'all,manage_system', 'created_at' => now()],
-            ['name_role' => 'Staff', 'permissions' => 'manage_books,manage_loans', 'created_at' => now()],            
+            ['name_role' => 'Staff', 'permissions' => 'manage_books,manage_loans', 'created_at' => now()],
             ['name_role' => 'Librarian', 'permissions' => 'all', 'created_at' => now()],
             ['name_role' => 'Administrator', 'permissions' => 'all,manage_users,manage_libraries', 'created_at' => now()],
             ['name_role' => 'Reader', 'permissions' => 'borrow_books,join_clubs', 'created_at' => now()],
             ['name_role' => 'Club Moderator', 'permissions' => 'manage_clubs,moderate_messages', 'created_at' => now()],
         ]);
-
-
 
         /*
         |--------------------------------------------------------------------------

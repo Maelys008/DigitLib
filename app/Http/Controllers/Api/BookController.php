@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Copy;
@@ -35,15 +34,14 @@ class BookController extends Controller
         //     $query->where('library_id', 'like', '%' . $request->library_id . '%');
         // }
 
-
-        if ($request->has('search') && !empty($request->search)) {
-            $searchTerm = '%' . $request->search . '%';
+        if ($request->has('search') && ! empty($request->search)) {
+            $searchTerm = '%'.$request->search.'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('author', 'like', $searchTerm)
-                    ->orWhereHas('genre', function($subQ) use ($searchTerm) {
-                         $subQ->where('name', 'like', $searchTerm);
-        });
+                    ->orWhereHas('genre', function ($subQ) use ($searchTerm) {
+                        $subQ->where('name', 'like', $searchTerm);
+                    });
             });
         }
 
@@ -59,18 +57,17 @@ class BookController extends Controller
             $query->where('nb_available', '>', 0);
         }
 
-
-        //Tri 
+        // Tri
         $sortBy = $request->input('sort_by', 'created_at');
         $sortOrder = $request->input('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        //pargination
-       $books = $query->paginate($request->input('per_page', 10));
+        // pargination
+        $books = $query->paginate($request->input('per_page', 10));
 
         return response()->json([
             'status' => 'success',
-            'data' => $books
+            'data' => $books,
         ], 200);
     }
 
@@ -91,15 +88,16 @@ class BookController extends Controller
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-        $request->validated();
-        
-        $isbnExists = Book::where('isbn', $request->isbn)->exists();
+        // $request->validated();
+
+        $isbnExists = Book::where('isbn', $request->isbn)
+            ->where('library_id', $request->library_id)
+            ->exists();
         if ($isbnExists) {
             return response()->json([
-                'message' => 'Un livre avec cet ISBN existe déjà.'
+                'message' => 'Un livre avec cet ISBN existe déjà.',
             ], 422);
         }
-
 
         $data = $request->all();
 
@@ -111,20 +109,22 @@ class BookController extends Controller
         $data['nb_available'] = $data['nb_copy'];
         $book = Book::create($data);
         $this->generateCopies($book, $data['nb_copy']);
+
         return response()->json([
             'message' => 'Livre ajouté',
-            'data' => $book
+            'data' => $book,
         ], 201);
     }
+
     private function generateCopies(Book $book, int $count)
     {
         $newCopies = [];
         for ($i = 0; $i < $count; $i++) {
             $newCopies[] = [
-                'book_id'    => $book->id,
-                'codeQR'     => 'QR-' . strtoupper(Str::random(8)),
+                'book_id' => $book->id,
+                'codeQR' => 'QR-'.strtoupper(Str::random(8)),
                 'condition' => 'neuf',
-                'status'     => 'disponible',
+                'status' => 'disponible',
                 'date_added' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -132,7 +132,6 @@ class BookController extends Controller
         }
         Copy::insert($newCopies);
     }
-
 
     /**
      * Display the specified resource.
@@ -143,9 +142,10 @@ class BookController extends Controller
 
         if (! $book) {
             return response()->json([
-                'message' => 'Book not found'
+                'message' => 'Book not found',
             ], 404);
         }
+
         return response()->json($book, 200);
     }
 
@@ -156,10 +156,9 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-
-        if (!$book) {
+        if (! $book) {
             return response()->json([
-                'message' => 'Livre non trouvé'
+                'message' => 'Livre non trouvé',
             ], 404);
         }
         $request->validate([
@@ -170,7 +169,7 @@ class BookController extends Controller
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        $request->validated();
+        // $request->validated();
 
         $data = $request->all();
 
@@ -186,7 +185,7 @@ class BookController extends Controller
 
         return response()->json([
             'message' => 'Livre mis à jour',
-            'data' => $book
+            'data' => $book,
         ]);
     }
 
@@ -197,16 +196,15 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json(['message' => 'Livre non trouvé'], 404);
         }
-
 
         $hasActiveLoans = $book->copies()->where('status', 'emprunté')->exists();
 
         if ($hasActiveLoans) {
             return response()->json([
-                'message' => 'Impossible de supprimer ce livre car des exemplaires sont actuellement entre les mains d\'abonnés.'
+                'message' => 'Impossible de supprimer ce livre car des exemplaires sont actuellement entre les mains d\'abonnés.',
             ], 422);
         }
 
@@ -214,7 +212,7 @@ class BookController extends Controller
         $book->delete();
 
         return response()->json([
-            'message' => 'Le livre et ses exemplaires ont été retirés du catalogue.'
+            'message' => 'Le livre et ses exemplaires ont été retirés du catalogue.',
         ], 200);
     }
 }

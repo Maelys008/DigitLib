@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Badge;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Validation\Rules\In;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -33,7 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'badge_id',
         'otp_code',
         'otp_expires_at',
-        
+
     ];
 
     /**
@@ -66,7 +65,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Loan::class);
     }
 
-
     public function notifications()
     {
         return $this->hasMany(Notification::class);
@@ -77,9 +75,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Reservation::class);
     }
 
-    public function penalities()
+    public function penalties()
     {
-        return $this->hasMany(Penality::class);
+        return $this->hasMany(Penalty::class);
     }
 
     public function inscriptions()
@@ -111,14 +109,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Internal_member::class, 'user_id');
     }
+
     public function ownerClubs()
     {
         return $this->hasMany(Club::class);
     }
+
     public function memberships()
     {
         return $this->hasMany(Club_member::class);
     }
+
     public function socialAccounts()
     {
         return $this->hasMany(Social_account::class);

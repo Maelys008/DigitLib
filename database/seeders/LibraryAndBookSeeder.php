@@ -1,5 +1,7 @@
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -12,7 +14,7 @@ class LibraryAndBookSeeder extends Seeder
             'name' => 'Bibliothèque Centrale',
             'adress' => 'Rue de la Science, Cotonou',
             'administrator_id' => 1,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         $bookId1 = DB::table('books')->insertGetId([
             'library_id' => $libId1,
@@ -24,7 +26,7 @@ class LibraryAndBookSeeder extends Seeder
             'cover_image' => 'camus.jpg',
             'nb_copy' => 2,
             'nb_available' => 2,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         DB::table('copies')->insert([
             ['book_id' => $bookId1, 'codeQR' => 'QR001', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => now()],
@@ -37,7 +39,7 @@ class LibraryAndBookSeeder extends Seeder
             'adress' => 'Campus de Godomey',
             'administrator_id' => 1,
             'parent_id' => 1,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         $bookId2 = DB::table('books')->insertGetId([
             'library_id' => $libId2,
@@ -49,7 +51,7 @@ class LibraryAndBookSeeder extends Seeder
             'cover_image' => 'orwell.jpg',
             'nb_copy' => 3,
             'nb_available' => 3,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         DB::table('copies')->insert([
             ['book_id' => $bookId2, 'codeQR' => 'QR003', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => now()],
@@ -62,7 +64,7 @@ class LibraryAndBookSeeder extends Seeder
             'name' => 'Bibliothèque des Enfants',
             'adress' => 'Akpakpa, Cotonou',
             'administrator_id' => 1,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         $bookId3 = DB::table('books')->insertGetId([
             'library_id' => $libId3,
@@ -74,7 +76,7 @@ class LibraryAndBookSeeder extends Seeder
             'cover_image' => 'petitprince.jpg',
             'nb_copy' => 4,
             'nb_available' => 4,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
         DB::table('copies')->insert([
             ['book_id' => $bookId3, 'codeQR' => 'QR006', 'book_status' => 'neuf', 'status' => 'disponible', 'date_added' => now()],

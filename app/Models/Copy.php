@@ -6,19 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Copy extends Model
 {
-    protected $fillable = 
-    [
-        'book_id',
-        'codeQR',
-        'condition',
-        'date_added',
-        'status'
-    ];
+    protected $fillable =
+        [
+            'book_id',
+            'codeQR',
+            'condition',
+            'date_added',
+            'status',
+        ];
 
     protected $casts =
-    [
-        'date_added' => 'date'
-    ];
+        [
+            'date_added' => 'date',
+        ];
 
     public function book()
     {

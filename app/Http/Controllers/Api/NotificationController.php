@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -21,7 +20,7 @@ class NotificationController extends Controller
         $notification->update(['status' => 'lu']);
 
         return response()->json([
-            'message' => 'Notification marqué comme lue.'
+            'message' => 'Notification marqué comme lue.',
         ]);
     }
 
