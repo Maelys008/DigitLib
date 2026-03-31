@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Reservation;
 use App\Models\Copy;
-use Illuminate\Support\Facades\DB;
+use App\Models\Reservation;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class CancelExpiredReservations extends Command
 {
@@ -15,14 +15,13 @@ class CancelExpiredReservations extends Command
      * @var string
      */
     protected $signature = 'reservations:cancel-expired';
-    
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Annule les réservations non réclamées après 24h et libère le livre pour le suivant';
-
 
     /**
      * Execute the console command.
@@ -41,8 +40,8 @@ class CancelExpiredReservations extends Command
 
                 // Trouver l'exemplaire qui était bloqué
                 $copy = Copy::where('book_id', $res->book_id)
-                            ->where('status', 'réservé')
-                            ->first();
+                    ->where('status', 'réservé')
+                    ->first();
 
                 if ($copy) {
                     // Chercher s'il y a quelqu'un d'autre en attente
@@ -55,7 +54,7 @@ class CancelExpiredReservations extends Command
                         // On transfère le livre au suivant
                         $nextRes->update([
                             'status' => 'notified',
-                            'expires_at' => now()->addHours(24)
+                            'expires_at' => now()->addHours(24),
                         ]);
                         // Le statut du livre reste 'réservé'
                     } else {
@@ -67,6 +66,6 @@ class CancelExpiredReservations extends Command
             });
         }
 
-        $this->info(count($expiredReservations) . " réservations expirées traitées.");
+        $this->info(count($expiredReservations).' réservations expirées traitées.');
     }
 }

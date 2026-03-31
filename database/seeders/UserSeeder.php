@@ -1,8 +1,10 @@
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -16,7 +18,7 @@ class UserSeeder extends Seeder
                 'role' => 'admin',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
             [
                 'name' => 'User2',
@@ -25,7 +27,7 @@ class UserSeeder extends Seeder
                 'role' => 'reader',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
             [
                 'name' => 'User3',
@@ -34,7 +36,7 @@ class UserSeeder extends Seeder
                 'role' => 'admin',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
             [
                 'name' => 'User4',
@@ -43,7 +45,7 @@ class UserSeeder extends Seeder
                 'role' => 'reader',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
             [
                 'name' => 'User5',
@@ -52,7 +54,7 @@ class UserSeeder extends Seeder
                 'role' => 'reader',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
             [
                 'name' => 'User6',
@@ -61,7 +63,7 @@ class UserSeeder extends Seeder
                 'role' => 'reader',
                 'badge_id' => 1,
                 'status' => 'desactive',
-                'created_at' => now()
+                'created_at' => now(),
             ],
         ]);
     }

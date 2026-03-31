@@ -6,34 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Book extends Model
 {
-
     protected $fillable =
-    [
-        'library_id',
-        'title',
-        'author',
-        'genre_id',
-        'isbn',
-        'description',
-        'year_of_publication',
-        'nb_copy',
-        'nb_available',
-        'cover_image',
-    ];
-
+        [
+            'library_id',
+            'title',
+            'author',
+            'genre_id',
+            'isbn',
+            'description',
+            'year_of_publication',
+            'nb_copy',
+            'nb_available',
+            'cover_image',
+        ];
 
     protected $casts =
-    [
-        'year_of_publication' => 'date'
-    ];
+        [
+            'year_of_publication' => 'date',
+        ];
+
     protected $appends = ['cover_url', 'average_rating'];
 
     public function getCoverUrlAttribute()
     {
-        return $this->cover_image ? asset('storage/' . $this->cover_image) : null;
+        return $this->cover_image ? asset('storage/'.$this->cover_image) : null;
     }
-    
-
 
     public function library()
     {
@@ -51,18 +48,18 @@ class Book extends Model
     }
 
     public function genre()
-{
-    return $this->belongsTo(Genre::class);
-}
+    {
+        return $this->belongsTo(Genre::class);
+    }
 
-public function reviews()
-{
-    return $this->hasMany(Review::class);
-}
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
-// Calcul de la moyenne des étoiles
-public function getAverageRatingAttribute()
-{
-    return round($this->reviews()->avg('rating'), 1) ?: 0;
-}
+    // Calcul de la moyenne des étoiles
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating'), 1) ?: 0;
+    }
 }

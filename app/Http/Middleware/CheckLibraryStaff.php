@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Library;
 use App\Models\Internal_member;
+use App\Models\Library;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,21 +13,23 @@ class CheckLibraryStaff
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         $libraryId = $request->route('library') ?? $request->library_id;
 
-        if (!$libraryId) return $next($request);
+        if (! $libraryId) {
+            return $next($request);
+        }
 
         $library = Library::find($libraryId);
-        if (!$library) return response()->json(['message' => 'Bibliothèque introuvable'], 404);
-
+        if (! $library) {
+            return response()->json(['message' => 'Bibliothèque introuvable'], 404);
+        }
 
         $isAdmin = $this->isUserAdminOf($user->id, $library);
-
 
         $isLibrarian = Internal_member::where('user_id', $user->id)
             ->where('library_id', $library->id)
@@ -39,7 +41,6 @@ class CheckLibraryStaff
             ->whereHas('role_assignments.role', function ($query) {
                 $query->where('name_role', 'Administrator');
             })->exists();
-       
 
         if ($isAdmin || $isLibrarian || $isAdministrator) {
             return $next($request);

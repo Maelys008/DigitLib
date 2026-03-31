@@ -6,14 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Incident extends Model
 {
-
     protected $fillable =
-    [
-        'user_id',
-        'library_id',
-        'description',
-        'date'
-    ];
+        [
+            'user_id',
+            'library_id',
+            'description',
+            'date',
+        ];
 
     protected $casts = [
         'date' => 'date',
@@ -33,6 +32,7 @@ class Incident extends Model
     {
         return $this->hasMany(Contestation::class);
     }
+
     public function loan()
     {
         return $this->belongsTo(Loan::class);

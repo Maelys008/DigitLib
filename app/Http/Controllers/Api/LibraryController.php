@@ -13,23 +13,21 @@ use Illuminate\Support\Facades\Storage;
 
 class LibraryController extends Controller
 {
-
     public function index()
     {
         $user = auth()->user();
-        
+
         // Récupérer les bibliothèques où l'utilisateur est admin
         $libraries = Library::where('administrator_id', $user->id)->get();
-        
+
         // Ajouter les informations supplémentaires
         foreach ($libraries as $library) {
             $library->books_count = $library->books()->count();
             $library->members_count = $library->inscriptions()->count();
         }
-        
+
         return response()->json($libraries);
     }
-
 
     public function show(Library $library)
     {
@@ -41,7 +39,6 @@ class LibraryController extends Controller
 
         return response()->json($library);
     }
-
 
     public function update(Request $request, Library $library)
     {
@@ -74,7 +71,6 @@ class LibraryController extends Controller
         ]);
     }
 
-
     public function join(Request $request)
     {
         $request->validate([
@@ -94,11 +90,10 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Vous êtes déjà membre de cette bibliothèque.'], 422);
         }
 
-
         Inscription::create([
             'user_id' => $user->id,
             'library_id' => $request->library_id,
-            'date' => now()
+            'date' => now(),
         ]);
 
         return response()->json(['message' => 'Félicitations, vous avez rejoint la bibliothèque !'], 201);
@@ -162,16 +157,16 @@ class LibraryController extends Controller
             Inscription::create([
                 'user_id' => $user->id,
                 'library_id' => $library->id,
-                'date' => now()
+                'date' => now(),
             ]);
 
             return response()->json([
                 'message' => 'Bibliothèque créée avec succès !',
-                'library' => $library
+                'library' => $library,
             ], 201);
         });
     }
-    
+
     // public function destroy(Library $library)
     // {
     //     // Selon ton métier, tu peux vérifier qu'il n'y a pas encore d'emprunts, etc.
@@ -182,14 +177,13 @@ class LibraryController extends Controller
     //     ]);
     // }
 
-
-public function destroy(Library $library)
+    public function destroy(Library $library)
     {
-        
+
         $hasBooks = $library->books()->exists();
         if ($hasBooks) {
             return response()->json([
-                'message' => 'Impossible de supprimer : cette bibliothèque contient encore des livres.'
+                'message' => 'Impossible de supprimer : cette bibliothèque contient encore des livres.',
             ], 422);
         }
 

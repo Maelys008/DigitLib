@@ -6,26 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Contestation extends Model
 {
+    protected $fillable =
+        [
+            'user_id',
+            'incident_id',
+            'message',
+            'justification',
+            'status',
 
-protected $fillable =
-    [
-        'user_id',
-        'incident_id',
-        'message',
-        'justification',
-        'status',
-        
-    ];
+        ];
 
-    
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function incident(){
+    public function incident()
+    {
         return $this->belongsTo(Incident::class);
     }
-
-    
-
 }

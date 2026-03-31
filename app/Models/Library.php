@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Library extends Model
 {
-
     protected $fillable = [
         'name',
         'adress',
@@ -18,11 +17,11 @@ class Library extends Model
         'daily_penalty_amount',
     ];
 
-    protected $appends = ['library_url','members_count'];
+    protected $appends = ['library_url', 'members_count'];
 
     public function getLibraryUrlAttribute()
     {
-        return $this->library_image ? asset('storage/' . $this->library_image) : null;
+        return $this->library_image ? asset('storage/'.$this->library_image) : null;
     }
 
     public function allChildrenIds()
@@ -36,6 +35,7 @@ class Library extends Model
 
         return $ids;
     }
+
     public function books()
     {
         return $this->hasMany(Book::class);
@@ -56,11 +56,11 @@ class Library extends Model
         return $this->belongsTo(User::class, 'administrator_id');
     }
 
-
     public function internalMembers()
     {
         return $this->hasMany(Internal_member::class, 'library_id');
     }
+
     public function children()
     {
         return $this->hasMany(Library::class, 'parent_id');

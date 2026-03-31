@@ -67,7 +67,7 @@ class ClubController extends Controller
             ->where('club_id', $clubId)
             ->first();
 
-        if (!$member) {
+        if (! $member) {
             return response()->json(['message' => 'Vous n\'êtes pas membre de ce club.'], 403);
         }
 
@@ -98,10 +98,9 @@ class ClubController extends Controller
             ->where('club_id', $id)
             ->first();
 
-        if (!$member) {
+        if (! $member) {
             return response()->json(['message' => 'Vous n\'êtes pas membre de ce club.'], 404);
         }
-
 
         $member->delete();
 
@@ -116,7 +115,7 @@ class ClubController extends Controller
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$member) {
+        if (! $member) {
             return response()->json(['message' => 'Action non autorisée.'], 403);
         }
 

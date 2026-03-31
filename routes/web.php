@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -31,7 +29,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/best-of-month', function () {
-    return Inertia::render('BestOfMonth');  
+    return Inertia::render('BestOfMonth');
 });
 
 Route::get('/genres', function () {
@@ -40,7 +38,7 @@ Route::get('/genres', function () {
 
 Route::get('/genres/{genre}', function ($genre) {
     return Inertia::render('GenreBooks', [
-        'genre' => $genre
+        'genre' => $genre,
     ]);
 })->name('genre.books');
 
@@ -62,15 +60,15 @@ Route::get('/editeurs', function () {
 
 Route::get('/book/{id}', function ($id) {
     return Inertia::render('BookDetail', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 });
 
 Route::get('/book/{id}/reviews', function ($id) {
     return Inertia::render('AllReviews', [
-        'bookId' => (int)$id,
-        'bookTitle' => 'Titre du livre', 
-        'reviews' => [] 
+        'bookId' => (int) $id,
+        'bookTitle' => 'Titre du livre',
+        'reviews' => [],
     ]);
 })->name('book.reviews');
 
@@ -81,7 +79,6 @@ Route::get('/search', function () {
 Route::get('/scanner', function () {
     return Inertia::render('ScannerPage');
 })->name('scanner');
-
 
 Route::get('/profile', function () {
     return Inertia::render('Profile');
@@ -116,13 +113,13 @@ Route::get('/shelves/create', function () {
 
 Route::get('/shelves/{id}', function ($id) {
     return Inertia::render('ShelfDetail', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('shelves.detail');
 
 Route::get('/shelves/{id}/edit', function ($id) {
     return Inertia::render('EditShelf', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('shelves.edit');
 
@@ -146,12 +143,12 @@ Route::get('/librarian/books', function () {
 })->name('librarian.books');
 Route::get('/librarian/books/{id}', function ($id) {
     return Inertia::render('Librarian/BookDetail', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('librarian.books.detail');
 Route::get('/librarian/books/{id}/edit', function ($id) {
     return Inertia::render('Librarian/EditBook', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('librarian.books.edit');
 Route::get('/librarian/internal-members', function () {

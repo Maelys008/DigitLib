@@ -6,16 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-
-
     protected $fillable =
-    [
-        'member_id',
-        'club_id',
-        'message',
+        [
+            'member_id',
+            'club_id',
+            'message',
 
-    ];
-
+        ];
 
     public function club_member()
     {
