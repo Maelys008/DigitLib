@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Bibliothèques (Libraries) ---
     Route::post('/libraries/join', [LibraryController::class, 'join']);
     Route::apiResource('libraries', LibraryController::class);
+    Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
 
     // --- Pénalités ---
     Route::patch('/penalties/{id}/pay', [PenalityController::class, 'payPenalty']);
@@ -91,8 +92,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 });
 
-
-// ---------------------------------------------------------------------
 // ROUTES ADMIN (Propriétaire de bibliothèque)
 // ---------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(function () {

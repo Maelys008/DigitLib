@@ -6,9 +6,10 @@ import HorizontalScroll from '@/Components/HorizontalScroll';
 import BookCard from '@/Components/BookCard';
 import { getPastelColor } from '@/Constants/colors';
 import BookHeader from '@/Components/BookDetails/BookHeader'; 
-import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
 import BorrowButton from '@/Components/BookDetails/BorrowButton';
 import ReviewSection from '@/Components/BookDetails/ReviewSection';
+import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 const normalizeBook = (book) => ({
@@ -19,18 +20,20 @@ const normalizeBook = (book) => ({
   titre: book.title,
   auteur: book.author,
   annee_publication: book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : null,
+  genreName: typeof book.genre === 'string' ? book.genre : book.genre?.name || 'Inconnu',
 });
 
 export default function BookDetail() {
+  const { user, isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
-  const [isLibraryJoined, setIsLibraryJoined] = useState(false);
-  const [showJoinWarning, setShowJoinWarning] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [livre, setLivre] = useState(null);
   const [livresRecommandes, setLivresRecommandes] = useState([]);
   const [avisDuLivre, setAvisDuLivre] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+	const [hasJoinedLibrary, setHasJoinedLibrary] = useState(false);
+const [isCheckingLibrary, setIsCheckingLibrary] = useState(true);
 
   const { props } = usePage();
   const { id } = props;
@@ -39,12 +42,10 @@ export default function BookDetail() {
     const fetchBook = async () => {
       setIsLoading(true);
       try {
-        // Récupérer le livre
         const bookResponse = await api.getBook(id);
         const normalizedBook = normalizeBook(bookResponse);
         setLivre(normalizedBook);
         
-        // Récupérer tous les livres pour les recommandations
         const booksResponse = await api.getBooks();
         let booksData = [];
         
@@ -55,24 +56,35 @@ export default function BookDetail() {
         } else if (booksResponse.data && Array.isArray(booksResponse.data)) {
           booksData = booksResponse.data;
         }
+			/*	if (isAuthenticated && normalizedBook.library?.id) {
+  try {
+    const userLibraries = await api.getUserJoinedLibraries();
+    const joined = userLibraries.some(lib => lib.id === normalizedBook.library.id);
+    setHasJoinedLibrary(joined);
+  } catch (err) {
+    console.error('Erreur vérification bibliothèque:', err);
+  } finally {
+    setIsCheckingLibrary(false);
+  }
+} else {
+  setIsCheckingLibrary(false);
+}*/
+setIsCheckingLibrary(false);
         
         const normalizedBooks = booksData.map(normalizeBook);
         
-        // Livres recommandés : même genre, différent ID
         const recommandations = normalizedBooks.filter(l => 
-          l.genre === normalizedBook.genre && l.id !== normalizedBook.id
+          l.genreName.toLowerCase().trim() === normalizedBook.genreName.toLowerCase().trim() 
+          && l.id !== normalizedBook.id
         ).slice(0, 17);
+
         setLivresRecommandes(recommandations);
-        
-        // TODO: Récupérer les avis depuis l'API quand elle sera prête
-        // Pour l'instant, on garde les avis mockés ou on laisse vide
         setAvisDuLivre([]);
         
       } catch (error) {
         console.error('Erreur chargement livre:', error);
         setError('Impossible de charger le livre');
         
-        // Fallback vers mockData
         const { livres: mockLivres, avis: mockAvis } = await import('../data/mockData');
         const mockBook = mockLivres.find(l => l.id === parseInt(id));
         if (mockBook) {
@@ -83,7 +95,6 @@ export default function BookDetail() {
           setLivresRecommandes(mockRecommandations);
           setAvisDuLivre(mockAvis.filter(a => a.livre_id === parseInt(id)));
         }
-        
       } finally {
         setIsLoading(false);
       }
@@ -91,15 +102,7 @@ export default function BookDetail() {
     
     fetchBook();
   }, [id]);
-
-  const handleLibraryJoin = () => {
-    setIsLibraryJoined(true);
-    setShowJoinWarning(false);
-  };
-  
-  const handleBorrow = () => {
-    console.log('Livre emprunté !');
-  };
+	
 
   if (isLoading) {
     return (
@@ -134,44 +137,40 @@ export default function BookDetail() {
       {/* SECTION INFOS PRINCIPALES */}
       <div className="px-6 pt-4">
         <div className="grid grid-cols-4 gap-2 mb-4">
-          {/* Auteur */}
           <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
             <User className="w-5 h-5 text-gray-600 mb-1" />
             <span className="text-xs text-gray-500">Auteur</span>
             <span className="text-sm font-semibold text-gray-900 text-center line-clamp-1">{livre.auteur}</span>
           </div>
           
-          {/* Genre */}
           <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
             <BookOpen className="w-5 h-5 text-gray-600 mb-1" />
             <span className="text-xs text-gray-500">Genre</span>
-            <span className="text-sm font-semibold text-gray-900 text-center line-clamp-1">{livre.genre}</span>
+            <p className="text-lg font-semibold text-gray-900 mt-1">{livre.genreName}</p>
           </div>
           
-          {/* Année */}
           <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
             <Calendar className="w-5 h-5 text-gray-600 mb-1" />
             <span className="text-xs text-gray-500">Année</span>
             <span className="text-sm font-semibold text-gray-900 text-center">{livre.annee_publication}</span>
           </div>
           
-          {/* Note */}
           <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 mb-1" />
             <span className="text-xs text-gray-500">Note</span>
             <span className="text-sm font-semibold text-gray-900 text-center">{livre.note}</span>
           </div>
         </div>
-      
-        {/* BOUTON REJOINDRE BIBLIOTHÈQUE */}
-        <div className="mb-6 pt-4" id="join-library-button">
-          <LibraryJoinButton 
-            bibliothequeNom={livre.bibliotheque?.nom || 'Bibliothèque'}
-            onJoin={handleLibraryJoin}
-            showWarning={showJoinWarning}
-            onWarningClose={() => setShowJoinWarning(false)}
-          />
-        </div>
+				{!hasJoinedLibrary && !isCheckingLibrary && (
+				<div className="mb-6 pt-4" id="join-library-button">
+					<LibraryJoinButton 
+						bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
+						libraryId={livre.library?.id || livre.bibliotheque?.id}
+						onJoin={() => setHasJoinedLibrary(true)}
+						isAuthenticated={isAuthenticated}
+					/>
+				</div>
+			)}
       
         {/* DESCRIPTION */}
         <div className="mb-6">
@@ -191,13 +190,12 @@ export default function BookDetail() {
           )}
         </div>
            
-        {/* BOUTON EMPRUNTER */}
+        {/* BOUTON EMPRUNTER - toujours visible */}
         <BorrowButton 
-          bibliothequeNom={livre.bibliotheque?.nom || 'Bibliothèque'}
-          isLibraryJoined={isLibraryJoined}
-          onBorrow={handleBorrow}
-          onShowWarning={setShowJoinWarning}
-        />
+					bookId={livre.id}
+					bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
+					isAuthenticated={isAuthenticated}
+				/>
 
         {/* SECTION AVIS */}
         <ReviewSection 
@@ -210,9 +208,9 @@ export default function BookDetail() {
         {livresRecommandes.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-gray-900">{livre.genre}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{livre.genreName}</h2>
               <Link 
-                href={`/genres/${encodeURIComponent(livre.genre.toLowerCase())}`} 
+                href={`/genres/${encodeURIComponent(livre.genreName.toLowerCase())}`} 
                 className="text-gray-400 text-sm hover:text-gray-600 transition-colors"
               >
                 Tous

@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/VerifyOtp.jsx
-
 import { useState, useEffect, useRef } from 'react';
 import { Shield, AlertCircle, ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';

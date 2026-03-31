@@ -1,77 +1,116 @@
-import { useState } from 'react';
-import { AlertCircle, BookOpen, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import api from '../../services/api';
 
 export default function BorrowButton({ 
-  bibliothequeNom,
-  isLibraryJoined,
-  onBorrow,
-  onShowWarning, 
+  bookId,
+  isAuthenticated,
   className = '' 
 }) {
-  const [showWarning, setShowWarning] = useState(false);
   const [isBorrowed, setIsBorrowed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleClick = () => {
-    if (!isLibraryJoined) {
-      if (onShowWarning) {
-        onShowWarning(true);
-      }
-      const joinButton = document.getElementById('join-library-button');
-      if (joinButton) {
-        joinButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    } else {
-      setIsBorrowed(true);
-      setShowSuccess(true);
+  // Vérifier si le livre est déjà emprunté
+  useEffect(() => {
+    const checkIfAlreadyBorrowed = async () => {
+      if (!isAuthenticated) return;
       
-      if (onBorrow) {
-        onBorrow();
+      try {
+        const loans = await api.getLoans();
+        const alreadyBorrowed = loans.some(loan => loan.copy?.book?.id === bookId);
+        setIsBorrowed(alreadyBorrowed);
+      } catch (error) {
+        console.error('Erreur vérification emprunt:', error);
       }
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+    };
+    
+    checkIfAlreadyBorrowed();
+  }, [bookId, isAuthenticated]);
+
+  const handleClick = async () => {
+    if (!isAuthenticated) {
+      localStorage.setItem('redirectAfterLogin', window.location.pathname);
+      router.visit('/login');
+      return;
     }
+
+    if (isBorrowed) {
+      setErrorMessage('Vous avez déjà emprunté ce livre');
+      setTimeout(() => setErrorMessage(''), 3000);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+    
+    try {
+      const result = await api.borrowBook(bookId);
+      
+      if (result.success) {
+        setIsBorrowed(true);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        setErrorMessage(result.message);
+        setTimeout(() => setErrorMessage(''), 5000);
+      }
+    } catch (error) {
+      setErrorMessage('Une erreur est survenue');
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+    if (result.status === 403) {
+  setErrorMessage('Vous devez rejoindre la bibliothèque avant d\'emprunter');
+  // Scroll vers le haut pour montrer le message
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
   };
 
   return (
     <div className="relative mb-6">
+      {errorMessage && (
+        <div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        </div>
+      )}
+
       {showSuccess && (
         <div className="mb-3 bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-green-800">
-                Livre emprunté avec succès !
-              </p>
-            {/* <p className="text-xs text-green-600 mt-0.5">
-                Date de retour : {new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('fr-FR')}
-              </p> */}
-            </div>
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <p className="text-sm font-medium text-green-800">Livre emprunté avec succès !</p>
           </div>
         </div>
       )}
       
       <button
         onClick={handleClick}
-        disabled={isBorrowed}
+        disabled={isBorrowed || isLoading}
         className={`
           w-full font-semibold py-4 rounded-xl transition-all shadow-md
           ${isBorrowed 
-            ? 'bg-green-100 text-green-700 border border-green-200 cursor-default' 
-            : isLibraryJoined
-              ? 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95'
-              : 'bg-gray-200 text-gray-500 hover:bg-gray-300 cursor-pointer'
+            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed' 
+            : 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95'
           }
           ${className}
         `}
       >
-        {isBorrowed ? (
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            Traitement...
+          </span>
+        ) : isBorrowed ? (
           <span className="flex items-center justify-center gap-2">
             <CheckCircle className="w-5 h-5" />
-            Livre emprunté
+            Déjà emprunté
           </span>
         ) : (
           'Emprunter ce livre'

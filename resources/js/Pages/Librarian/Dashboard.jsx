@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalCopies: 0,
     totalBooks: 0,
-    users: 0,
+    membersCount: 0,  
     available: 0,
     borrowed: 0,
     reservations: 0,
@@ -36,7 +36,7 @@ export default function Dashboard() {
       
       setIsLoading(true);
       
-      // 1. Essayer de charger depuis localStorage
+      // Essayer de charger depuis localStorage
       const key = `user_library_${user.id}`;
       let savedLibrary = localStorage.getItem(key);
       
@@ -52,18 +52,15 @@ export default function Dashboard() {
       
       console.log('Pas de bibliothèque dans localStorage, appel API...');
       
-      // 2. Si pas dans localStorage, charger depuis l'API
+      // Si pas dans localStorage, charger depuis l'API
       try {
-        // Récupérer toutes les bibliothèques
         const libraries = await api.getUserLibraries();
         console.log('Bibliothèques reçues de l\'API:', libraries);
         
-        // Trouver la bibliothèque où l'utilisateur est admin
         const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
         console.log('Bibliothèque trouvée pour user.id:', userLibrary);
         
         if (userLibrary) {
-          // Sauvegarder dans localStorage pour la prochaine fois
           localStorage.setItem(key, JSON.stringify(userLibrary));
           setLibrary(userLibrary);
           await loadBooks(userLibrary);
@@ -112,17 +109,20 @@ export default function Dashboard() {
     }
   };
 
-  const loadMembers = async (lib) => {
-    try {
-      const members = await api.getLibraryMembers(lib.id);
-      setStats(prev => ({
-        ...prev,
-        users: members.length 
-      }));
-    } catch (error) {
-      console.error('Erreur chargement membres:', error);
-    }
-  };
+const loadMembers = async (lib) => {
+  try {
+    const members = await api.getLibraryInscriptions(lib.id);
+
+    console.log('Inscriptions récupérées:', members);
+
+    setStats(prev => ({
+      ...prev,
+      membersCount: members.length
+    }));
+  } catch (error) {
+    console.error('Erreur chargement membres:', error);
+  }
+};
 
   // Navigation
   const handleManageBooks = () => {

@@ -1,5 +1,3 @@
-// resources/js/Pages/Settings.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState } from 'react';
 import { ArrowLeft, Moon, Globe, Bell, ChevronRight, Building, LogOut } from 'lucide-react';
@@ -9,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 export default function Settings() {
   const { user, logout } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme(); // ← Utilise le contexte
+  const { darkMode, toggleDarkMode } = useTheme(); 
   const [interfaceLang, setInterfaceLang] = useState('Français');
   const isLibrarian = user?.role === 'admin';
 

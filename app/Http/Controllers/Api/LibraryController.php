@@ -165,6 +165,14 @@ class LibraryController extends Controller
             ], 201);
         });
     }
+    public function inscriptions($libraryId)
+{
+    $inscriptions = Inscription::with('user:id,name,email')
+        ->where('library_id', $libraryId)
+        ->get();
+
+    return response()->json($inscriptions);
+}
     
     // public function destroy(Library $library)
     // {

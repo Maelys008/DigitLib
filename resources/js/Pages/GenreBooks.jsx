@@ -13,44 +13,34 @@ const normalizeBook = (book) => ({
   note: book.note || 4.0,
   titre: book.title,
   auteur: book.author,
+  genreName: book.genre?.name || book.genre || 'Inconnu', 
 });
 
 const fetchAllBooks = async () => {
   let allBooks = [];
   let currentPage = 1;
   let hasMore = true;
-  
+
   while (hasMore) {
     try {
       const response = await api.getBooks({ page: currentPage });
-      let booksData = [];
-      
-      if (response.data?.data) {
-        booksData = response.data.data;
-        hasMore = response.data.current_page < response.data.last_page;
-      } else if (Array.isArray(response)) {
-        booksData = response;
-        hasMore = false;
-      } else {
-        booksData = [];
-        hasMore = false;
-      }
-      
+      const booksData = response.data?.data || (Array.isArray(response) ? response : []);
       allBooks = [...allBooks, ...booksData];
+      hasMore = response.data?.current_page < response.data?.last_page;
       currentPage++;
-      
     } catch (error) {
       console.error('Erreur page', currentPage, ':', error);
       hasMore = false;
     }
   }
-  
+
   return allBooks;
 };
 
 export default function GenreBooks() {
   const { props } = usePage();
   const { genre } = props;
+
   const [livres, setLivres] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,46 +50,32 @@ export default function GenreBooks() {
     const fetchBooks = async () => {
       setIsLoading(true);
       try {
-        console.log('Genre recherché:', genre);
-        
-       
         const allBooksData = await fetchAllBooks();
-        console.log('Tous les livres:', allBooksData.map(b => ({ titre: b.title, genre: b.genre })));
-        
-     
         const normalizedBooks = allBooksData.map(normalizeBook);
-        
-        const filteredBooks = normalizedBooks.filter(l => {
-          const bookGenre = l.genre?.toLowerCase().trim();
-          const searchGenre = genre?.toLowerCase().trim();
-          const match = bookGenre === searchGenre;
-          if (match) {
-            console.log('Match trouvé:', l.titre, 'Genre:', l.genre);
-          }
-          return match;
-        });
-        
-        console.log('Livres filtrés:', filteredBooks.length);
-        
+
+        const filteredBooks = normalizedBooks.filter(book =>
+          book.genreName.toLowerCase().trim() === genre?.toLowerCase().trim()
+        );
+
         setLivres(filteredBooks);
         setTotalBooks(filteredBooks.length);
-        
-      } catch (error) {
-        console.error('Erreur chargement livres:', error);
+
+      } catch (err) {
+        console.error('Erreur chargement livres:', err);
         setError('Impossible de charger les livres');
-        
+
+        // fallback mockData
         const { livres: mockLivres } = await import('../data/mockData');
-        const filteredMock = mockLivres.filter(l => 
-          l.genre?.toLowerCase().trim() === genre?.toLowerCase().trim()
-        );
+        const filteredMock = mockLivres
+          .map(normalizeBook)
+          .filter(book => book.genreName.toLowerCase().trim() === genre?.toLowerCase().trim());
         setLivres(filteredMock);
         setTotalBooks(filteredMock.length);
-        
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchBooks();
   }, [genre]);
 
@@ -128,12 +104,13 @@ export default function GenreBooks() {
         </button>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{genre}</h1>
-          <p className="text-sm text-gray-500 mt-1">{totalBooks} livres</p>
+          <p className="text-sm text-gray-500 mt-1">{totalBooks} livre{totalBooks > 1 ? 's' : ''}</p>
         </div>
       </div>
+
       <div className="px-6 py-4">
         <VerticalScroll>
-          {livres.map((livre) => (
+          {livres.map(livre => (
             <NewBookCard
               key={livre.id}
               livre={livre}

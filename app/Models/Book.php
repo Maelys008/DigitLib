@@ -12,7 +12,7 @@ class Book extends Model
         'library_id',
         'title',
         'author',
-        'genre',
+        'genre_id',
         'isbn',
         'description',
         'year_of_publication',
@@ -26,7 +26,7 @@ class Book extends Model
     [
         'year_of_publication' => 'date'
     ];
-    protected $appends = ['cover_url', 'average_rating'];
+   protected $appends = ['cover_url'];
 
     public function getCoverUrlAttribute()
     {
@@ -49,12 +49,10 @@ class Book extends Model
     {
         return $this->hasMany(Reservation::class);
     }
-
     public function genre()
-{
-    return $this->belongsTo(Genre::class);
-}
-
+    {
+        return $this->belongsTo(Genre::class, 'genre_id');
+    }
 public function reviews()
 {
     return $this->hasMany(Review::class);

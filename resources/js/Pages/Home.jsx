@@ -71,49 +71,48 @@ export default function Home() {
   const notificationsNonLues = notifications.filter(n => n.statut === 'non_lu');
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoadingBooks(true);
-      
-      try {
-        const allBooksData = await fetchAllBooks();
-        const normalizedAllBooks = allBooksData.map(normalizeBook);
-        setAllBooks(normalizedAllBooks);
-        
-        const uniqueGenres = [...new Set(normalizedAllBooks.map(book => book.genre).filter(Boolean))];
-        setGenresList(uniqueGenres.slice(0, 6));
-        
-        // Pour l'affichage, on prend les 17 premiers
-        const availableBooks = normalizedAllBooks.filter(l => l.nb_disponibles > 0);
-        const sortedByDate = [...normalizedAllBooks].sort((a, b) => {
-          return new Date(b.created_at) - new Date(a.created_at);
-        });
-        
-        setLivresMembres(availableBooks.slice(0, 12));
-        setLivresPopulaires(availableBooks.slice(5, 17));
-        setLivresNouveaux(sortedByDate.slice(0, 3));
-        setLivresRomans(normalizedAllBooks.filter(l => l.genre === 'Roman').slice(0, 17));
-        
-      } catch (error) {
-        console.error('Erreur chargement livres:', error);
-        
-        // Fallback vers mockData
-        const { livres, genres: mockGenres } = await import('../data/mockData');
-        const mockBooks = livres;
-        setAllBooks(mockBooks);
-        setGenresList(mockGenres.slice(0, 6));
-        
-        const availableMock = mockBooks.filter(l => l.nb_disponibles > 0);
-        setLivresMembres(availableMock.slice(0, 17));
-        setLivresPopulaires(availableMock.slice(0, 17));
-        setLivresNouveaux(mockBooks.slice(-3));
-        setLivresRomans(mockBooks.filter(l => l.genre === 'Roman').slice(0, 17));
-      } finally {
-        setIsLoadingBooks(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    setIsLoadingBooks(true);
+
+    try {
+      const allBooksData = await fetchAllBooks();
+      const normalizedAllBooks = allBooksData.map(normalizeBook);
+      setAllBooks(normalizedAllBooks);
+
+      // Récupérer les 6 premiers genres depuis la table genre
+      const genresResponse = await api.getGenres(); 
+      const first6Genres = genresResponse.data?.slice(0, 6) || [];
+      setGenresList(first6Genres);
+
+      // Préparer les livres pour chaque section
+      const availableBooks = normalizedAllBooks.filter(l => l.nb_disponibles > 0);
+      const sortedByDate = [...normalizedAllBooks].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setLivresMembres(availableBooks.slice(0, 12));
+      setLivresPopulaires(availableBooks.slice(5, 17));
+      setLivresNouveaux(sortedByDate.slice(0, 3));
+      setLivresRomans(normalizedAllBooks.filter(l => l.genre?.name === 'Roman').slice(0, 17));
+
+    } catch (error) {
+      console.error('Erreur chargement livres ou genres:', error);
+
+      // Fallback vers mockData
+      const { livres, genres: mockGenres } = await import('../data/mockData');
+      setAllBooks(livres);
+      setGenresList(mockGenres.slice(0, 6));
+
+      const availableMock = livres.filter(l => l.nb_disponibles > 0);
+      setLivresMembres(availableMock.slice(0, 17));
+      setLivresPopulaires(availableMock.slice(0, 17));
+      setLivresNouveaux(livres.slice(-3));
+      setLivresRomans(livres.filter(l => l.genre === 'Roman').slice(0, 17));
+    } finally {
+      setIsLoadingBooks(false);
+    }
+  };
+
+  fetchData();
+}, []);
 
   if (authLoading || isLoadingBooks) {
     return (
@@ -127,10 +126,7 @@ export default function Home() {
 
   return (
     <MobileLayout>
-      <TopBar 
-        userName={user?.name?.split(' ')[0] || 'Invité'} 
-        notificationsNonLues={notificationsNonLues.length}
-      />
+      <TopBar/>
 
       {/* SECTION 1: Meilleurs du mois */}
       <div className="px-6 mt-2">
@@ -151,16 +147,16 @@ export default function Home() {
         <SectionHeader titre="Genres" voirToutLien="/genres" />
         <div className="grid grid-cols-2 gap-3"> 
           {genresList.map((genre, index) => {
-            const IconComponent = genreIcons[genre];
-            return (
-              <GenreCard
-                key={index}
-                genre={genre}
-                icon={IconComponent}
-                bookCount={getBookCountByGenre(genre, allBooks)}
-              />
-            );
-          })}
+              const IconComponent = genreIcons[genre.name]; 
+              return (
+                <GenreCard
+                  key={index}
+                  genre={genre.name}
+                  icon={IconComponent}
+                  bookCount={getBookCountByGenre(genre.name, allBooks)}
+                />
+              );
+            })}
         </div>
       </div>
 
