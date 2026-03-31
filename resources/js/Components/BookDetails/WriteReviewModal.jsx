@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import ReviewSection from './ReviewSection';
 
 export default function WriteReviewModal({ 
   isOpen, 

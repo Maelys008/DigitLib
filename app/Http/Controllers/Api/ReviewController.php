@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,7 @@ class ReviewController extends Controller
             'comment' => 'required|string|min:10',
         ]);
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $review = Review::updateOrCreate(
@@ -30,7 +31,7 @@ class ReviewController extends Controller
     public function like($reviewId)
     {
         $review = Review::findOrFail($reviewId);
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $alreadyLiked = DB::table('review_likes')
@@ -41,16 +42,18 @@ class ReviewController extends Controller
         if ($alreadyLiked) {
             DB::table('review_likes')->where('user_id', $user->id)->where('review_id', $reviewId)->delete();
             $review->decrement('likes_count');
+
             return response()->json(['message' => 'Like retiré.']);
         }
 
         DB::table('review_likes')->insert([
             'user_id' => $user->id,
             'review_id' => $reviewId,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
-        
+
         $review->increment('likes_count');
+
         return response()->json(['message' => 'Vous avez trouvé cet avis utile.']);
     }
 

@@ -13,23 +13,21 @@ use Illuminate\Support\Facades\Storage;
 
 class LibraryController extends Controller
 {
-
     public function index()
     {
         $user = auth()->user();
-        
+
         // Récupérer les bibliothèques où l'utilisateur est admin
         $libraries = Library::where('administrator_id', $user->id)->get();
-        
+
         // Ajouter les informations supplémentaires
         foreach ($libraries as $library) {
             $library->books_count = $library->books()->count();
             $library->members_count = $library->inscriptions()->count();
         }
-        
+
         return response()->json($libraries);
     }
-
 
     public function show(Library $library)
     {
@@ -42,7 +40,6 @@ class LibraryController extends Controller
         return response()->json($library);
     }
 
-
     public function update(Request $request, Library $library)
     {
         $request->validate([
@@ -51,6 +48,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'sometimes|required|integer|min:1',
+            'daily_penalty_amount' => 'sometimes|required|numeric|min:0',
         ]);
 
         // Gérer l'image si fournie
@@ -72,7 +71,6 @@ class LibraryController extends Controller
         ]);
     }
 
-
     public function join(Request $request)
     {
         $request->validate([
@@ -92,11 +90,10 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Vous êtes déjà membre de cette bibliothèque.'], 422);
         }
 
-
         Inscription::create([
             'user_id' => $user->id,
             'library_id' => $request->library_id,
-            'date' => now()
+            'date' => now(),
         ]);
 
         return response()->json(['message' => 'Félicitations, vous avez rejoint la bibliothèque !'], 201);
@@ -110,6 +107,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'integer|min:1',
+            'daily_penalty_amount' => 'numeric|min:0',
         ]);
 
         // 1. Gérer l'image proprement
@@ -137,7 +136,9 @@ class LibraryController extends Controller
                 'parent_id' => $request->parent_id,
                 'adress' => $request->adress,
                 'description' => $request->description,
-                'administrator_id' => $user->id
+                'administrator_id' => $user->id,
+                'loan_duration' => $request->loan_duration,
+                'daily_penalty_amount' => $request->daily_penalty_amount,
             ]);
 
             $user->update(['role' => 'admin']);
@@ -156,12 +157,12 @@ class LibraryController extends Controller
             Inscription::create([
                 'user_id' => $user->id,
                 'library_id' => $library->id,
-                'date' => now()
+                'date' => now(),
             ]);
 
             return response()->json([
                 'message' => 'Bibliothèque créée avec succès !',
-                'library' => $library
+                'library' => $library,
             ], 201);
         });
     }
@@ -184,14 +185,13 @@ class LibraryController extends Controller
     //     ]);
     // }
 
-
-public function destroy(Library $library)
+    public function destroy(Library $library)
     {
-        
+
         $hasBooks = $library->books()->exists();
         if ($hasBooks) {
             return response()->json([
-                'message' => 'Impossible de supprimer : cette bibliothèque contient encore des livres.'
+                'message' => 'Impossible de supprimer : cette bibliothèque contient encore des livres.',
             ], 422);
         }
 

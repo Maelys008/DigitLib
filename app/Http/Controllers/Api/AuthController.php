@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\SendOtpMail;
-use App\Models\User;
 use App\Models\Badge;
+use App\Models\User;
 // use App\Http\Controllers\Api\Badge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -26,15 +26,15 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Identifiants incorrects'
+                'message' => 'Identifiants incorrects',
             ], 401);
         }
 
-        if (!$user->email_verified_at) {
+        if (! $user->email_verified_at) {
             return response()->json([
-                'message' => 'Veuillez vérifier votre email avant de vous connecter.'
+                'message' => 'Veuillez vérifier votre email avant de vous connecter.',
             ], 403);
         }
 
@@ -49,7 +49,6 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
-
 
     public function register(Request $request)
     {
@@ -69,19 +68,24 @@ class AuthController extends Controller
 
         // $token = $user->createToken('auth_token')->plainTextToken;
 
-       Mail::to($user->email)->send(new SendOtpMail($otp, $user->email));
+        Mail::to($user->email)->send(new SendOtpMail($otp, $user->email));
 
         return response()->json([
-            'message' => 'Code envoyé par email'
+            'message' => 'Code envoyé par email',
         ], 201);
     }
+
     public function resendOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) return response()->json(['message' => 'Utilisateur introuvable'], 404);
-        if ($user->email_verified_at) return response()->json(['message' => 'Email déjà vérifié'], 422);
+        if (! $user) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
+        }
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Email déjà vérifié'], 422);
+        }
 
         $otp = rand(100000, 999999);
         $user->update([
@@ -112,13 +116,13 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Profil complété avec succès.',
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
     public function logout(Request $request)
     {
-        /** @var \Laravel\Sanctum\PersonalAccessToken $user */
+        /** @var PersonalAccessToken $user */
         $user = $request->user();
         $user->currentAccessToken()->delete();
         $user->update([
@@ -126,19 +130,20 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Déconnexion réussie.'
+            'message' => 'Déconnexion réussie.',
         ], 200);
     }
+
     public function verifyOtp(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required'
+            'otp' => 'required',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Utilisateur introuvable'], 404);
         }
 
@@ -150,23 +155,19 @@ class AuthController extends Controller
             return response()->json(['message' => 'Code expiré'], 422);
         }
 
-          $user->update([
+        $user->update([
             'email_verified_at' => now(),
             'otp_code' => null,
             'otp_expires_at' => null,
             'status' => 'active',
         ]);
 
-
-        
-
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Compte vérifié',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -210,7 +211,8 @@ class AuthController extends Controller
         return response()->json(['message' => __($status)], 422);
     }
 
-    public function status (Request $request) {
+    public function status(Request $request)
+    {
         $user = $request->user()->load('badge');
         $nextBadge = Badge::where('condition_of_obtaining', '>', $user->score)
             ->orderBy('condition_of_obtaining', 'asc')
@@ -222,8 +224,8 @@ class AuthController extends Controller
                 'current_loans' => $user->loans()->whereNull('actual_return_date')->count(),
                 'max_books_allowed' => $user->badge->maximum_book ?? 2,
                 'points_to_next_level' => $nextBadge ? ($nextBadge->condition_of_obtaining - $user->score) : 0,
-                'next_badge_name' => $nextBadge->name ?? 'Niveau Max atteint'
-            ]
+                'next_badge_name' => $nextBadge->name ?? 'Niveau Max atteint',
+            ],
         ]);
     }
 }

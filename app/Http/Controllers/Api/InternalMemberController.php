@@ -50,7 +50,7 @@ class InternalMemberController extends Controller
 
             return response()->json([
                 'message' => 'Rôle attribué avec succès.',
-                'member' => $member->load(['user', 'role_assignments.role'])
+                'member' => $member->load(['user', 'role_assignments.role']),
             ], 201);
         });
     }

@@ -7,13 +7,12 @@ use App\Http\Controllers\Api\InternalMemberController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\PenalityController;
+use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Models\Badge;
-use Illuminate\Http\Request;
+use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
-
 
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
@@ -37,8 +36,8 @@ Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'handlePro
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/books/{id}', [BookController::class, 'show']);
 
-Route::get('/genres', function() {
-    return response()->json(\App\Models\Genre::all());
+Route::get('/genres', function () {
+    return response()->json(Genre::all());
 });
 
 // -------------------------------------------------------------------------
@@ -49,8 +48,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Profil & Déconnexion ---
     Route::post('/profil/complete', [AuthController::class, 'completeProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/badges', function() {
-        return response()->json(\App\Models\Badge::orderBy('condition_of_obtaining', 'asc')->get());
+    Route::get('/badges', function () {
+        return response()->json(Badge::orderBy('condition_of_obtaining', 'asc')->get());
     });
     Route::get('/profile/status', [AuthController::class, 'status']);
 
@@ -60,7 +59,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Emprunts (Loans) ---
     Route::get('/loans', [LoanController::class, 'index']);           // Mes emprunts
     Route::post('/loans', [LoanController::class, 'store']);          // Emprunter
-    Route::put('/loans/{id}', [LoanController::class, 'update']);     // Retourner
+    // Route::put('/loans/{id}', [LoanController::class, 'update']);     // Retourner
     Route::get('/library-loans', [LoanController::class, 'libraryDashboard']); // Dashboard Admin
 
     // --- Bibliothèques (Libraries) ---
@@ -69,7 +68,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
 
     // --- Pénalités ---
-    Route::patch('/penalties/{id}/pay', [PenalityController::class, 'payPenalty']);
+    Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
 
     // --- Clubs de lecture ---
     Route::get('/clubs', [ClubController::class, 'index']);
@@ -92,6 +91,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 });
 
+// ---------------------------------------------------------------------
 // ROUTES ADMIN (Propriétaire de bibliothèque)
 // ---------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(function () {
@@ -102,7 +102,6 @@ Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(functi
     Route::get('/libraries/{library_id}/members', [InternalMemberController::class, 'index']);
 });
 
-
 // ---------------------------------------------------------------------
 // ROUTES STAFF (Bibliothécaires / Gestionnaires)
 // ---------------------------------------------------------------------
@@ -110,10 +109,10 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::post('/books', [BookController::class, 'store']);
     Route::put('/books/{id}', [BookController::class, 'update']);
     Route::delete('/books/{id}', [BookController::class, 'destroy']);
-    
+
     Route::get('/loans/{id}', [LoanController::class, 'show']);
     Route::delete('/loans/{id}', [LoanController::class, 'destroy']);
 
-    Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);   // retour simple
+    Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
     Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
-    });
+});
