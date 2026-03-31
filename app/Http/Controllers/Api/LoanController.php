@@ -12,7 +12,7 @@ use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Loan;
 use App\Models\Notification;
-use App\Models\Penality;
+use App\Models\Penalty;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ public function store(Request $request)
         $library = $book->library;
 
         // 1. Pénalités impayées
-        $hasUnpaidPenalties = Penality::where('user_id', $user->id)
+        $hasUnpaidPenalties = Penalty::where('user_id', $user->id)
             ->where('status', 'non payé')
             ->exists();
 
@@ -237,7 +237,7 @@ public function store(Request $request)
 
             $penalty = null;
             if ($isLate || $request->has('amount')) {
-                $penalty = Penality::create([
+                $penalty = Penalty::create([
                     'user_id' => $user->id,
                     'loan_id' => $loan->id,
                     'amount' => $request->amount,

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Penality extends Model
+class Penalty extends Model
 {
     
 protected $fillable =

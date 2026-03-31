@@ -12,8 +12,8 @@ class DigilibSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         // TRUNCATE (ordre important)
-        DB::table('users')->truncate();
         DB::table('badges')->truncate();
+        DB::table('users')->truncate();
         DB::table('libraries')->truncate();
         DB::table('genres')->truncate();
         DB::table('books')->truncate();

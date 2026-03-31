@@ -91,7 +91,7 @@ class BookController extends Controller
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-        $request->validated();
+        // $request->validated();
         
         $isbnExists = Book::where('isbn', $request->isbn)->exists();
         if ($isbnExists) {
@@ -170,7 +170,7 @@ class BookController extends Controller
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        $request->validated();
+        // $request->validated();
 
         $data = $request->all();
 

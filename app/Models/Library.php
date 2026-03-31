@@ -13,7 +13,9 @@ class Library extends Model
         'description',
         'parent_id',
         'administrator_id',
-        'library_image'
+        'library_image',
+        'loan_duration',
+        'daily_penalty_amount',
     ];
 
     protected $appends = ['library_url','members_count'];

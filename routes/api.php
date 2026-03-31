@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\InternalMemberController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\PenalityController;
+use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Models\Badge;
@@ -68,7 +68,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::apiResource('libraries', LibraryController::class);
 
     // --- Pénalités ---
-    Route::patch('/penalties/{id}/pay', [PenalityController::class, 'payPenalty']);
+    Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
 
     // --- Clubs de lecture ---
     Route::get('/clubs', [ClubController::class, 'index']);

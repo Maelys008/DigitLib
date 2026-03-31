@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Incident;
 use App\Models\Loan;
-use App\Models\Penality;
+use App\Models\Penalty;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -47,10 +47,10 @@ class UpdatePenalties extends Command
 
             // On ne met à jour que si la pénalité n'est pas encore marquée comme 'payé' 
             // ou on crée une nouvelle si elle n'existe pas.
-            $penalty = Penality::where('loan_id', $loan->id)->first();
+            $penalty = Penalty::where('loan_id', $loan->id)->first();
 
             if (!$penalty || $penalty->status !== 'payé') {
-                Penality::updateOrCreate(
+                Penalty::updateOrCreate(
                     ['loan_id' => $loan->id],
                     [
                         'user_id' => $loan->user_id,
