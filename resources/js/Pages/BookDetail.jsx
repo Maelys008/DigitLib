@@ -1,7 +1,7 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { BookOpen, User, Calendar, Star } from 'lucide-react';
-import { Link, usePage, router } from '@inertiajs/react'; 
+import { BookOpen, User, Calendar, Star, AlertCircle } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react'; 
 import HorizontalScroll from '@/Components/HorizontalScroll';
 import BookCard from '@/Components/BookCard';
 import { getPastelColor } from '@/Constants/colors';
@@ -32,17 +32,35 @@ export default function BookDetail() {
   const [avisDuLivre, setAvisDuLivre] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-	const [hasJoinedLibrary, setHasJoinedLibrary] = useState(false);
-const [isCheckingLibrary, setIsCheckingLibrary] = useState(true);
+  const [showJoinWarning, setShowJoinWarning] = useState(false);
+  const [hasJoinedLibrary, setHasJoinedLibrary] = useState(false);
+  const [isCheckingLibrary, setIsCheckingLibrary] = useState(true);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [reservationSuccessMessage, setReservationSuccessMessage] = useState(null);
 
   const { props } = usePage();
   const { id } = props;
+
+  const clearJoinWarning = () => setShowJoinWarning(false);
+  const clearSuccessMessage = () => setSuccessMessage(null);
+  const clearReservationSuccessMessage = () => setReservationSuccessMessage(null);
+
+  const handleReservationCreated = (reservation) => {
+    console.log('Réservation créée avec succès:', reservation);
+    setReservationSuccessMessage('Vous êtes en liste d\'attente. Vous serez notifié dès qu\'un exemplaire sera disponible.');
+    setTimeout(() => setReservationSuccessMessage(null), 5000);
+  };
 
   useEffect(() => {
     const fetchBook = async () => {
       setIsLoading(true);
       try {
         const bookResponse = await api.getBook(id);
+        
+        if (!bookResponse) {
+          throw new Error('Livre non trouvé');
+        }
+        
         const normalizedBook = normalizeBook(bookResponse);
         setLivre(normalizedBook);
         
@@ -56,59 +74,75 @@ const [isCheckingLibrary, setIsCheckingLibrary] = useState(true);
         } else if (booksResponse.data && Array.isArray(booksResponse.data)) {
           booksData = booksResponse.data;
         }
-			/*	if (isAuthenticated && normalizedBook.library?.id) {
-  try {
-    const userLibraries = await api.getUserJoinedLibraries();
-    const joined = userLibraries.some(lib => lib.id === normalizedBook.library.id);
-    setHasJoinedLibrary(joined);
-  } catch (err) {
-    console.error('Erreur vérification bibliothèque:', err);
-  } finally {
-    setIsCheckingLibrary(false);
-  }
-} else {
-  setIsCheckingLibrary(false);
-}*/
-setIsCheckingLibrary(false);
         
         const normalizedBooks = booksData.map(normalizeBook);
         
         const recommandations = normalizedBooks.filter(l => 
-          l.genreName.toLowerCase().trim() === normalizedBook.genreName.toLowerCase().trim() 
+          l.genreName?.toLowerCase().trim() === normalizedBook.genreName?.toLowerCase().trim() 
           && l.id !== normalizedBook.id
         ).slice(0, 17);
-
+        
         setLivresRecommandes(recommandations);
         setAvisDuLivre([]);
+        
+        if (isAuthenticated && normalizedBook.library?.id) {
+          try {
+            const userLibraries = await api.getUserJoinedLibraries();
+            const joined = Array.isArray(userLibraries) && userLibraries.some(lib => lib.id === normalizedBook.library.id);
+            setHasJoinedLibrary(joined);
+            console.log('Bibliothèque rejointe ?', joined);
+          } catch (err) {
+            console.error('Erreur vérification bibliothèque:', err);
+            setHasJoinedLibrary(false);
+          }
+        } else {
+          setHasJoinedLibrary(false);
+        }
         
       } catch (error) {
         console.error('Erreur chargement livre:', error);
         setError('Impossible de charger le livre');
         
-        const { livres: mockLivres, avis: mockAvis } = await import('../data/mockData');
-        const mockBook = mockLivres.find(l => l.id === parseInt(id));
-        if (mockBook) {
-          setLivre(mockBook);
-          const mockRecommandations = mockLivres.filter(l => 
-            l.genre === mockBook.genre && l.id !== mockBook.id
-          ).slice(0, 17);
-          setLivresRecommandes(mockRecommandations);
-          setAvisDuLivre(mockAvis.filter(a => a.livre_id === parseInt(id)));
+
+        try {
+          const { livres: mockLivres, avis: mockAvis } = await import('../data/mockData');
+          const mockBook = mockLivres.find(l => l.id === parseInt(id));
+          if (mockBook) {
+            setLivre(mockBook);
+            const mockRecommandations = mockLivres.filter(l => 
+              l.genre === mockBook.genre && l.id !== mockBook.id
+            ).slice(0, 17);
+            setLivresRecommandes(mockRecommandations);
+            setAvisDuLivre(mockAvis.filter(a => a.livre_id === parseInt(id)));
+          }
+        } catch (mockError) {
+          console.error('Erreur chargement mock data:', mockError);
         }
       } finally {
+        setIsCheckingLibrary(false);
         setIsLoading(false);
       }
     };
     
     fetchBook();
-  }, [id]);
-	
+  }, [id, isAuthenticated]); 
 
   if (isLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  if (error && !livre) {
+    return (
+      <MobileLayout>
+        <div className="px-6 py-20 text-center">
+          <h2 className="text-xl font-bold text-gray-900">Erreur</h2>
+          <p className="text-gray-500 mt-2">{error}</p>
         </div>
       </MobileLayout>
     );
@@ -161,16 +195,70 @@ setIsCheckingLibrary(false);
             <span className="text-sm font-semibold text-gray-900 text-center">{livre.note}</span>
           </div>
         </div>
-				{!hasJoinedLibrary && !isCheckingLibrary && (
-				<div className="mb-6 pt-4" id="join-library-button">
-					<LibraryJoinButton 
-						bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
-						libraryId={livre.library?.id || livre.bibliotheque?.id}
-						onJoin={() => setHasJoinedLibrary(true)}
-						isAuthenticated={isAuthenticated}
-					/>
-				</div>
-			)}
+        
+        {/* MESSAGE D'AVERTISSEMENT POUR REJOINDRE LA BIBLIOTHÈQUE */}
+        {showJoinWarning && (
+          <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl animate-fade-in">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-orange-800">
+                  Vous devez rejoindre la bibliothèque
+                </p>
+                <p className="text-xs text-orange-600 mt-0.5">
+                  "{livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}" avant d'emprunter un livre
+                </p>
+              </div>
+              <button 
+                onClick={clearJoinWarning}
+                className="text-orange-600 hover:text-orange-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            <p className="text-sm">{successMessage}</p>
+            <button 
+              onClick={clearSuccessMessage}
+              className="text-xs text-green-800 underline mt-1"
+            >
+              Fermer
+            </button>
+          </div>
+        )}
+        
+        {reservationSuccessMessage && (
+          <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
+            <p className="text-sm">{reservationSuccessMessage}</p>
+            <button 
+              onClick={clearReservationSuccessMessage}
+              className="text-xs text-blue-800 underline mt-1"
+            >
+              Fermer
+            </button>
+          </div>
+        )}
+        
+        {/* BOUTON REJOINDRE LA BIBLIOTHÈQUE */}
+        {!hasJoinedLibrary && !isCheckingLibrary && (
+          <div className="mb-6 pt-4" id="join-library-button">
+            <LibraryJoinButton 
+              bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
+              libraryId={livre.library?.id || livre.bibliotheque?.id}
+              onJoin={() => {
+                setHasJoinedLibrary(true);
+                setShowJoinWarning(false); 
+                setSuccessMessage('Vous avez rejoint la bibliothèque avec succès !');
+                setTimeout(() => setSuccessMessage(null), 3000);
+              }}
+              isAuthenticated={isAuthenticated}
+            />
+          </div>
+        )}
       
         {/* DESCRIPTION */}
         <div className="mb-6">
@@ -190,12 +278,16 @@ setIsCheckingLibrary(false);
           )}
         </div>
            
-        {/* BOUTON EMPRUNTER - toujours visible */}
+        {/* BOUTON EMPRUNTER */}
         <BorrowButton 
-					bookId={livre.id}
-					bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
-					isAuthenticated={isAuthenticated}
-				/>
+          bookId={livre.id}
+          bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
+          isLibraryJoined={hasJoinedLibrary}
+          isAuthenticated={isAuthenticated}
+          onShowWarning={setShowJoinWarning}
+          onReservationCreated={handleReservationCreated}
+          isBookAvailable={livre.nb_disponibles > 0}
+        />
 
         {/* SECTION AVIS */}
         <ReviewSection 

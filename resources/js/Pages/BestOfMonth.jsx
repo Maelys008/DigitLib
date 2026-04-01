@@ -57,22 +57,22 @@ export default function BestOfMonth() {
         }
         
         const normalizedBooks = booksData.map(normalizeBook);
-        const availableBooks = normalizedBooks.filter(l => l.nb_disponibles > 0);
         
-        setLivres(availableBooks);
+        
+        setLivres(normalizedBooks); 
         setTotalPages(paginationData.last_page || 1);
-        setTotalBooks(paginationData.total || availableBooks.length);
+        setTotalBooks(paginationData.total || normalizedBooks.length);
         
       } catch (error) {
         console.error('Erreur chargement livres:', error);
         setError('Impossible de charger les livres');
         
-        // Fallback vers mockData
+    
         const { livres: mockLivres } = await import('../data/mockData');
-        const availableMock = mockLivres.filter(l => l.nb_disponibles > 0);
-        setLivres(availableMock);
+       
+        setLivres(mockLivres);
         setTotalPages(1);
-        setTotalBooks(availableMock.length);
+        setTotalBooks(mockLivres.length);
         
       } finally {
         setIsLoading(false);

@@ -238,16 +238,17 @@ async getUserJoinedLibraries() {
     return [];
   }
 }
+
 async updateLibrary(id, formData) {
   try {
-    formData.append('_method', 'PUT');
-    const response = await this.axios.post(`/libraries/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+
+    const response = await this.axios.put(`/libraries/${id}`, {
+      loan_duration: parseInt(formData.get('loan_duration')),
+      daily_penalty_amount: parseFloat(formData.get('daily_penalty_amount'))
     });
     return { success: true, data: response.data };
   } catch (error) {
+    console.error('Update library error:', error.response?.data);
     return { 
       success: false, 
       message: error.response?.data?.message || 'Erreur lors de la modification' 
@@ -377,13 +378,28 @@ async getLoans() {
 async borrowBook(bookId) {
   try {
     const response = await this.axios.post('/loans', { book_id: bookId });
-    return { success: true, data: response.data };
+    
+    // Vérifier si la réponse contient une réservation (status 202)
+    if (response.status === 202 || response.data.reservation) {
+      return { 
+        success: true, 
+        isReservation: true,
+        data: response.data 
+      };
+    }
+    
+    // Emprunt réussi (status 201)
+    return { 
+      success: true, 
+      isReservation: false,
+      data: response.data 
+    };
   } catch (error) {
-    console.error('Borrow book error:', error.response?.data);
     return { 
       success: false, 
       message: error.response?.data?.message || 'Erreur lors de l\'emprunt',
-      status: error.response?.status
+      status: error.response?.status,
+      data: error.response?.data
     };
   }
 }
@@ -409,6 +425,46 @@ async returnBook(loanId, conditionOnReturn) {
     return { 
       success: false, 
       message: error.response?.data?.message || 'Erreur lors du retour' 
+    };
+  }
+}
+
+// Récupérer tous les emprunts de la bibliothèque (pour admin)
+async getLibraryLoans(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/loans`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library loans:', error);
+    return [];
+  }
+}
+
+// Récupérer toutes les réservations de la bibliothèque
+async getLibraryReservations(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/reservations`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library reservations:', error);
+    return { count: 0, reservations: [] };
+  }
+}
+
+// Retourner un livre (appel à la route existante)
+async returnBook(loanId, conditionOnReturn, additionalPenaltyAmount = null, penaltyReason = null) {
+  try {
+    const data = { condition_on_return: conditionOnReturn };
+    if (additionalPenaltyAmount) {
+      data.additional_penalty_amount = additionalPenaltyAmount;
+      data.penalty_reason = penaltyReason;
+    }
+    const response = await this.axios.post(`/loans/${loanId}/return`, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors du retour'
     };
   }
 }

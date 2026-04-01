@@ -34,7 +34,6 @@ const fetchAllBooks = async () => {
       
       if (response.data?.data) {
         booksData = response.data.data;
-        // Vérifier s'il y a une page suivante
         hasMore = response.data.current_page < response.data.last_page;
       } else if (Array.isArray(response)) {
         booksData = response;
@@ -84,13 +83,21 @@ export default function Home() {
       const first6Genres = genresResponse.data?.slice(0, 6) || [];
       setGenresList(first6Genres);
 
-      // Préparer les livres pour chaque section
-      const availableBooks = normalizedAllBooks.filter(l => l.nb_disponibles > 0);
+      const allBooksList = normalizedAllBooks;
+      
+      // Trier par date pour les nouveautés
       const sortedByDate = [...normalizedAllBooks].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      setLivresMembres(availableBooks.slice(0, 12));
-      setLivresPopulaires(availableBooks.slice(5, 17));
+      // Afficher les 12 premiers livres pour "Meilleurs du mois"
+      setLivresMembres(allBooksList.slice(0, 12));
+      
+      // Afficher les livres 5-17 pour "Populaires" (ou tous si pas assez)
+      setLivresPopulaires(allBooksList.slice(5, 17).length > 0 ? allBooksList.slice(5, 17) : allBooksList.slice(0, 12));
+      
+      // Nouveautés : les 3 plus récents
       setLivresNouveaux(sortedByDate.slice(0, 3));
+      
+      // Romans : tous les livres du genre Roman (même si disponibles = 0)
       setLivresRomans(normalizedAllBooks.filter(l => l.genre?.name === 'Roman').slice(0, 17));
 
     } catch (error) {
@@ -101,9 +108,9 @@ export default function Home() {
       setAllBooks(livres);
       setGenresList(mockGenres.slice(0, 6));
 
-      const availableMock = livres.filter(l => l.nb_disponibles > 0);
-      setLivresMembres(availableMock.slice(0, 17));
-      setLivresPopulaires(availableMock.slice(0, 17));
+      // Même logique pour les mocks
+      setLivresMembres(livres.slice(0, 17));
+      setLivresPopulaires(livres.slice(0, 17));
       setLivresNouveaux(livres.slice(-3));
       setLivresRomans(livres.filter(l => l.genre === 'Roman').slice(0, 17));
     } finally {

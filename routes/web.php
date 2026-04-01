@@ -164,4 +164,10 @@ Route::get('/librarian/library/{id}', function ($id) {
 Route::get('/notifications', function () {
     return Inertia::render('Notifications');
 })->name('notifications');
+Route::get('/librarian/borrowing-rules', function () {
+    return Inertia::render('Librarian/BorrowingRules');
+})->name('librarian.borrowing-rules');
+Route::get('/librarian/manage-users', function () {
+    return Inertia::render('Librarian/ManageUsers');
+});
 require __DIR__.'/auth.php';

@@ -14,7 +14,7 @@ export default function Library() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  // Charger les emprunts depuis l'API
+
   useEffect(() => {
     const fetchLoans = async () => {
       if (!user) {
@@ -26,7 +26,7 @@ export default function Library() {
         const loans = await api.getLoans();
         console.log('Emprunts reçus:', loans);
         
-        // Transformer les emprunts en format compatible
+    
         const booksWithDetails = loans.map(loan => {
           const book = loan.copy?.book;
           if (!book) return null;
@@ -57,10 +57,19 @@ export default function Library() {
       } finally {
         setIsLoading(false);
       }
+      const fetchReservations = async () => {
+  try {
+    const response = await api.axios.get('/reservations');
+    setReservations(response.data);
+  } catch (error) {
+    console.error('Erreur chargement réservations:', error);
+  }
+};
     };
     
     fetchLoans();
   }, [user]);
+  const [reservations, setReservations] = useState([]);
 
   // Charger les favoris
   useEffect(() => {

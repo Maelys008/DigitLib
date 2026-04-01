@@ -7,6 +7,9 @@ use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Library;
 use App\Models\Role_assignment;
+use App\Models\Reservation;
+use App\Models\Loan; 
+use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -48,8 +51,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-            'loan_duration' => 'sometimes|required|integer|min:1',
-            'daily_penalty_amount' => 'sometimes|required|numeric|min:0',
+            'loan_duration' => 'sometimes|integer|min:1',
+            'daily_penalty_amount' => 'sometimes|numeric|min:0',
         ]);
 
         // Gérer l'image si fournie
@@ -64,6 +67,16 @@ class LibraryController extends Controller
         // Mise à jour des autres champs
         $library->fill($request->only('name', 'adress', 'description', 'parent_id'));
         $library->save();
+        // Ajouter loan_duration et daily_penalty_amount s'ils sont présents
+    if ($request->has('loan_duration')) {
+        $data['loan_duration'] = $request->loan_duration;
+    }
+    if ($request->has('daily_penalty_amount')) {
+        $data['daily_penalty_amount'] = $request->daily_penalty_amount;
+    }
+    
+    $library->fill($data);
+    $library->save();
 
         return response()->json([
             'message' => 'Bibliothèque mise à jour avec succès.',
@@ -107,8 +120,8 @@ class LibraryController extends Controller
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-            'loan_duration' => 'integer|min:1',
-            'daily_penalty_amount' => 'numeric|min:0',
+            'loan_duration' => 'nullable|integer|min:1',
+            'daily_penalty_amount' => 'nullable|numeric|min:0',
         ]);
 
         // 1. Gérer l'image proprement
@@ -137,8 +150,8 @@ class LibraryController extends Controller
                 'adress' => $request->adress,
                 'description' => $request->description,
                 'administrator_id' => $user->id,
-                'loan_duration' => $request->loan_duration,
-                'daily_penalty_amount' => $request->daily_penalty_amount,
+                'loan_duration' => $request->loan_duration ?? 14,
+                'daily_penalty_amount' => $request->daily_penalty_amount ?? 0,
             ]);
 
             $user->update(['role' => 'admin']);
@@ -184,7 +197,63 @@ class LibraryController extends Controller
     //         'message' => 'Bibliothèque supprimée avec succès.',
     //     ]);
     // }
+    public function userLibraries(Request $request)
+{
+    $user = $request->user();
+    
+    $libraries = $user->inscriptions()
+        ->with('library')
+        ->get()
+        ->map(function ($inscription) {
+            return $inscription->library;
+        });
+    
+    return response()->json($libraries);
+}
+// Récupérer les réservations de la bibliothèque
+public function reservations($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+    
+    // Vérifier que l'utilisateur est admin de cette bibliothèque
+    $user = auth()->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+    
+    // Compter les réservations actives pour les livres de cette bibliothèque
+    $reservationsCount = Reservation::whereHas('book', function($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })->whereIn('status', ['active', 'notified'])->count();
+    
+    return response()->json([
+        'count' => $reservationsCount,
+        'reservations' => Reservation::whereHas('book', function($query) use ($libraryId) {
+            $query->where('library_id', $libraryId);
+        })->with(['user', 'book'])->whereIn('status', ['active', 'notified'])->get()
+    ]);
+}
 
+// Récupérer tous les emprunts de la bibliothèque
+public function loans($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+    
+    // Vérifier que l'utilisateur est admin de cette bibliothèque
+    $user = auth()->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+    
+    $loans = Loan::whereHas('copy.book', function($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })
+    ->with(['user', 'copy.book'])
+    ->orderBy('created_at', 'desc')
+    ->get();
+    
+    return response()->json($loans);
+}
     public function destroy(Library $library)
     {
 
