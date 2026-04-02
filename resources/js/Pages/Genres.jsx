@@ -1,91 +1,64 @@
-// resources/js/Pages/Genres.jsx
-
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
 import { genreIcons } from '../Constants/genreIcons';
 import GenreListItem from '@/Components/GenreListItem';
 import { ArrowLeft } from 'lucide-react';
 import { Link, router } from '@inertiajs/react'; 
-import { getBookCountByGenre } from '../utils/getBookCountByGenre';
 import api from '../services/api';
 
-// Fonction pour récupérer TOUS les livres (toutes les pages)
-const fetchAllBooks = async () => {
-  let allBooks = [];
-  let currentPage = 1;
-  let hasMore = true;
-  
-  while (hasMore) {
-    try {
-      const response = await api.getBooks({ page: currentPage });
-      let booksData = [];
-      
-      if (response.data?.data) {
-        booksData = response.data.data;
-        hasMore = response.data.current_page < response.data.last_page;
-      } else if (Array.isArray(response)) {
-        booksData = response;
-        hasMore = false;
-      } else {
-        booksData = [];
-        hasMore = false;
-      }
-      
-      allBooks = [...allBooks, ...booksData];
-      currentPage++;
-      
-    } catch (error) {
-      console.error('Erreur page', currentPage, ':', error);
-      hasMore = false;
-    }
-  }
-  
-  return allBooks;
-};
-
 export default function Genres() {
-  const [allBooks, setAllBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [genresWithCounts, setGenresWithCounts] = useState([]);
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        
-        const booksData = await fetchAllBooks();
-        
-        setAllBooks(booksData);
-        
-        const uniqueGenres = [...new Set(booksData.map(book => book.genre).filter(Boolean))];
-     
-        const counts = uniqueGenres.map(genre => ({
-          genre,
-          count: getBookCountByGenre(genre, booksData)
+        const genresResponse = await api.getGenres(); // tu dois avoir une route API qui renvoie tous les genres
+        const genres = genresResponse.data || [];
+        let allBooks = [];
+        let currentPage = 1;
+        let hasMore = true;
+        while (hasMore) {
+          const response = await api.getBooks({ page: currentPage });
+          const booksData = response.data?.data || [];
+          allBooks = [...allBooks, ...booksData];
+          hasMore = response.data?.current_page < response.data?.last_page;
+          currentPage++;
+        }
+
+        const countsMap = {}; 
+        allBooks.forEach(book => {
+          const genreName = book.genre?.name;
+          if (genreName) {
+            countsMap[genreName] = (countsMap[genreName] || 0) + 1;
+          }
+        });
+        const counts = genres.map(g => ({
+          genre: g.name,
+          count: countsMap[g.name] || 0, 
         }));
-        
-        
+
         counts.sort((a, b) => a.genre.localeCompare(b.genre));
-        
         setGenresWithCounts(counts);
-        
+
       } catch (error) {
-        console.error('Erreur chargement livres:', error);
-        
-        // Fallback vers mockData
-        const { genres: mockGenres } = await import('../data/mockData');
-        const counts = mockGenres.map(genre => ({
-          genre,
-          count: getBookCountByGenre(genre)
-        }));
+        console.error('Erreur chargement genres ou livres:', error);
+
+        // fallback vers mockData 
+        const { genres: mockGenres, livres: mockBooks } = await import('../data/mockData');
+        const countsMap = {};
+        mockBooks.forEach(book => {
+          if (book.genre) countsMap[book.genre] = (countsMap[book.genre] || 0) + 1;
+        });
+        const counts = mockGenres.map(g => ({ genre: g, count: countsMap[g] || 0 }));
         setGenresWithCounts(counts);
-        
       } finally {
         setIsLoading(false);
       }
     };
-    
-    fetchBooks();
+
+    fetchData();
   }, []);
 
   const handleGenreClick = (genre) => {
@@ -110,6 +83,7 @@ export default function Genres() {
         </Link>
         <h1 className="text-xl font-bold text-gray-900">Genres</h1>
       </div>
+
       <div className="px-4 pb-10 grid grid-cols-2 gap-3">
         {genresWithCounts.map(({ genre, count }) => {
           const IconComponent = genreIcons[genre];

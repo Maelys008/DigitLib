@@ -11,7 +11,7 @@ export default function StatisticsGrid({ stats }) {
     },
     { 
       label: 'Utilisateurs', 
-      value: stats.users || 0, 
+      value: stats.membersCount || 0, 
       icon: Users, 
       bg: 'bg-purple-50', 
       iconColor: 'text-purple-600' 

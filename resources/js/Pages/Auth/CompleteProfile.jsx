@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/CompleteProfile.jsx
-
 import { useState, useEffect } from 'react';
 import { User, Phone, CreditCard, AlertCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
@@ -10,20 +8,63 @@ export default function CompleteProfile() {
   const { updateUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
-    tel: '',
+    tel: '+229 ',
     identityHash: ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handlePhoneChange = (value) => {
-    if (!value.startsWith('+229')) {
-      setFormData(prev => ({ ...prev, tel: '+229' }));
+  // Fonction pour formater le numéro de téléphone
+  const formatPhoneNumber = (value) => {
+    // Enlever tout ce qui n'est pas un chiffre
+    let digits = value.replace(/\D/g, '');
+    
+    // Garder seulement les 10 derniers chiffres (après +229)
+    if (digits.length > 10) {
+      digits = digits.slice(-10);
+    }
+    
+    // Formater avec des espaces tous les 2 chiffres
+    let formatted = '';
+    for (let i = 0; i < digits.length; i++) {
+      if (i > 0 && i % 2 === 0) {
+        formatted += ' ';
+      }
+      formatted += digits[i];
+    }
+    
+    return formatted;
+  };
+
+  const handlePhoneChange = (e) => {
+    let inputValue = e.target.value;
+    
+    // Si l'utilisateur supprime +229, on le remet
+    if (!inputValue.startsWith('+229')) {
+      setFormData(prev => ({ ...prev, tel: '+229 ' }));
       return;
     }
-    if (value.length <= 14) {
-      setFormData(prev => ({ ...prev, tel: value }));
+    
+    // Extraire les chiffres après +229
+    let digits = inputValue.replace('+229', '').replace(/\s/g, '');
+    
+    // Limiter à 10 chiffres
+    if (digits.length > 10) {
+      digits = digits.slice(0, 10);
+    }
+    
+    // Formater le numéro
+    const formatted = formatPhoneNumber(digits);
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      tel: `+229 ${formatted}`.trim() 
+    }));
+    
+    // Effacer l'erreur si l'utilisateur corrige
+    if (errors.tel && digits.length === 10) {
+      setErrors(prev => ({ ...prev, tel: '' }));
     }
   };
 
@@ -33,7 +74,9 @@ export default function CompleteProfile() {
     
     if (!formData.name.trim()) newErrors.name = 'Veuillez remplir ce champ';
     
-    const phoneDigits = formData.tel.replace('+229', '');
+    // Extraire les chiffres du téléphone
+    const phoneDigits = formData.tel.replace(/\D/g, '').slice(3); // Enlever +229
+    
     if (!formData.tel || phoneDigits.length !== 10 || !/^\d+$/.test(phoneDigits)) {
       newErrors.tel = 'Veuillez entrer un numéro valide (10 chiffres après +229)';
     }
@@ -50,9 +93,12 @@ export default function CompleteProfile() {
     setIsLoading(true);
     setApiError('');
     
+    // Envoyer le numéro sans espaces
+    const cleanPhone = `+229${phoneDigits}`;
+    
     const result = await api.completeProfile(
       formData.name,
-      formData.tel,
+      cleanPhone,
       formData.identityHash
     );
     
@@ -119,7 +165,7 @@ export default function CompleteProfile() {
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
-          {/* Téléphone */}
+          {/* Téléphone avec formatage */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Numéro de téléphone
@@ -129,13 +175,16 @@ export default function CompleteProfile() {
               <input
                 type="tel"
                 value={formData.tel}
-                onChange={(e) => handlePhoneChange(e.target.value)}
+                onChange={handlePhoneChange}
                 placeholder="+229 90 12 34 56 78"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black font-mono tracking-wide ${
                   errors.tel ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
+            <p className="text-xs text-gray-400 mt-1 mt-2">
+              Format: +229 90 12 34 56 78 (10 chiffres après l'indicatif)
+            </p>
             {errors.tel && <p className="text-red-500 text-xs mt-1">{errors.tel}</p>}
           </div>
 

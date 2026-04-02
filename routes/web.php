@@ -122,7 +122,6 @@ Route::get('/shelves/{id}/edit', function ($id) {
         'id' => (int) $id,
     ]);
 })->name('shelves.edit');
-
 Route::get('/favorites', function () {
     return Inertia::render('Favorites');
 })->name('favorites');
@@ -157,4 +156,18 @@ Route::get('/librarian/internal-members', function () {
 Route::get('/librarian/settings', function () {
     return Inertia::render('Librarian/Settings');
 })->name('librarian.settings');
+Route::get('/librarian/library/{id}', function ($id) {
+    return Inertia::render('Librarian/LibraryDetail', [
+        'id' => (int)$id
+    ]);
+})->name('librarian.library.detail');
+Route::get('/notifications', function () {
+    return Inertia::render('Notifications');
+})->name('notifications');
+Route::get('/librarian/borrowing-rules', function () {
+    return Inertia::render('Librarian/BorrowingRules');
+})->name('librarian.borrowing-rules');
+Route::get('/librarian/manage-users', function () {
+    return Inertia::render('Librarian/ManageUsers');
+});
 require __DIR__.'/auth.php';

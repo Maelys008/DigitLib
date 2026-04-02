@@ -7,18 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class Book extends Model
 {
     protected $fillable =
-        [
-            'library_id',
-            'title',
-            'author',
-            'genre_id',
-            'isbn',
-            'description',
-            'year_of_publication',
-            'nb_copy',
-            'nb_available',
-            'cover_image',
-        ];
+    [
+        'library_id',
+        'title',
+        'author',
+        'genre_id',
+        'isbn',
+        'description',
+        'year_of_publication',
+        'nb_copy',
+        'nb_available',
+        'cover_image',
+    ];
+
 
     protected $casts =
         [
@@ -46,16 +47,14 @@ class Book extends Model
     {
         return $this->hasMany(Reservation::class);
     }
-
     public function genre()
     {
-        return $this->belongsTo(Genre::class);
+        return $this->belongsTo(Genre::class, 'genre_id');
     }
-
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
-    }
+public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
 
     // Calcul de la moyenne des étoiles
     public function getAverageRatingAttribute()

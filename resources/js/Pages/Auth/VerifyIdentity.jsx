@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/VerifyIdentity.jsx
-
 import { useState, useEffect } from 'react';
 import { Phone, CreditCard, AlertCircle, ArrowLeft, User } from 'lucide-react';
 import { router } from '@inertiajs/react';

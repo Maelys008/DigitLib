@@ -60,7 +60,7 @@ export default function BookDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       <BookDetailHeader 
-        imageUrl={book.cover_url}
+        imageUrl={book.cover_url || book.cover_image ? `/storage/${book.cover_image}` : null}
         titre={book.title}
         onEdit={handleEdit}
         onDelete={handleDelete}
@@ -73,7 +73,7 @@ export default function BookDetail() {
             <User className="w-5 h-5 text-purple-600" />
             <span className="text-sm text-gray-500">Auteur</span>
           </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.author}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-1">{book.author || 'N/A'}</p>
         </div>
 
         {/* Genre */}
@@ -82,7 +82,7 @@ export default function BookDetail() {
             <BookOpen className="w-5 h-5 text-green-600" />
             <span className="text-sm text-gray-500">Genre</span>
           </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.genre}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-1">{book.genre?.name || 'N/A'}</p>
         </div>
 
         {/* ISBN */}
@@ -91,7 +91,7 @@ export default function BookDetail() {
             <Info className="w-5 h-5 text-blue-600" />
             <span className="text-sm text-gray-500">ISBN</span>
           </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.isbn}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-1">{book.isbn || 'N/A'}</p>
         </div>
 
         {/* Année de publication */}
@@ -100,7 +100,9 @@ export default function BookDetail() {
             <Calendar className="w-5 h-5 text-orange-600" />
             <span className="text-sm text-gray-500">Année de publication</span>
           </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{new Date(book.year_of_publication).getFullYear()}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-1">
+            {book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : 'N/A'}
+          </p>
         </div>
 
         {/* Exemplaires */}
@@ -110,8 +112,8 @@ export default function BookDetail() {
             <span className="text-sm text-gray-500">Exemplaires</span>
           </div>
           <div className="flex justify-between items-center mt-1">
-            <p className="text-lg font-semibold text-gray-900">Total: {book.nb_copy}</p>
-            <p className="text-lg font-semibold text-green-600">Disponibles: {book.nb_available}</p>
+            <p className="text-lg font-semibold text-gray-900">Total: {book.nb_copy ?? 0}</p>
+            <p className="text-lg font-semibold text-green-600">Disponibles: {book.nb_available ?? 0}</p>
           </div>
         </div>
 

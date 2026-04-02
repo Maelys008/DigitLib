@@ -1,17 +1,76 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 import SectionHeader from '@/Components/SectionHeader';
 import ReviewCard from './ReviewCard';
 import HorizontalScroll from '@/Components/HorizontalScroll';
-import WriteReviewModal from './WriteReviewModal'; // ← Import du modal
+import WriteReviewModal from './WriteReviewModal';
+import api from '../../services/api';
 
 export default function ReviewSection({ 
-  reviews, 
+  reviews: initialReviews, 
   bookId,
   bookTitle,
   className = '' 
 }) {
-  const [isModalOpen, setIsModalOpen] = useState(false); // ← État pour le modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+ 
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.getBookReviews(bookId);
+        
+        let reviewsData = [];
+        if (response?.data) {
+          reviewsData = response.data;
+        } else if (Array.isArray(response)) {
+          reviewsData = response;
+        }
+        
+      
+        const formattedReviews = reviewsData.map(review => ({
+          id: review.id,
+          nom: review.user?.name || 'Utilisateur',
+          note: review.rating,
+          date: new Date(review.created_at).toLocaleDateString('fr-FR'),
+          commentaire: review.comment,
+          likes_count: review.likes_count || 0,
+          is_liked: review.is_liked || false,
+          created_at: review.created_at
+        }));
+        
+        setReviews(formattedReviews);
+      } catch (error) {
+        console.error('Erreur chargement avis:', error);
+        if (initialReviews && initialReviews.length > 0) {
+          setReviews(initialReviews);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchReviews();
+  }, [bookId, initialReviews]);
+
+  // Fonction appelée quand un nouvel avis est créé
+  const handleReviewCreated = (newReview) => {
+    setReviews(prev => [newReview, ...prev]);
+  };
+
+  if (isLoading) {
+    return (
+      <div className={`mb-6 ${className}`}>
+        <SectionHeader titre="Avis" voirToutLien={`/book/${bookId}/reviews`} />
+        <div className="flex justify-center py-8">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`mb-6 ${className}`}>
@@ -20,7 +79,6 @@ export default function ReviewSection({
         voirToutLien={`/book/${bookId}/reviews`}
       />
       
-    
       {reviews.length > 0 ? (
         <HorizontalScroll>
           {reviews.map((review) => (
@@ -44,12 +102,12 @@ export default function ReviewSection({
         Écrire un avis
       </button>
 
-
       <WriteReviewModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         bookId={bookId}
         bookTitle={bookTitle}
+        onReviewCreated={handleReviewCreated}
       />
     </div>
   );

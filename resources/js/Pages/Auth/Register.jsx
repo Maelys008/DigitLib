@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/Register.jsx
-
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { router } from '@inertiajs/react';

@@ -104,22 +104,22 @@ class ApiService {
 
   // Compléter le profil (nom, téléphone, identité)
   async completeProfile(name, tel, identityHash) {
-    try {
-      const response = await this.axios.post('/completeProfile', {
-        name,
-        tel,
-        identity_hash: identityHash
-      });
-      const user = response.data.user;
-      localStorage.setItem('user', JSON.stringify(user));
-      return { success: true, user };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Erreur de mise à jour' 
-      };
-    }
+  try {
+    const response = await this.axios.post('/profil/complete', {  
+      name,
+      tel,
+      identity_hash: identityHash
+    });
+    const user = response.data.user;
+    localStorage.setItem('user', JSON.stringify(user));
+    return { success: true, user };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur de mise à jour' 
+    };
   }
+}
 
   // Récupérer l'utilisateur connecté
   async getUser() {
@@ -134,9 +134,18 @@ class ApiService {
 async getBooks(params = {}) {
   try {
     const response = await this.axios.get('/books', { params });
-    return response.data;
+    return { data: response.data.data || [] };
   } catch (error) {
     console.error('Error fetching books:', error);
+    return { data: [] };
+  }
+}
+async getGenres() {
+  try {
+    const response = await this.axios.get('/genres'); // Appelle ton endpoint /genres
+    return { data: response.data || [] }; // Retourne les données
+  } catch (error) {
+    console.error('Erreur récupération genres:', error);
     return { data: [] };
   }
 }
@@ -210,6 +219,42 @@ async deleteBook(id) {
       return [];
     }
   }
+async getLibrary(id) {
+  try {
+    const response = await this.axios.get(`/libraries/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library:', error);
+    return null;
+  }
+}
+// Récupérer les bibliothèques que l'utilisateur a rejointes
+async getUserJoinedLibraries() {
+  try {
+    const response = await this.axios.get('/user/libraries');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user libraries:', error);
+    return [];
+  }
+}
+
+async updateLibrary(id, formData) {
+  try {
+
+    const response = await this.axios.put(`/libraries/${id}`, {
+      loan_duration: parseInt(formData.get('loan_duration')),
+      daily_penalty_amount: parseFloat(formData.get('daily_penalty_amount'))
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Update library error:', error.response?.data);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la modification' 
+    };
+  }
+}
   async getLibraryMembers(libraryId) {
   try {
     // Essaie d'abord via les membres internes
@@ -266,6 +311,16 @@ async joinLibrary(libraryId) {
     };
   }
 }
+// Vérifier si l'utilisateur a rejoint une bibliothèque
+async checkIfJoinedLibrary(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/check-join`);
+    return response.data;
+  } catch (error) {
+    console.error('Error checking join status:', error);
+    return { joined: false };
+  }
+}
 
 // Récupérer les membres internes d'une bibliothèque
 async getInternalMembers(libraryId) {
@@ -307,15 +362,196 @@ async removeInternalMember(memberId) {
     };
   }
 }
-  async getLoans() {
-    try {
-      const response = await this.axios.get('/loans');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching loans:', error);
-      return [];
-    }
+
+// Récupérer tous les emprunts de l'utilisateur connecté
+async getLoans() {
+  try {
+    const response = await this.axios.get('/loans');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching loans:', error);
+    return [];
   }
 }
+
+// Emprunter un livre
+async borrowBook(bookId) {
+  try {
+    const response = await this.axios.post('/loans', { book_id: bookId });
+    
+    // Vérifier si la réponse contient une réservation (status 202)
+    if (response.status === 202 || response.data.reservation) {
+      return { 
+        success: true, 
+        isReservation: true,
+        data: response.data 
+      };
+    }
+    
+    // Emprunt réussi (status 201)
+    return { 
+      success: true, 
+      isReservation: false,
+      data: response.data 
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de l\'emprunt',
+      status: error.response?.status,
+      data: error.response?.data
+    };
+  }
+}
+// Récupérer les membres (inscriptions) d'une bibliothèque
+async getLibraryInscriptions(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/inscriptions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library inscriptions:', error);
+    return [];
+  }
+}
+
+// Retourner un livre
+async returnBook(loanId, conditionOnReturn) {
+  try {
+    const response = await this.axios.post(`/loans/${loanId}/return`, { 
+      condition_on_return: conditionOnReturn 
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors du retour' 
+    };
+  }
+}
+
+// Récupérer tous les emprunts de la bibliothèque (pour admin)
+async getLibraryLoans(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/loans`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library loans:', error);
+    return [];
+  }
+}
+
+// Récupérer toutes les réservations de la bibliothèque
+async getLibraryReservations(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/reservations`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching library reservations:', error);
+    return { count: 0, reservations: [] };
+  }
+}
+
+// Retourner un livre (appel à la route existante)
+async returnBook(loanId, conditionOnReturn, additionalPenaltyAmount = null, penaltyReason = null) {
+  try {
+    const data = { condition_on_return: conditionOnReturn };
+    if (additionalPenaltyAmount) {
+      data.additional_penalty_amount = additionalPenaltyAmount;
+      data.penalty_reason = penaltyReason;
+    }
+    const response = await this.axios.post(`/loans/${loanId}/return`, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors du retour'
+    };
+  }
+}
+
+// Mettre à jour un prêt (avec pénalité)
+async updateLoan(loanId, amount, reason) {
+  try {
+    const response = await this.axios.put(`/loans/${loanId}`, { 
+      amount, 
+      reason 
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la mise à jour' 
+    };
+  }
+}
+
+// Récupérer toutes les notifications de l'utilisateur
+async getNotifications() {
+  try {
+    const response = await this.axios.get('/notifications');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return [];
+  }
+}
+
+// Marquer une notification comme lue
+async markNotificationAsRead(notificationId) {
+  try {
+    const response = await this.axios.patch(`/notifications/${notificationId}/read`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return { success: false };
+  }
+}
+
+// Marquer toutes les notifications comme lues
+async markAllNotificationsAsRead() {
+  try {
+    const response = await this.axios.post('/notifications/read-all');
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    return { success: false };
+  }
+}
+// Récupérer les avis d'un livre
+async getBookReviews(bookId, page = 1) {
+  try {
+    const response = await this.axios.get(`/books/${bookId}/reviews?page=${page}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return null;
+  }
+}
+
+// Ajouter / modifier un avis
+async addReview(bookId, data) {
+  try {
+    const response = await this.axios.post(`/books/${bookId}/reviews`, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Erreur lors de l'ajout de l'avis"
+    };
+  }
+}
+
+// Liker un avis
+async likeReview(reviewId) {
+  try {
+    const response = await this.axios.post(`/reviews/${reviewId}/like`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false };
+  }
+}
+}
+
+
 
 export default new ApiService();

@@ -65,7 +65,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Bibliothèques (Libraries) ---
     Route::post('/libraries/join', [LibraryController::class, 'join']);
     Route::apiResource('libraries', LibraryController::class);
-
+    Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
+    Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
+    Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
+    Route::get('/libraries/{library}/loans', [LibraryController::class, 'loans']);
     // --- Pénalités ---
     Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
 

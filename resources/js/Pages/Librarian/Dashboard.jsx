@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalCopies: 0,
     totalBooks: 0,
-    users: 0,
+    membersCount: 0,  
     available: 0,
     borrowed: 0,
     reservations: 0,
@@ -32,47 +32,38 @@ export default function Dashboard() {
       }
       
       console.log('Utilisateur connecté:', user);
-      console.log('user.id:', user.id);
       
       setIsLoading(true);
       
-      // 1. Essayer de charger depuis localStorage
       const key = `user_library_${user.id}`;
       let savedLibrary = localStorage.getItem(key);
       
       if (savedLibrary) {
-        console.log('Bibliothèque trouvée dans localStorage:', savedLibrary);
+        console.log('Bibliothèque trouvée dans localStorage');
         const lib = JSON.parse(savedLibrary);
         setLibrary(lib);
         await loadBooks(lib);
         await loadMembers(lib);
+        await loadReservations(lib); 
         setIsLoading(false);
         return;
       }
       
-      console.log('Pas de bibliothèque dans localStorage, appel API...');
-      
-      // 2. Si pas dans localStorage, charger depuis l'API
       try {
-        // Récupérer toutes les bibliothèques
         const libraries = await api.getUserLibraries();
-        console.log('Bibliothèques reçues de l\'API:', libraries);
-        
-        // Trouver la bibliothèque où l'utilisateur est admin
         const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
-        console.log('Bibliothèque trouvée pour user.id:', userLibrary);
         
         if (userLibrary) {
-          // Sauvegarder dans localStorage pour la prochaine fois
           localStorage.setItem(key, JSON.stringify(userLibrary));
           setLibrary(userLibrary);
           await loadBooks(userLibrary);
           await loadMembers(userLibrary);
+          await loadReservations(userLibrary); 
         } else {
           console.log('Aucune bibliothèque trouvée pour cet utilisateur');
         }
       } catch (error) {
-        console.error('Erreur chargement bibliothèque depuis API:', error);
+        console.error('Erreur chargement bibliothèque:', error);
       } finally {
         setIsLoading(false);
       }
@@ -83,12 +74,8 @@ export default function Dashboard() {
 
   const loadBooks = async (lib) => {
     try {
-      console.log('Chargement des livres pour library_id:', lib.id);
       const response = await api.getBooks({ library_id: lib.id });
-      console.log('Réponse API books:', response);
-      
       const booksData = response.data?.data || [];
-      console.log('Nombre de livres trouvés:', booksData.length);
       
       setBooks(booksData);
       
@@ -114,17 +101,37 @@ export default function Dashboard() {
 
   const loadMembers = async (lib) => {
     try {
-      const members = await api.getLibraryMembers(lib.id);
+      const members = await api.getLibraryInscriptions(lib.id);
       setStats(prev => ({
         ...prev,
-        users: members.length 
+        membersCount: members.length
       }));
     } catch (error) {
       console.error('Erreur chargement membres:', error);
     }
   };
 
-  // Navigation
+  const loadReservations = async (lib) => {
+    try {
+      const reservationsData = await api.getLibraryReservations(lib.id);
+      console.log('Réservations récupérées:', reservationsData);
+      
+      const reservationsCount = reservationsData.count || 0;
+      
+      setStats(prev => ({
+        ...prev,
+        reservations: reservationsCount
+      }));
+    } catch (error) {
+      console.error('Erreur chargement réservations:', error);
+      setStats(prev => ({
+        ...prev,
+        reservations: 0
+      }));
+    }
+  };
+
+
   const handleManageBooks = () => {
     router.visit('/librarian/books');
   };
@@ -132,11 +139,14 @@ export default function Dashboard() {
   const handleManageInternalMembers = () => {
     router.visit('/librarian/internal-members');
   };
-
-  const handleManageUsers = () => console.log('Gérer utilisateurs');
+const handleManageUsers = () => {
+  router.visit('/librarian/manage-users');
+};
   const handleViewIncidents = () => console.log('Voir incidents');
   const handleViewReports = () => console.log('Rapports');
-  const handleBorrowingRules = () => console.log('Règles emprunt');
+  const handleBorrowingRules = () => {
+    router.visit('/librarian/borrowing-rules');
+  };
   const handlePartnerLibraries = () => console.log('Bibliothèques partenaires');
 
   if (isLoading) {

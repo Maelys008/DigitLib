@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/Login.jsx
-
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { router } from '@inertiajs/react';
@@ -34,9 +32,10 @@ export default function Login() {
     setIsLoading(true);
     const result = await login(email, password);
     setIsLoading(false);
-    
-    if (result.success) {
-      router.visit('/');
+      if (result.success) {
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      localStorage.removeItem('redirectAfterLogin');
+      router.visit(redirectUrl || '/');
     } else {
       setApiError(result.message);
     }
@@ -144,6 +143,7 @@ export default function Login() {
           >
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </button>
+            
         </form>
 
         {/* Séparateur */}

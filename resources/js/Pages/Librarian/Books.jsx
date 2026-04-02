@@ -12,7 +12,16 @@ export default function Books() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [genres, setGenres] = useState([]);
 
+useEffect(() => {
+  const fetchGenres = async () => {
+    const { data } = await api.getGenres();
+    setGenres(data);
+  };
+  
+  fetchGenres();
+}, []);
   useEffect(() => {
     if (user) {
       const key = `user_library_${user.id}`;
@@ -103,12 +112,7 @@ export default function Books() {
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Gestion des livres</h1>
           </div>
-          <button
-            onClick={() => setShowAddBookModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Ajouter un livre
-          </button>
+
         </div>
       </div>
 
@@ -126,6 +130,7 @@ export default function Books() {
         onClose={() => setShowAddBookModal(false)}
         onSubmit={handleAddBook}
         libraryId={library.id}
+				genres={genres}
       />
     </div>
   );

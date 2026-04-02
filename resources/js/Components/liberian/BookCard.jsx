@@ -22,7 +22,7 @@ export default function BookCard({ book }) {
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 line-clamp-1">{book.title}</h3>
           <p className="text-sm text-gray-500">{book.author}</p>
-          <p className="text-xs text-gray-400 mt-1">{book.genre}</p>
+          <p className="text-xs text-gray-400 mt-1">{book.genre?.name}</p> 
           <p className="text-xs text-gray-400 mt-1">
             {book.nb_available} / {book.nb_copy} disponibles
           </p>
