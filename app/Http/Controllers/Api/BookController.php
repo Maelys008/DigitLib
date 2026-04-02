@@ -73,7 +73,7 @@ class BookController extends Controller
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-        
+
 
         $isbnExists = Book::where('isbn', $request->isbn)
             ->where('library_id', $request->library_id)
@@ -155,9 +155,25 @@ class BookController extends Controller
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        
+
 
         $data = $request->all();
+
+        // Logique de mise à jour du stock et des copies
+        if ($request->has('nb_copy')) {
+            $newTotal = (int) $request->nb_copy;
+            $oldTotal = (int) $book->nb_copy;
+
+            if ($newTotal > $oldTotal) {
+                $difference = $newTotal - $oldTotal;
+                $data['nb_available'] = $book->nb_available + $difference;
+                $this->generateCopies($book, $difference);
+            } elseif ($newTotal < $oldTotal) {
+                return response()->json([
+                    'message' => 'La réduction du nombre de copies doit être géré manuellement pour éviter de supprimer des livres empruntés.'
+                ], 422);
+            }
+        }
 
         if ($request->hasFile('cover_image')) {
             if ($book->cover_image) {
@@ -171,7 +187,7 @@ class BookController extends Controller
 
         return response()->json([
             'message' => 'Livre mis à jour',
-            'data' => $book,
+            'data' => $book->fresh(),
         ]);
     }
 

@@ -41,6 +41,8 @@ class ClubController extends Controller
     {
         $user = $request->user();
 
+        $club = Club::findOrFail($id);
+
         $alreadyMember = Club_member::where('user_id', $user->id)
             ->where('club_id', $id)
             ->exists();
@@ -81,10 +83,20 @@ class ClubController extends Controller
     }
 
     // Récupérer les messages d'un club
-    public function getMessages($clubId)
+    public function getMessages(Request $request, $clubId)
     {
+        $isMember = Club_member::where('user_id', $request->user()->id)
+            ->where('club_id', $clubId)
+            ->exists();
+
+        if (!$isMember) {
+            return response()->json([
+                'message' => 'Accès refusé.'
+            ], 403);
+        }
+
         $messages = Message::where('club_id', $clubId)
-            ->with('club_member.user')
+            ->with('clubMember.user')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -94,6 +106,8 @@ class ClubController extends Controller
     // Quitter un club
     public function leave(Request $request, $id)
     {
+        $club = Club::findOrFail($id);
+
         $member = Club_member::where('user_id', $request->user()->id)
             ->where('club_id', $id)
             ->first();
@@ -109,16 +123,20 @@ class ClubController extends Controller
 
     public function deleteMessage(Request $request, $messageId)
     {
-        $message = Message::findOrFail($messageId);
+        $message = Message::with('club')->findOrFail($messageId);
+        $user = $request->user();
 
-        $member = Club_member::where('id', $message->member_id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $isAuthor = Club_member::where('id', $message->member_id)
+            ->where('user_id', $user->id)
+            ->exists();
 
-        if (! $member) {
-            return response()->json(['message' => 'Action non autorisée.'], 403);
+        $isAdmin = ($message->club->user_id === $user->id);
+
+        if (!$isAdmin && !$isAuthor){
+            return response()->json([
+                'message'=>'Action non authorisée.'
+            ],403);
         }
-
         $message->delete();
 
         return response()->json(['message' => 'Message supprimé.']);

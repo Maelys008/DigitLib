@@ -55,18 +55,9 @@ class LibraryController extends Controller
             'daily_penalty_amount' => 'sometimes|numeric|min:0',
         ]);
 
-        // Gérer l'image si fournie
-        if ($request->hasFile('library_image')) {
-            if ($library->library_image) {
-                Storage::disk('public')->delete($library->library_image);
-            }
-            $imagePath = $request->file('library_image')->store('library_images', 'public');
-            $library->library_image = $imagePath;
-        }
-
         // Mise à jour des autres champs
-        $library->fill($request->only('name', 'adress', 'description', 'parent_id'));
-        $library->save();
+        $data = $request->only('name', 'adress', 'description', 'parent_id');
+
         // Ajouter loan_duration et daily_penalty_amount s'ils sont présents
     if ($request->has('loan_duration')) {
         $data['loan_duration'] = $request->loan_duration;
@@ -75,8 +66,15 @@ class LibraryController extends Controller
         $data['daily_penalty_amount'] = $request->daily_penalty_amount;
     }
     
-    $library->fill($data);
-    $library->save();
+     // Gérer l'image si fournie
+        if ($request->hasFile('library_image')) {
+            if ($library->library_image) {
+                Storage::disk('public')->delete($library->library_image);
+            }
+            $imagePath = $request->file('library_image')->store('library_images', 'public');
+            $library->library_image = $imagePath;
+        }
+    $library->update($data);
 
         return response()->json([
             'message' => 'Bibliothèque mise à jour avec succès.',

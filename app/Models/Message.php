@@ -14,7 +14,7 @@ class Message extends Model
 
         ];
 
-    public function club_member()
+    public function clubMember()
     {
         return $this->belongsTo(Club_member::class, 'member_id');
     }
