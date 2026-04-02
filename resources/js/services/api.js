@@ -120,6 +120,36 @@ class ApiService {
     };
   }
 }
+// Mot de passe oublié - Envoyer le lien de réinitialisation
+async forgotPassword(email) {
+  try {
+    const response = await this.axios.post('/forgot-password', { email });
+    return { success: true, message: response.data.message };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de l\'envoi du lien'
+    };
+  }
+}
+
+// Réinitialiser le mot de passe
+async resetPassword(email, password, passwordConfirmation, token) {
+  try {
+    const response = await this.axios.post('/reset-password', {
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+      token
+    });
+    return { success: true, message: response.data.message };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la réinitialisation'
+    };
+  }
+}
 
   // Récupérer l'utilisateur connecté
   async getUser() {

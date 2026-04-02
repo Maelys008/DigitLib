@@ -1,94 +1,224 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import api from '../../services/api';
 
-export default function ResetPassword({ token, email }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        token: token,
-        email: email,
-        password: '',
-        password_confirmation: '',
-    });
+export default function ResetPassword() {
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [token, setToken] = useState('');
+  const [email, setEmail] = useState('');
 
-    const submit = (e) => {
-        e.preventDefault();
+  useEffect(() => {
+    // Récupérer les paramètres de l'URL
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenParam = urlParams.get('token');
+      const emailParam = urlParams.get('email');
+      
+      console.log('Token reçu:', tokenParam);
+      console.log('Email reçu:', emailParam);
+      
+      if (tokenParam && emailParam) {
+        setToken(tokenParam);
+        setEmail(emailParam);
+      } else {
+        setErrors({ general: 'Lien de réinitialisation invalide' });
+      }
+    }
+  }, []);
 
-        post(route('password.store'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
+    
+    let hasError = false;
+    
+    if (!password) {
+      setErrors(prev => ({ ...prev, password: 'Le mot de passe est requis' }));
+      hasError = true;
+    } else if (password.length < 8) {
+      setErrors(prev => ({ ...prev, password: 'Le mot de passe doit contenir au moins 8 caractères' }));
+      hasError = true;
+    }
+    
+    if (!passwordConfirmation) {
+      setErrors(prev => ({ ...prev, passwordConfirmation: 'Veuillez confirmer le mot de passe' }));
+      hasError = true;
+    } else if (password !== passwordConfirmation) {
+      setErrors(prev => ({ ...prev, passwordConfirmation: 'Les mots de passe ne correspondent pas' }));
+      hasError = true;
+    }
+    
+    if (hasError) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const result = await api.resetPassword(email, password, passwordConfirmation, token);
+      
+      if (result.success) {
+        setIsSuccess(true);
+        setTimeout(() => {
+          router.visit('/login');
+        }, 3000);
+      } else {
+        setErrors({ general: result.message });
+      }
+    } catch (error) {
+      console.error('Reset error:', error);
+      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  const handleBack = () => {
+    router.visit('/login');
+  };
+
+  if (isSuccess) {
     return (
-        <GuestLayout>
-            <Head title="Reset Password" />
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        isFocused={true}
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        type="password"
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+      <div className="min-h-screen bg-white flex flex-col">
+        <div className="flex-1 flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe réinitialisé !</h1>
+            <p className="text-gray-500 text-sm mb-6">
+              Votre mot de passe a été modifié avec succès.
+            </p>
+            <button
+              onClick={handleBack}
+              className="bg-black text-white px-6 py-3 rounded-xl font-medium"
+            >
+              Retour à la connexion
+            </button>
+          </div>
+        </div>
+      </div>
     );
+  }
+
+  if (errors.general && !token) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <div className="flex-1 flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Lien invalide</h1>
+            <p className="text-gray-500 text-sm mb-6">
+              {errors.general}
+            </p>
+            <button
+              onClick={() => router.visit('/forgot-password')}
+              className="bg-black text-white px-6 py-3 rounded-xl font-medium"
+            >
+              Nouvelle demande
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="flex items-center px-6 pt-6">
+        <button onClick={handleBack} className="p-2 -ml-2">
+          <ArrowLeft className="w-6 h-6 text-gray-600" />
+        </button>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center px-6 pb-20">
+        <div className="mb-8 text-center">
+          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Nouveau mot de passe</h1>
+          <p className="text-gray-500 text-sm">
+            Créez un nouveau mot de passe pour votre compte
+          </p>
+        </div>
+
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-600 text-sm">{errors.general}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nouveau mot de passe
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Au moins 8 caractères"
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                  errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+              </button>
+            </div>
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Confirmer le mot de passe
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                placeholder="Répétez le mot de passe"
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                  errors.passwordConfirmation ? 'border border-red-500 ring-1 ring-red-500' : ''
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+              </button>
+            </div>
+            {errors.passwordConfirmation && <p className="text-red-500 text-xs mt-1">{errors.passwordConfirmation}</p>}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+          >
+            {isLoading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }

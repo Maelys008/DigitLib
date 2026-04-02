@@ -4,16 +4,13 @@ import { Home, Search, QrCode, User, Settings,Heart } from "lucide-react";
 export default function BottomNav() {
   const { url } = usePage();
 
-  const handleProfileClick = () => {
-    window.dispatchEvent(new CustomEvent('openProfile'));
-  };
 
   const navItems = [
     { path: "/", icon: Home, label: "Accueil" },
     { path: "/search", icon: Search, label: "Recherche" },
     { path: "/scanner", icon: QrCode, label: "Scanner" },
     { path: "/library", icon: Heart, label: "Bibliothèque" },
-    { path: "#", icon: User, label: "Profil", onClick: handleProfileClick },
+    { path: "/profile", icon: User, label: "Profil" },
   ];
 
   return (
