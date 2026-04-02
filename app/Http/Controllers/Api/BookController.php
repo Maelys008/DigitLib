@@ -18,24 +18,8 @@ class BookController extends Controller
     {
         $query = Book::with(['library', 'genre']);
 
-        // if ($request->has('title')) {
-        //     $query->where('title', 'like', '%' . $request->title . '%');
-        // }
-
-        // if ($request->has('author')) {
-        //     $query->where('author', 'like', '%' . $request->author . '%');
-        // }
-
-        // if ($request->has('genre')) {
-        //     $query->where('genre', 'like', '%' . $request->genre . '%');
-        // }
-
-        // if ($request->has('library_id')) {
-        //     $query->where('library_id', 'like', '%' . $request->library_id . '%');
-        // }
-
         if ($request->has('search') && ! empty($request->search)) {
-            $searchTerm = '%'.$request->search.'%';
+            $searchTerm = '%' . $request->search . '%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('author', 'like', $searchTerm)
@@ -46,7 +30,7 @@ class BookController extends Controller
         }
 
         if ($request->has('library_id')) {
-            $query->where('library_id', $request->library_id);  // Pas de LIKE pour ID numérique
+            $query->where('library_id', $request->library_id);
         }
 
         if ($request->has('year_of_publication')) {
@@ -74,21 +58,22 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string',
             'author' => 'required|string',
-            'genre_id' => 'required',
+            'genre_id' => 'required|exists:genres,id',
             'isbn' => 'required|string',
             'description' => 'required|string',
-            'year_of_publication' => 'required|date',
+            'year_of_publication' => 'required|integer|min:1000|max:' . now()->year,
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
             'library_id' => 'required|exists:libraries,id',
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-        // $request->validated();
+        
 
         $isbnExists = Book::where('isbn', $request->isbn)
             ->where('library_id', $request->library_id)
@@ -122,7 +107,7 @@ class BookController extends Controller
         for ($i = 0; $i < $count; $i++) {
             $newCopies[] = [
                 'book_id' => $book->id,
-                'codeQR' => 'QR-'.strtoupper(Str::random(8)),
+                'codeQR' => 'QR-' . strtoupper(Str::random(8)),
                 'condition' => 'neuf',
                 'status' => 'disponible',
                 'date_added' => now(),
@@ -164,12 +149,13 @@ class BookController extends Controller
         $request->validate([
             'title' => 'sometimes|string|max:255',
             'author' => 'sometimes|string|max:255',
-            'genre_id' => 'sometimes',
+            'genre_id' => 'sometimes|exists:genres,id',
+            'year_of_publication' => 'sometimes|integer|min:1000|max:' . now()->year,
             'description' => 'sometimes|string',
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        // $request->validated();
+        
 
         $data = $request->all();
 

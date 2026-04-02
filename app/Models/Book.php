@@ -21,10 +21,7 @@ class Book extends Model
     ];
 
 
-    protected $casts =
-        [
-            'year_of_publication' => 'date',
-        ];
+   
 
     protected $appends = ['cover_url', 'average_rating'];
 

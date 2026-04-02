@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('isbn');
             $table->unique(['isbn', 'library_id']);
             $table->text('description')->nullable();
-            $table->date('year_of_publication');
+            $table->integer('year_of_publication')->nullable();
             $table->string('cover_image')->nullable();
             $table->integer('nb_copy')->default(0);
             $table->integer('nb_available')->default(0);

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\PersonalAccessToken;
+// use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -102,7 +102,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'tel' => 'required|string|unique:users,tel',
+            'tel' => 'required|string|unique:users,tel,',
         ]);
 
         $user = $request->user();
