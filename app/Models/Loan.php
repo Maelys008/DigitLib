@@ -36,4 +36,14 @@ class Loan extends Model
     {
         return $this->hasOne(Penalty::class);
     }
+
+     public function library()
+    {
+        return $this->belongsTo(Library::class);
+    }
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class);
+    }
 }

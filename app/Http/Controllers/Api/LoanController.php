@@ -271,7 +271,7 @@ class LoanController extends Controller
         return DB::transaction(function () use ($loanId, $request) {
             // 1. Récupération de l'emprunt avec ses relations
             $loan = Loan::with(['copy.book.library', 'user'])->findOrFail($loanId);
-            $internalUser = auth()->user();
+            $returnValidatedBy = auth()->user();
 
             if ($loan->actual_return_date) {
                 return response()->json(['message' => 'Ce retour a déjà été enregistré.'], 422);
@@ -342,7 +342,7 @@ class LoanController extends Controller
 
             // Notification pour le MEMBRE INTERNE (le bibliothécaire)
             Notification::create([
-                'user_id' => $internalUser->id, // Destiné à celui qui clique
+                'user_id' => $returnValidatedBy->id, // Destiné à celui qui clique
                 'type' => 'return_confirmation',
                 'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
                 'object_type' => 'loan',
@@ -390,7 +390,7 @@ class LoanController extends Controller
                     'penalty_id' => $penalty ? $penalty->id : null,
                     'penalty_amount' => $totalPenalty,
                     'status' => 'Livre récupéré / Pénalité en attente de paiement',
-                    'new_score' => $user->score,
+                    'valided_by' => $returnValidatedBy->name,
                 ],
             ], 200);
         });

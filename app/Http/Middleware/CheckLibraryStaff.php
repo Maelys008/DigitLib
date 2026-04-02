@@ -6,6 +6,7 @@ use App\Models\Internal_member;
 use App\Models\Library;
 use Closure;
 use Illuminate\Http\Request;
+use Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckLibraryStaff
@@ -17,6 +18,11 @@ class CheckLibraryStaff
      */
     public function handle(Request $request, Closure $next): Response
     {
+
+        // \Log::info('Middleware CheckLibraryStaff déclenché', [
+        //     'user_id' => $request->user()?->id,
+        //     'library_id' => $request->route('library') ?? $request->library_id
+        // ]);
         $user = $request->user();
         $libraryId = $request->route('library') ?? $request->library_id;
 
