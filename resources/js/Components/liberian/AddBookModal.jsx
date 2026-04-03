@@ -97,7 +97,7 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up max-h-[85vh] overflow-y-auto">
+     <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up max-h-[85vh] overflow-y-auto scrollbar-hide">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Ajouter un livre</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
@@ -112,13 +112,13 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
           {/* Titre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
-            <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Auteur */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Auteur *</label>
-            <input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Genre */}
@@ -128,7 +128,7 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
 							name="genre_id"
 							value={formData.genre_id}
 							onChange={handleChange}
-							className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
+							className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
 							required
 						 >
 							<option value="">Sélectionner un genre</option>
@@ -141,45 +141,45 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
           {/* ISBN */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ISBN *</label>
-            <input type="text" name="isbn" value={formData.isbn} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="text" name="isbn" value={formData.isbn} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Année publication */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Année de publication *</label>
-            <input type="date" name="year_of_publication" value={formData.year_of_publication} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="date" name="year_of_publication" value={formData.year_of_publication} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xlfocus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Nombre d'exemplaires */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'exemplaires *</label>
-            <input type="number" min="1" name="nb_copy" value={formData.nb_copy} onChange={handleNumberChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="number" min="1" name="nb_copy" value={formData.nb_copy} onChange={handleNumberChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Livres disponibles */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Livres disponibles *</label>
-            <input type="number" min="0" max={formData.nb_copy} name="nb_available" value={formData.nb_available} onChange={handleAvailableChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" required />
+            <input type="number" min="0" max={formData.nb_copy} name="nb_available" value={formData.nb_available} onChange={handleAvailableChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea rows={3} name="description" value={formData.description} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl resize-none" />
+            <textarea rows={3} name="description" value={formData.description} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" />
           </div>
 
           {/* Couverture */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Couverture</label>
             <div className="flex items-center gap-4">
-              <div onClick={() => fileInputRef.current.click()} className="w-20 h-28 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 hover:border-purple-400 transition-colors">
+              <div onClick={() => fileInputRef.current.click()} className="w-20 h-28 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 hover:border-orange-400 transition-colors">
                 {coverPreview ? <img src={coverPreview} alt="Preview" className="w-full h-full object-cover" /> : <Camera className="w-6 h-6 text-gray-400" />}
               </div>
               <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
             </div>
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="w-full bg-purple-600 text-white font-semibold py-4 rounded-xl hover:bg-purple-700 disabled:bg-gray-400 transition-colors">
+          <button type="submit" disabled={isSubmitting} className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 disabled:bg-gray-400 transition-colors">
             {isSubmitting ? 'Ajout en cours...' : 'Ajouter le livre'}
           </button>
         </form>

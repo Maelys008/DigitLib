@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Edit2, Camera, MapPin, FileText, Users, BookOpen, Save, X, Library as LibraryIcon } from 'lucide-react';
+import { ArrowLeft, Edit2, Camera, MapPin, FileText, Users, BookOpen, Save, X, Library as LibraryIcon, Clock, AlertCircle } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -15,11 +15,14 @@ export default function LibraryDetail() {
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
+  const [booksCount, setBooksCount] = useState(0);
   
   const [formData, setFormData] = useState({
     name: '',
     adress: '',
-    description: ''
+    description: '',
+    loan_duration: 14,
+    daily_penalty_amount: 0
   });
 
   useEffect(() => {
@@ -30,11 +33,18 @@ export default function LibraryDetail() {
         setFormData({
           name: data.name || '',
           adress: data.adress || '',
-          description: data.description || ''
+          description: data.description || '',
+          loan_duration: data.loan_duration || 14,
+          daily_penalty_amount: data.daily_penalty_amount || 0
         });
         if (data.library_image) {
           setImagePreview(`/storage/${data.library_image}`);
         }
+        
+        // Récupérer le nombre de livres
+        const booksResponse = await api.getBooks({ library_id: id, per_page: 1 });
+        setBooksCount(booksResponse.data?.total || 0);
+        
       } catch (error) {
         console.error('Erreur chargement bibliothèque:', error);
       } finally {
@@ -63,6 +73,8 @@ export default function LibraryDetail() {
     formDataToSend.append('name', formData.name);
     formDataToSend.append('adress', formData.adress);
     formDataToSend.append('description', formData.description);
+    formDataToSend.append('loan_duration', formData.loan_duration);
+    formDataToSend.append('daily_penalty_amount', formData.daily_penalty_amount);
     if (newImageFile) {
       formDataToSend.append('library_image', newImageFile);
     }
@@ -74,6 +86,13 @@ export default function LibraryDetail() {
       // Rafraîchir les données
       const updatedLibrary = await api.getLibrary(id);
       setLibrary(updatedLibrary);
+      setFormData({
+        name: updatedLibrary.name || '',
+        adress: updatedLibrary.adress || '',
+        description: updatedLibrary.description || '',
+        loan_duration: updatedLibrary.loan_duration || 14,
+        daily_penalty_amount: updatedLibrary.daily_penalty_amount || 0
+      });
     } else {
       setError(result.message);
     }
@@ -87,7 +106,7 @@ export default function LibraryDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -117,7 +136,7 @@ export default function LibraryDetail() {
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
               <Edit2 className="w-4 h-4" /> Modifier
             </button>
@@ -165,7 +184,7 @@ export default function LibraryDetail() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
                 required
               />
             </div>
@@ -177,7 +196,7 @@ export default function LibraryDetail() {
                 type="text"
                 value={formData.adress}
                 onChange={(e) => setFormData({ ...formData, adress: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
                 required
               />
             </div>
@@ -193,6 +212,45 @@ export default function LibraryDetail() {
               />
             </div>
 
+            {/* Durée d'emprunt */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Durée d'emprunt (en jours)
+              </label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  min="1"
+                  max="90"
+                  value={formData.loan_duration}
+                  onChange={(e) => setFormData({ ...formData, loan_duration: parseInt(e.target.value) || 14 })}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Nombre de jours maximum pour emprunter un livre</p>
+            </div>
+
+            {/* Pénalité par jour */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Pénalité par jour de retard (FCFA)
+              </label>
+              <div className="relative">
+                <AlertCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  min="0"
+                  max="10000"
+                  step="100"
+                  value={formData.daily_penalty_amount}
+                  onChange={(e) => setFormData({ ...formData, daily_penalty_amount: parseInt(e.target.value) || 0 })}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Montant à payer par jour de retard (en FCFA)</p>
+            </div>
+
             {/* Boutons */}
             <div className="flex gap-3">
               <button
@@ -205,7 +263,7 @@ export default function LibraryDetail() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+                className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:bg-gray-400 transition-colors"
               >
                 {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
               </button>
@@ -216,7 +274,7 @@ export default function LibraryDetail() {
           <div className="space-y-6">
             {/* Image */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <div className="w-full h-48 bg-purple-100 flex items-center justify-center">
+              <div className="w-full h-48 bg-orange-100 flex items-center justify-center">
                 {library.library_image ? (
                   <img 
                     src={`/storage/${library.library_image}`} 
@@ -224,16 +282,16 @@ export default function LibraryDetail() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <LibraryIcon className="w-16 h-16 text-purple-300" />
+                  <LibraryIcon className="w-16 h-16 text-orange-300" />
                 )}
               </div>
             </div>
 
-            {/* Informations */}
+            {/* Informations générales */}
             <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <LibraryIcon className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <LibraryIcon className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">{library.name}</h2>
@@ -250,12 +308,59 @@ export default function LibraryDetail() {
                   <p className="text-gray-600 leading-relaxed">{library.description}</p>
                 </div>
               )}
+            </div>
 
-              <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
-                <Users className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-gray-900">Membres</p>
-                  <p className="text-gray-500">{library.members_count || 0} membres inscrits</p>
+            {/* Statistiques */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Nombre de livres */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Livres disponibles</p>
+                    <p className="text-xl font-bold text-gray-900">{booksCount}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Membres */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Membres inscrits</p>
+                    <p className="text-xl font-bold text-gray-900">{library.members_count || 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Durée d'emprunt */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Durée d'emprunt</p>
+                    <p className="text-xl font-bold text-gray-900">{library.loan_duration || 14} jours</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pénalité */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Pénalité / jour</p>
+                    <p className="text-xl font-bold text-gray-900">{library.daily_penalty_amount || 0} FCFA</p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -166,7 +166,7 @@ export default function BorrowingRules() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-orange-600" />
+                <AlertCircle className="w-5 h-5 text-red-600" />
                 <span>Pénalité journalière</span>
               </div>
             </label>
@@ -202,7 +202,7 @@ export default function BorrowingRules() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full bg-purple-600 text-white font-semibold py-4 rounded-xl hover:bg-purple-700 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
+            className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
           >
             {isSaving ? (
               <>

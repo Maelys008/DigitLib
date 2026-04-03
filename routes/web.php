@@ -87,7 +87,6 @@ Route::get('/profile', function () {
 Route::get('/profile/edit', function () {
     return Inertia::render('EditProfile');
 })->name('profile.edit');
-
 Route::get('/profile/cards', function () {
     return Inertia::render('MyCards');
 })->name('profile.cards');
@@ -170,4 +169,20 @@ Route::get('/librarian/borrowing-rules', function () {
 Route::get('/librarian/manage-users', function () {
     return Inertia::render('Librarian/ManageUsers');
 });
+Route::get('/reset-password', function () {
+    return Inertia::render('Auth/ResetPassword');
+})->name('reset-password');
+Route::get('/forgot-password', function () {
+    return Inertia::render('Auth/ForgotPassword');
+})->name('password.forgot');
+Route::get('/libraries/{id}', function ($id) {
+    return Inertia::render('LibraryDetails', ['id' => $id]);
+})->name('library.details');
+Route::get('/libraries', function () {
+    return Inertia::render('AllLibraries');
+})->name('libraries.index');
+
+Route::get('/libraries/{id}', function ($id) {
+    return Inertia::render('LibraryDetails', ['id' => $id]);
+})->name('library.details');
 require __DIR__.'/auth.php';
