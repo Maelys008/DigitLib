@@ -32,7 +32,7 @@ class ReviewController extends Controller
     {
         $review = Review::findOrFail($reviewId);
         /** @var User $user */
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         $alreadyLiked = DB::table('review_likes')
             ->where('user_id', $user->id)
