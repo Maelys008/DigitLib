@@ -8,11 +8,13 @@ use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PenaltyController;
+use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
+
 
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
@@ -51,13 +53,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Profil & Déconnexion ---
     Route::post('/profil/complete', [AuthController::class, 'completeProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/badges', function () {
-        return response()->json(Badge::orderBy('condition_of_obtaining', 'asc')->get());
-    });
-    Route::get('/profile/status', [AuthController::class, 'status']);
+    Route::get('/profil', [ProfilController::class, 'show']);
+    Route::put('/profil', [ProfilController::class, 'update']);
+    Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
+    Route::get('/profile/status', [ProfilController::class, 'status']); //info sur le badge
+    
+    // Route::get('/badges', function () {
+    //     return response()->json(Badge::orderBy('condition_of_obtaining', 'asc')->get());
+    // });
 
-    // --- Gestion des Livres (Actions utilisateur) ---
-    // Route::apiResource('books', BookController::class)->except(['store', 'update', 'destroy']);
+
 
     // --- Emprunts (Loans) ---
     Route::get('/loans', [LoanController::class, 'index']);           // Mes emprunts
@@ -68,7 +73,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // --- Bibliothèques (Libraries) ---
     Route::post('/libraries/join', [LibraryController::class, 'join']);
     Route::apiResource('libraries', LibraryController::class)->except(['index']);
-Route::get('/my-managed-libraries', [LibraryController::class, 'myManagedLibraries']);
+    Route::get('/my-managed-libraries', [LibraryController::class, 'myManagedLibraries']);
     Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
     Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
     Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
