@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('loan_date');
             $table->date('expected_return_date');
             $table->date('actual_return_date')->nullable();
+            $table->foreignId('returned_by')->nullable()->constrained('users');
             $table->timestamps();
         });
     }

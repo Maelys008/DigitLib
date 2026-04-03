@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\Copy;
 use App\Models\Incident;
 use App\Models\Inscription;
+use App\Models\Internal_member;
 use App\Models\Loan;
 use App\Models\Notification;
 use App\Models\Penalty;
@@ -65,7 +66,7 @@ class LoanController extends Controller
 
         if ($currentLoansCount >= $maxAllowed) {
             return response()->json([
-                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : ".($user->badge->name ?? 'Lecteur débutant').'.',
+                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . '.',
                 'max_allowed' => $maxAllowed,
                 'current_loans' => $currentLoansCount,
             ], 403);
@@ -132,8 +133,8 @@ class LoanController extends Controller
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'loan_success',
-                    'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. ".
-                                "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
+                    'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. " .
+                        "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
                     'object_type' => 'loan',
                     'object' => $loan->id,
                     'date_sent' => now(),
@@ -265,6 +266,7 @@ class LoanController extends Controller
     {
         $request->validate([
             'condition_on_return' => 'required|in:neuf,bon,abimé,très abimé',
+            'additional_penalty_amount' => 'nullable|integer|min:1',
             'reason' => 'nullable|string|max:255',
         ]);
 
@@ -287,6 +289,7 @@ class LoanController extends Controller
             $loan->update([
                 'actual_return_date' => $now,
                 'condition_on_return' => $request->condition_on_return,
+                'returned_by' => $returnValidatedBy->id,
             ]);
             $copy->update(['condition' => $request->condition_on_return]);
 
@@ -316,9 +319,11 @@ class LoanController extends Controller
             // B. Ajout d'une pénalité manuelle (ex: livre abîmé)
             if ($request->filled('additional_penalty_amount')) {
                 $totalPenalty += $request->additional_penalty_amount;
-                $reasons[] = $request->penalty_reason ?? 'Frais de dégradation';
+                $reasons[] = $request->penalty_reason ?? "Frais de dégradation(Etat du livre : {$request->condition_on_return})";
             }
             $totalPenalty = (int) $totalPenalty;
+
+            $penalty = null;
 
             if ($totalPenalty > 0) {
                 $penalty = Penalty::firstOrNew(['loan_id' => $loan->id]);
@@ -330,26 +335,25 @@ class LoanController extends Controller
                 $penalty->save();
 
 
-            //    Notification pour l'ABONNÉ (le client)
-            Notification::create([
-                'user_id' => $user->id,
-                'type' => 'penalty_final',
-                'message' => "Livre rendu. Pénalité finale : {$totalPenalty} FCFA pour '{$book->title}'.",
-                'object_type' => 'loan',
-                'object' => $loan->id,
-                'date_sent' => $now,
-            ]);
+                //    Notification pour l'ABONNÉ (le client)
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'penalty_final',
+                    'message' => "Livre rendu. Pénalité finale : {$totalPenalty} FCFA pour '{$book->title}'.",
+                    'object_type' => 'loan',
+                    'object' => $loan->id,
+                    'date_sent' => $now,
+                ]);
 
-            // Notification pour le MEMBRE INTERNE (le bibliothécaire)
-            Notification::create([
-                'user_id' => $returnValidatedBy->id, // Destiné à celui qui clique
-                'type' => 'return_confirmation',
-                'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
-                'object_type' => 'loan',
-                'object' => $loan->id,
-                'date_sent' => $now,
-            ]);
-        
+                // Notification pour le MEMBRE INTERNE (le bibliothécaire)
+                Notification::create([
+                    'user_id' => $returnValidatedBy->id, // Destiné à celui qui clique
+                    'type' => 'return_confirmation',
+                    'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
+                    'object_type' => 'loan',
+                    'object' => $loan->id,
+                    'date_sent' => $now,
+                ]);
             }
 
             // 5. Logique de libération du livre (Réservation vs Disponibilité)
@@ -380,7 +384,7 @@ class LoanController extends Controller
 
             $message = 'Livre retourné avec succès.';
             if ($totalPenalty > 0) {
-                $message .= ' Une pénalité de '.number_format($totalPenalty, 0, ',', ' ').' FCFA a été enregistrée (Statut: Non payée).';
+                $message .= ' Une pénalité de ' . number_format($totalPenalty, 0, ',', ' ') . ' FCFA a été enregistrée (Statut: Non payée).';
             }
 
             return response()->json([
@@ -452,11 +456,24 @@ class LoanController extends Controller
         $user = $request->user();
 
         // On récupère les bibliothèques où l'utilisateur est membre interne
-        $myLibraryIds = Inscription::where('user_id', $user->id)->pluck('library_id');
+        $myLibraryIds = Internal_member::where('user_id', $user->id)
+            ->pluck('library_id');
 
-        // On ne montre que les incidents de ces bibliothèques
-        $incidents = Incident::whereIn('library_id', $myLibraryIds)
-            ->with(['user:id,name,email', 'loan.copy.book'])
+        if ($myLibraryIds->isEmpty()) {
+            return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
+        }
+        // On recupere les IDs des utillisateurs qui on rejoint ces bibliotheques
+        $memberUserIds = Inscription::whereIn('Library_id', $myLibraryIds)
+            ->pluck('user_id')
+            ->toArray();
+
+
+        $incidents = Incident::with(['user:id,name,email', 'loan.copy.book'])
+            ->where(function ($query) use ($user, $memberUserIds) {
+                $query->where('user_id', $user->id)
+                    ->orWhereIn('user_id', $memberUserIds);
+            })
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json($incidents);

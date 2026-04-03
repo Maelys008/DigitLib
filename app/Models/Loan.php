@@ -9,6 +9,7 @@ class Loan extends Model
     protected $fillable =
         [
             'user_id',
+            'returned_by',
             'copy_id',
             'loan_date',
             'expected_return_date',
