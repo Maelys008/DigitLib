@@ -273,7 +273,7 @@ class LoanController extends Controller
         return DB::transaction(function () use ($loanId, $request) {
             // 1. Récupération de l'emprunt avec ses relations
             $loan = Loan::with(['copy.book.library', 'user'])->findOrFail($loanId);
-            $returnValidatedBy = auth()->user();
+            $returnValidatedBy = auth('sanctum')->user();
 
             if ($loan->actual_return_date) {
                 return response()->json(['message' => 'Ce retour a déjà été enregistré.'], 422);

@@ -32,6 +32,9 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'handleProviderCallback']);
 
+//Consultation de librairie
+Route::get('/libraries', [LibraryController::class, 'index']);
+
 // Consultation Livres (Public)
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/books/{id}', [BookController::class, 'show']);
@@ -64,7 +67,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // --- Bibliothèques (Libraries) ---
     Route::post('/libraries/join', [LibraryController::class, 'join']);
-    Route::apiResource('libraries', LibraryController::class);
+    Route::apiResource('libraries', LibraryController::class)->except(['index']);
+Route::get('/my-managed-libraries', [LibraryController::class, 'myManagedLibraries']);
     Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
     Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
     Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
@@ -109,7 +113,7 @@ Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(functi
 // ---------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(function () {
 
-    
+
     Route::post('/libraries/{library}/books', [BookController::class, 'store']);
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
