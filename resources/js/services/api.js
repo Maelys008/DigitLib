@@ -580,6 +580,39 @@ async likeReview(reviewId) {
     return { success: false };
   }
 }
+// Récupérer toutes les pénalités
+async getPenalties() {
+  try {
+    const response = await this.axios.get('/penalties');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching penalties:', error);
+    return [];
+  }
+}
+
+// Payer une pénalité
+async payPenalty(penaltyId) {
+  try {
+    const response = await this.axios.patch(`/penalties/${penaltyId}/pay`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors du paiement'
+    };
+  }
+}
+// Récupérer le nombre de pénalités non payées pour les retards
+async getUnpaidPenaltiesCount(libraryId) {
+  try {
+    const response = await this.axios.get(`/libraries/${libraryId}/unpaid-penalties-count`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unpaid penalties count:', error);
+    return { count: 0 };
+  }
+}
 }
 
 

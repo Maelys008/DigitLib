@@ -1,4 +1,4 @@
-import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users } from 'lucide-react';
+import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users,DollarSign } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 export default function ActionButtons({ 
@@ -8,7 +8,8 @@ export default function ActionButtons({
   onViewReports, 
   onBorrowingRules, 
   onPartnerLibraries,
-  onManageInternalMembers  
+  onManageInternalMembers,
+   onManagePenalties
 }) {
   const actions = [
     { 
@@ -26,6 +27,7 @@ export default function ActionButtons({
       textWhite: true 
     },
     { label: 'Gérer utilisateurs', icon: UserCog, onClick: onManageUsers, bg: 'bg-white', textColor: 'text-purple-600', border: true },
+    { label: 'Pénalités', icon: DollarSign, onClick: onManagePenalties, bg: 'bg-white', textColor: 'text-red-600', border: true },
     { label: 'Voir incidents', icon: AlertTriangle, onClick: onViewIncidents, bg: 'bg-white', textColor: 'text-red-600', border: true },
     { label: 'Rapports', icon: FileText, onClick: onViewReports, bg: 'bg-white', textColor: 'text-blue-600', border: true },
     { label: 'Règles d\'emprunt', icon: Settings, onClick: onBorrowingRules, bg: 'bg-white', textColor: 'text-gray-600', border: true },

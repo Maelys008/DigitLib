@@ -163,6 +163,9 @@ Route::get('/librarian/library/{id}', function ($id) {
 Route::get('/notifications', function () {
     return Inertia::render('Notifications');
 })->name('notifications');
+Route::get('/notifications/{id}', function ($id) {
+    return Inertia::render('NotificationDetail', ['id' => $id]);
+})->name('notifications.show');
 Route::get('/librarian/borrowing-rules', function () {
     return Inertia::render('Librarian/BorrowingRules');
 })->name('librarian.borrowing-rules');
@@ -181,8 +184,7 @@ Route::get('/libraries/{id}', function ($id) {
 Route::get('/libraries', function () {
     return Inertia::render('AllLibraries');
 })->name('libraries.index');
-
-Route::get('/libraries/{id}', function ($id) {
-    return Inertia::render('LibraryDetails', ['id' => $id]);
-})->name('library.details');
+Route::get('/librarian/manage-penalties', function () {
+    return Inertia::render('Librarian/ManagePenalties');
+})->name('librarian.manage-penalties');
 require __DIR__.'/auth.php';

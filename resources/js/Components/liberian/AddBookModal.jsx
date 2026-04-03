@@ -147,7 +147,7 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
           {/* Année publication */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Année de publication *</label>
-            <input type="date" name="year_of_publication" value={formData.year_of_publication} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xlfocus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
+            <input type="number" name="year_of_publication" value={formData.year_of_publication} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xlfocus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" required />
           </div>
 
           {/* Nombre d'exemplaires */}

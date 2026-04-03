@@ -38,7 +38,7 @@ export default function StatisticsGrid({ stats }) {
       iconColor: 'text-blue-600' 
     },
     { 
-      label: 'Retards', 
+      label: 'Pénalités impayées', 
       value: stats.lateReturns || 0, 
       icon: AlertTriangle, 
       bg: 'bg-red-50', 

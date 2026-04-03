@@ -24,14 +24,19 @@ export default function BorrowButton({
   const [maxAllowed, setMaxAllowed] = useState(null);
   const [currentLoans, setCurrentLoans] = useState(null);
 
-  // Vérifier si le livre est déjà emprunté par l'utilisateur
+  // Vérifier si le livre est actuellement emprunté (non retourné)
   useEffect(() => {
     const checkIfAlreadyBorrowed = async () => {
       if (!isAuthenticated) return;
       
       try {
         const loans = await api.getLoans();
-        const alreadyBorrowed = loans.some(loan => loan.copy?.book?.id === bookId);
+        const activeLoans = loans.filter(loan => !loan.actual_return_date);
+        const alreadyBorrowed = activeLoans.some(loan => loan.copy?.book?.id === bookId);
+        
+        console.log('Emprunts actifs:', activeLoans.length);
+        console.log('Livre déjà emprunté (actif)?', alreadyBorrowed);
+        
         setIsBorrowed(alreadyBorrowed);
       } catch (error) {
         console.error('Erreur vérification emprunt:', error);
@@ -62,7 +67,7 @@ export default function BorrowButton({
       return;
     }
 
-    // Vérifier si déjà emprunté
+    // Vérifier si déjà emprunté (actif)
     if (isBorrowed) {
       setErrorMessage('Vous avez déjà un exemplaire de ce livre en votre possession.');
       setTimeout(() => setErrorMessage(''), 5000);
@@ -130,7 +135,7 @@ export default function BorrowButton({
       return 'bg-blue-100 text-blue-700 border border-blue-200 cursor-not-allowed';
     }
     if (!isBookAvailable && isLibraryJoined) {
-      return 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'; // Orange pour réserver
+      return 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95';
     }
     if (isLibraryJoined) {
       return 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95';
@@ -145,6 +150,23 @@ export default function BorrowButton({
 
   return (
     <div className="relative mb-6">
+      {/* Message d'avertissement (bibliothèque non rejointe) */}
+      {showWarning && (
+        <div className="mb-3 bg-orange-50 border border-orange-200 rounded-xl p-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-orange-800">
+                Vous devez rejoindre la bibliothèque
+              </p>
+              <p className="text-xs text-orange-600 mt-0.5">
+                "{bibliothequeNom}" avant d'emprunter un livre
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Message d'erreur */}
       {errorMessage && (
         <div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
