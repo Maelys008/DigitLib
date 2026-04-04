@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, ThumbsUp } from 'lucide-react';
 import SectionHeader from '@/Components/SectionHeader';
 import ReviewCard from './ReviewCard';
 import HorizontalScroll from '@/Components/HorizontalScroll';
 import WriteReviewModal from './WriteReviewModal';
 import api from '../../services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ReviewSection({ 
   reviews: initialReviews, 
@@ -12,11 +13,12 @@ export default function ReviewSection({
   bookTitle,
   className = '' 
 }) {
+  const { isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [likingId, setLikingId] = useState(null);
 
- 
   useEffect(() => {
     const fetchReviews = async () => {
       setIsLoading(true);
@@ -30,7 +32,6 @@ export default function ReviewSection({
           reviewsData = response;
         }
         
-      
         const formattedReviews = reviewsData.map(review => ({
           id: review.id,
           nom: review.user?.name || 'Utilisateur',
@@ -56,7 +57,32 @@ export default function ReviewSection({
     fetchReviews();
   }, [bookId, initialReviews]);
 
-  // Fonction appelée quand un nouvel avis est créé
+  const handleLike = async (reviewId) => {
+    if (!isAuthenticated) return;
+    
+    setLikingId(reviewId);
+    try {
+      const result = await api.likeReview(reviewId);
+      if (result.success) {
+        setReviews(prevReviews => 
+          prevReviews.map(review => 
+            review.id === reviewId 
+              ? { 
+                  ...review, 
+                  likes_count: result.data.likes_count,
+                  is_liked: !review.is_liked 
+                }
+              : review
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Erreur like:', error);
+    } finally {
+      setLikingId(null);
+    }
+  };
+
   const handleReviewCreated = (newReview) => {
     setReviews(prev => [newReview, ...prev]);
   };
@@ -83,7 +109,11 @@ export default function ReviewSection({
         <HorizontalScroll>
           {reviews.map((review) => (
             <div key={review.id} className="min-w-[280px] max-w-[280px]">
-              <ReviewCard review={review} />
+              <ReviewCard 
+                review={review} 
+                onLike={() => handleLike(review.id)}
+                isLiking={likingId === review.id}
+              />
             </div>
           ))}
         </HorizontalScroll>

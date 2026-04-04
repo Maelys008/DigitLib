@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import ReviewSection from './ReviewSection';
 
 export default function WriteReviewModal({ 
   isOpen, 
@@ -28,60 +27,62 @@ export default function WriteReviewModal({
     }
   }, [isOpen]);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (rating === 0) {
-    setError('Veuillez donner une note');
-    return;
-  }
-  
-  if (!comment.trim()) {
-    setError('Veuillez écrire un commentaire');
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError('');
-
-  try {
-    const res = await api.addReview(bookId, {
-      rating,
-      comment: comment.trim()
-    });
-
-    if (res.success) {
-      const newReview = res.data.review;
-      const formattedReview = {
-        id: newReview.id,
-        nom: user?.name,
-        note: rating,
-        date: new Date().toLocaleDateString('fr-FR'),
-        commentaire: comment.trim(),
-        likes_count: 0,
-        is_liked: false,
-        created_at: new Date().toISOString()
-      };
-
-      if (onReviewCreated) {
-        onReviewCreated(formattedReview);
-      }
-
-      setIsSubmitted(true);
-
-      setTimeout(() => {
-        onClose();
-      }, 2000);
-    } else {
-      setError(res.message);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (rating === 0) {
+      setError('Veuillez donner une note');
+      return;
     }
-  } catch (error) {
-    console.error(error);
-    setError('Une erreur est survenue');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    
+    if (!comment.trim()) {
+      setError('Veuillez écrire un commentaire');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const res = await api.addReview(bookId, {
+        rating,
+        comment: comment.trim()
+      });
+
+      if (res.success) {
+        const newReview = res.data.review;
+        const formattedReview = {
+          id: newReview.id,
+          nom: user?.name || 'Utilisateur',
+          note: rating,
+          date: new Date().toLocaleDateString('fr-FR'),
+          commentaire: comment.trim(),
+          likes_count: 0,
+          is_liked: false,
+          created_at: new Date().toISOString(),
+          user: { name: user?.name || 'Utilisateur' }
+        };
+
+        if (onReviewCreated) {
+          onReviewCreated(formattedReview);
+        }
+
+        setIsSubmitted(true);
+
+        // Fermer le modal après 2 secondes SANS recharger la page
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        setError(res.message);
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Une erreur est survenue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!isOpen) return null;
 

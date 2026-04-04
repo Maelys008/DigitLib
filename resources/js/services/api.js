@@ -230,16 +230,6 @@ async deleteBook(id) {
       return null;
     }
   }
-
-  async getProfileStatus() {
-    try {
-      const response = await this.axios.get('/profile/status');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching profile status:', error);
-      return null;
-    }
-  }
   async getLibraries() {
     try {
       const response = await this.axios.get('/libraries');
@@ -266,6 +256,68 @@ async getUserJoinedLibraries() {
   } catch (error) {
     console.error('Error fetching user libraries:', error);
     return [];
+  }
+}
+// Récupérer l'utilisateur connecté - CORRIGÉ
+async getUser() {
+  try {
+    const response = await this.axios.get('/profil');  // ← Changé de /user à /profil
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
+
+// Récupérer le statut du profil (déjà correct)
+async getProfileStatus() {
+  try {
+    const response = await this.axios.get('/profile/status');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching profile status:', error);
+    return null;
+  }
+}
+
+// Récupérer les informations du profil
+async getProfile() {
+  try {
+    const response = await this.axios.get('/profil');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+}
+
+// Mettre à jour le profil
+async updateProfile(data) {
+  try {
+    const response = await this.axios.put('/profil', data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors de la mise à jour'
+    };
+  }
+}
+
+// Changer le mot de passe
+async changePassword(currentPassword, newPassword, newPasswordConfirmation) {
+  try {
+    const response = await this.axios.put('/profil/password', {
+      current_password: currentPassword,
+      password: newPassword,
+      password_confirmation: newPasswordConfirmation
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Erreur lors du changement de mot de passe'
+    };
   }
 }
 

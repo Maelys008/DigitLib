@@ -51,6 +51,16 @@ export default function BookDetail() {
     setTimeout(() => setReservationSuccessMessage(null), 5000);
   };
 
+    const handleReviewCreated = (newReview) => {
+  setAvisDuLivre(prev => [newReview, ...prev]);
+  
+  // Recalculer la nouvelle note moyenne
+  const allReviews = [newReview, ...avisDuLivre];
+  const totalNotes = allReviews.reduce((sum, r) => sum + r.note, 0);
+  const newAverage = (totalNotes / allReviews.length).toFixed(1);
+  
+  setLivre(prev => ({ ...prev, note: parseFloat(newAverage) }));
+};
   useEffect(() => {
     const fetchBook = async () => {
       setIsLoading(true);
@@ -294,6 +304,7 @@ export default function BookDetail() {
           reviews={avisDuLivre} 
           bookId={livre.id}
           bookTitle={livre.titre}
+           onReviewAdded={handleReviewCreated}
         />
         
         {/* LIVRES RECOMMANDÉS */}

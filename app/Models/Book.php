@@ -18,6 +18,7 @@ class Book extends Model
         'nb_copy',
         'nb_available',
         'cover_image',
+          'note', 
     ];
 
 

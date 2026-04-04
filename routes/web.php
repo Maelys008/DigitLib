@@ -187,4 +187,15 @@ Route::get('/libraries', function () {
 Route::get('/librarian/manage-penalties', function () {
     return Inertia::render('Librarian/ManagePenalties');
 })->name('librarian.manage-penalties');
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->name('profile');
+
+Route::get('/profile/edit', function () {
+    return Inertia::render('EditProfile');
+})->name('profile.edit');
+
+Route::get('/profile/change-password', function () {
+    return Inertia::render('ChangePassword');
+})->name('profile.change-password');
 require __DIR__.'/auth.php';

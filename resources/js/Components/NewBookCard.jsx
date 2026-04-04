@@ -13,6 +13,20 @@ export default function NewBookCard({
     return favorites.some(fav => fav.id === livre.id);
   });
 
+  // Fonction pour obtenir l'URL correcte de l'image
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '/placeholder-book.jpg';
+    
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    if (imagePath.startsWith('/storage/')) {
+      return `http://localhost:8000${imagePath}`;
+    }
+    
+    return `http://localhost:8000/storage/${imagePath}`;
+  };
+
   // Mettre à jour localStorage quand isLiked change
   useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -43,6 +57,8 @@ export default function NewBookCard({
     setIsLiked(!isLiked);
   };
 
+  const imageUrl = getImageUrl(livre.image_couverture);
+
   return (
     <div 
       onClick={handleClick}
@@ -55,9 +71,12 @@ export default function NewBookCard({
      
       <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0">
         <img 
-          src={livre.image_couverture || '/placeholder-book.jpg'} 
+          src={imageUrl}
           alt={livre.titre}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = '/placeholder-book.jpg';
+          }}
         />
       </div>
 

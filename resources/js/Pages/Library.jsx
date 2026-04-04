@@ -9,9 +9,7 @@ import api from '../services/api';
 export default function Library() {
   const [activeTab, setActiveTab] = useState('books'); 
   const [favorisCount, setFavorisCount] = useState(0);
-  const [lusCount, setLusCount] = useState(0);
   const [activeLoans, setActiveLoans] = useState([]);  
-  const [returnedLoans, setReturnedLoans] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -27,16 +25,12 @@ export default function Library() {
         const loans = await api.getLoans();
         console.log('Emprunts reçus:', loans);
         
-        // FILTRER : Séparer les emprunts actifs (non retournés) et retournés
+        // FILTRER : Uniquement les emprunts actifs (non retournés)
         const active = loans.filter(loan => !loan.actual_return_date);
-        const returned = loans.filter(loan => loan.actual_return_date);
         
         console.log('Emprunts actifs:', active.length);
-        console.log('Emprunts retournés:', returned.length);
         
-        setLusCount(returned.length);
-        
-      
+        // Traiter les emprunts actifs
         const activeBooksWithDetails = active.map(loan => {
           const book = loan.copy?.book;
           if (!book) return null;
@@ -54,31 +48,13 @@ export default function Library() {
             progress: progress,
             loan_date: loan.loan_date,
             expected_return_date: loan.expected_return_date,
-            image_couverture: book.cover_url,
+            image_couverture: book.cover_url || book.cover_image,
             auteur: book.author,
             titre: book.title
           };
         }).filter(b => b !== null);
         
         setActiveLoans(activeBooksWithDetails);
-        
-        // Traiter les emprunts retournés (historique)
-        const returnedBooksWithDetails = returned.map(loan => {
-          const book = loan.copy?.book;
-          if (!book) return null;
-          
-          return {
-            id: loan.id,
-            ...book,
-            loan_date: loan.loan_date,
-            actual_return_date: loan.actual_return_date,
-            image_couverture: book.cover_url,
-            auteur: book.author,
-            titre: book.title
-          };
-        }).filter(b => b !== null);
-        
-        setReturnedLoans(returnedBooksWithDetails);
         
       } catch (error) {
         console.error('Erreur chargement emprunts:', error);
@@ -237,54 +213,6 @@ export default function Library() {
               )}
             </div>
 
-            {/* SECTION LIVRES LUS (HISTORIQUE) */}
-            {returnedLoans.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Déjà lus
-                  </h2>
-                  <span className="text-xs text-gray-400">
-                    {returnedLoans.length} livre{returnedLoans.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-3 opacity-80">
-                  {returnedLoans.map((book) => (
-                    <div
-                      key={book.id}
-                      className="bg-[#F6F6F6] rounded-xl p-3 shadow-sm border border-gray-100"
-                    >
-                      <div className="flex gap-3">
-                        <img
-                          src={book.image_couverture || '/placeholder-book.jpg'}
-                          alt={book.titre}
-                          className="w-14 h-20 rounded-lg object-cover"
-                          onError={(e) => e.target.src = '/placeholder-book.jpg'}
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">
-                            {book.titre}
-                          </h3>
-                          <p className="text-xs text-gray-500">
-                            {book.auteur}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className="flex items-center gap-1 bg-green-100 px-2 py-0.5 rounded-full">
-                              <Star className="w-3 h-3 text-green-600" />
-                              <span className="text-xs text-green-600">Retourné</span>
-                            </div>
-                            <span className="text-xs text-gray-400">
-                              le {new Date(book.actual_return_date).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* STATISTIQUES */}
             <div className="mt-6 pt-2">
               <div className="flex flex-col gap-2">
@@ -301,8 +229,7 @@ export default function Library() {
                   className="flex items-center px-4 py-3 bg-[#F6F6F6] rounded-xl w-full transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
                 >
                   <BookOpen className="w-5 h-5 text-gray-700 mr-3" />
-                  <span className="text-gray-900 font-medium">Historique complet</span>
-                  <span className="text-gray-900 font-semibold ml-2">({lusCount})</span>
+                  <span className="text-gray-900 font-medium">Déjà lus</span>
                 </button>
               </div>
             </div>
