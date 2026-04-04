@@ -132,13 +132,28 @@ class ClubController extends Controller
 
         $isAdmin = ($message->club->user_id === $user->id);
 
-        if (!$isAdmin && !$isAuthor){
+        if (!$isAdmin && !$isAuthor) {
             return response()->json([
-                'message'=>'Action non authorisée.'
-            ],403);
+                'message' => 'Action non authorisée.'
+            ], 403);
         }
         $message->delete();
 
         return response()->json(['message' => 'Message supprimé.']);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $club = Club::withCount('members')->findOrFail($id);
+
+        // Vérifier si l'utilisateur connecté est membre
+        $isMember = Club_member::where('user_id', $request->user()->id)
+            ->where('club_id', $id)
+            ->exists();
+
+        return response()->json([
+            'club' => $club,
+            'is_joined' => $isMember
+        ]);
     }
 }

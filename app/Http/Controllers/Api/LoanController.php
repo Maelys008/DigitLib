@@ -445,7 +445,7 @@ class LoanController extends Controller
         })
             ->with(['user:id,name,email', 'copy.book:id,title'])
             ->orderBy('expected_return_date', 'asc');
-
+  
         $loans = $loansQuery->get();
 
         return response()->json($loans);
