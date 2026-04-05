@@ -179,87 +179,9 @@ class LoanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update()
     {
-        // $request->validate([
-        //     'amount' => 'nullable|numeric',
-        //     'reason' => 'nullable|string',
-        // ]);
-
-        // $loan = Loan::with(['copy.book', 'user'])->find($id);
-
-        // if (!$loan || $loan->actual_return_date) {
-        //     return response()->json(['message' => 'Prêt invalide ou déjà clos'], 422);
-        // }
-
-        // return DB::transaction(function () use ($loan, $request) {
-        //     $now = now();
-        //     $user = $loan->user;
-        //     $copy = $loan->copy;
-        //     $book = $copy->book;
-
-        //     $loan->update(['actual_return_date' => $now]);
-
-        //     $firstReservation = Reservation::where('book_id', $book->id)
-        //         ->where('status', 'active')
-        //         ->orderBy('created_at', 'asc')
-        //         ->first();
-
-        //     if ($firstReservation) {
-        //         $copy->update(['status' => 'réservé']);
-        //         $firstReservation->update([
-        //             'status' => 'notified',
-        //             'expires_at' => $now->addHours(24)
-        //         ]);
-
-        //         Notification::create([
-        //             'user_id' => $firstReservation->user_id,
-        //             'type' => 'book_available',
-        //             'message' => "Bonne nouvelle ! Le livre '{$book->title}' est disponible : vous avez 24h pour venir le récupérer en bibliothèque.",
-        //             'object_type' => 'book',
-        //             'object' => $book->id,
-        //             'date_sent' => now(),
-        //         ]);
-        //     } else {
-        //         $copy->update(['status' => 'disponible']);
-        //         $book->increment('nb_available');
-        //     }
-
-        //     $isLate = $now->greaterThan($loan->expected_return_date);
-        //     if ($isLate) {
-        //         $user->decrement('score');
-        //     } else {
-        //         $user->increment('score');
-        //     }
-
-        //     $this->refreshUserGrade($user);
-
-        //     $penalty = null;
-        //     if ($isLate || $request->has('amount')) {
-        //         $penalty = Penalty::create([
-        //             'user_id' => $user->id,
-        //             'loan_id' => $loan->id,
-        //             'amount' => $request->amount,
-        //             'reason' => $request->reason,
-        //             'status' => 'non payé',
-        //         ]);
-
-        //         Notification::create([
-        //             'user_id' => $user->id,
-        //             'type' => 'penalty',
-        //             'message' => "Une pénalité de {$request->amount} FCFA a été ajoutée. Raison : {$request->reason}",
-        //             'object_type' => 'loan',
-        //             'object' => $loan->id,
-        //             'date_sent' => now(),
-        //         ]);
-        //     }
-
-        //     return response()->json([
-        //         'message' => "Retour validé par le bibliothécaire",
-        //         'new_score' => $user->score,
-        //         'penalty' => $penalty
-        //     ], 200);
-        // });
+        //
     }
 
     public function returnBook(Request $request, $loanId)
@@ -463,7 +385,7 @@ class LoanController extends Controller
             return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
         }
         // On recupere les IDs des utillisateurs qui on rejoint ces bibliotheques
-        $memberUserIds = Inscription::whereIn('Library_id', $myLibraryIds)
+        $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
             ->pluck('user_id')
             ->toArray();
 

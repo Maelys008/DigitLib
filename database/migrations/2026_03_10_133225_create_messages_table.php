@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id()->autoIncrement();
             $table->foreignId('member_id')->nullable()->constrained('club_members')->onDelete('set null');
-            $table->foreignId('club_id')->constrained('clubs');
+            $table->foreignId('club_id')->constrained('clubs')->onDelete('cascade') ;
             $table->text('message');
             $table->timestamps();
         });

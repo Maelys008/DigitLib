@@ -1,5 +1,5 @@
 import { Link, usePage, router } from "@inertiajs/react";
-import { Home, Search, QrCode, User, Settings,Heart } from "lucide-react";
+import { Home, Search, QrCode, User, Settings,Heart, SnailIcon } from "lucide-react";
 
 export default function BottomNav() {
   const { url } = usePage();
@@ -11,6 +11,7 @@ export default function BottomNav() {
     { path: "/scanner", icon: QrCode, label: "Scanner" },
     { path: "/library", icon: Heart, label: "Bibliothèque" },
     { path: "/profile", icon: User, label: "Profil" },
+    { path: "/clubs", icon: SnailIcon, label: "Clubs" },
   ];
 
   return (

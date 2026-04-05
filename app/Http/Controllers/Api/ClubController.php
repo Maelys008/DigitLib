@@ -12,8 +12,24 @@ class ClubController extends Controller
 {
     public function index()
     {
-        return response()->json(Club::with('creator')->get());
+        $user = auth('sanctum')->user();
+
+        $clubs = Club::withCount('members')
+            ->with('creator:id,name')
+            ->get()
+            ->map(function ($club) use ($user) {
+                // Ajouter le statut d'adhésion pour l'utilisateur connecté
+                $club->is_joined = $user
+                    ? Club_member::where('user_id', $user->id)
+                    ->where('club_id', $club->id)
+                    ->exists()
+                    : false;
+                return $club;
+            });
+
+        return response()->json($clubs);
     }
+
 
     public function store(Request $request)
     {
@@ -57,7 +73,7 @@ class ClubController extends Controller
             'date_joined' => now(),
         ]);
 
-        return response()->json(['message' => 'Vous avez rejoint le club !']);
+        return response()->json(['success' => true, 'message' => 'Vous avez rejoint le club !']);
     }
 
     // Envoyer un message
@@ -146,14 +162,26 @@ class ClubController extends Controller
     {
         $club = Club::withCount('members')->findOrFail($id);
 
-        // Vérifier si l'utilisateur connecté est membre
-        $isMember = Club_member::where('user_id', $request->user()->id)
+        // Vérification cruciale :
+        $club->is_joined = Club_member::where('user_id', $request->user()->id)
             ->where('club_id', $id)
             ->exists();
 
-        return response()->json([
-            'club' => $club,
-            'is_joined' => $isMember
-        ]);
+        return response()->json(['club' => $club]);
     }
+
+    public function destroy(Request $request, $id)
+{
+    $club = Club::findOrFail($id);
+
+    // Vérification : Seul le créateur peut supprimer
+    if ($club->user_id !== $request->user()->id) {
+        return response()->json(['message' => 'Action non autorisée'], 403);
+    }
+
+    // Suppression du club (les relations suivront si onDelete('cascade') est défini)
+    $club->delete();
+
+    return response()->json(['message' => 'Club supprimé avec succès']);
+}
 }

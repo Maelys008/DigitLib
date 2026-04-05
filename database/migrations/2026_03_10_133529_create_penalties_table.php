@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('loan_id')->constrained('loans');
             $table->integer('amount');
             $table->string('reason');
-            $table->string('status')->default('non paye');
+            $table->string('status')->default('non payé');
             $table->timestamps();
         });
     }

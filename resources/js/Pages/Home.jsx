@@ -18,7 +18,7 @@ const normalizeBook = (book) => ({
   ...book,
   image_couverture: book.cover_url || book.cover_image,
   nb_disponibles: book.nb_available,
-  note: book.note || 4.0,
+  note: book.note ??0,
   titre: book.title,
   auteur: book.author,
 });

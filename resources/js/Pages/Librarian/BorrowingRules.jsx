@@ -81,7 +81,7 @@ export default function BorrowingRules() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -154,7 +154,7 @@ export default function BorrowingRules() {
                 max="60"
                 value={formData.loan_duration}
                 onChange={(e) => setFormData({ ...formData, loan_duration: parseInt(e.target.value) || 14 })}
-                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
               />
               <span className="text-gray-600">jours</span>
             </div>
@@ -177,7 +177,7 @@ export default function BorrowingRules() {
                 step=""
                 value={formData.daily_penalty_amount}
                 onChange={(e) => setFormData({ ...formData, daily_penalty_amount: parseInt(e.target.value) || 100 })}
-                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
               />
               <span className="text-gray-600">FCFA / jour</span>
             </div>

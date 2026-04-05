@@ -57,7 +57,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/profil', [ProfilController::class, 'update']);
     Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
     Route::get('/profile/status', [ProfilController::class, 'status']); //info sur le badge
-    
+
     // Route::get('/badges', function () {
     //     return response()->json(Badge::orderBy('condition_of_obtaining', 'asc')->get());
     // });
@@ -79,13 +79,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
     Route::get('/libraries/{library}/loans', [LibraryController::class, 'loans']);
     // --- Pénalités ---
+    Route::get('/penalties', [PenaltyController::class, 'index']);
     Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
+    Route::get('/libraries/{library}/unpaid-penalties-count', [PenaltyController::class, 'getUnpaidPenaltiesCount']);
 
     // --- Clubs de lecture ---
     Route::get('/clubs', [ClubController::class, 'index']);
     Route::post('/clubs', [ClubController::class, 'store']);
     Route::post('/clubs/{id}/join', [ClubController::class, 'join']);
+    Route::get('/clubs/{id}', [ClubController::class, 'show']);
     Route::delete('/clubs/{id}/leave', [ClubController::class, 'leave']);
+    Route::delete('/clubs/{id}', [ClubController::class, 'destroy']);
 
     // Messagerie des Clubs
     Route::get('/clubs/{id}/messages', [ClubController::class, 'getMessages']);
@@ -117,15 +121,15 @@ Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(functi
 // ROUTES STAFF (Bibliothécaires / Gestionnaires)
 // ---------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(function () {
+    Route::post('/books', [BookController::class, 'store']);
+    Route::put('/books/{id}', [BookController::class, 'update']);
+    Route::delete('/books/{id}', [BookController::class, 'destroy']);
 
 
     Route::post('/libraries/{library}/books', [BookController::class, 'store']);
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
 
-    Route::get('/libraries/{library}/loans/{id}', [LoanController::class, 'show']);
-    Route::delete('/libraries/{library}/loans/{id}', [LoanController::class, 'destroy']);
-
-    Route::post('/libraries/{library}/loans/{loan}/return', [LoanController::class, 'returnBook']);
-    Route::get('/libraries/{library}/incidents', [LoanController::class, 'libraryIncidents']);
+    Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
+    Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
 });

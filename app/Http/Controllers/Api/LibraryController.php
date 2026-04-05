@@ -23,23 +23,19 @@ class LibraryController extends Controller
         foreach ($libraries as $library) {
             $library->books_count = $library->books()->count();
             $library->members_count = $library->inscriptions()->count();
-        
 
-        $library->isjoined = $user
-            ? $library->inscriptions()->where('user_id', $user->id)->exists()
-            : false;
-    }
+
+            $library->isjoined = $user
+                ? $library->inscriptions()->where('user_id', $user->id)->exists()
+                : false;
+        }
         return response()->json($libraries);
-}
-        // // Récupérer les bibliothèques où l'utilisateur est admin
-        
-        // // Ajouter les informations supplémentaires
-        
-        // return response()->json($libraries);
-        // }
-        public function myManagedLibraries(){
-            $user = auth('sanctum')->user();
-            return Library::where('administrator_id', $user->id)->get();
+    }
+    
+    public function myManagedLibraries()
+    {
+        $user = auth('sanctum')->user();
+        return Library::where('administrator_id', $user->id)->get();
     }
 
     public function show(Library $library)

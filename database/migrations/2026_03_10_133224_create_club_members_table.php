@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('club_members', function (Blueprint $table) {
-            $table->id()->autoIncrement();
+            $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('club_id')->constrained('clubs')->onDelete('cascade');
             $table->date('date_joined');

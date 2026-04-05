@@ -9,8 +9,14 @@ export default function LibraryCard({ library }) {
   // Fonction pour obtenir l'URL complète de l'image
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/storage/')) return `http://localhost:8000${imagePath}`;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    if (imagePath.startsWith('/storage/')) {
+      return `http://localhost:8000${imagePath}`;
+    }
+    
     return `http://localhost:8000/storage/${imagePath}`;
   };
 
@@ -32,13 +38,17 @@ export default function LibraryCard({ library }) {
             onError={(e) => {
               console.error('Erreur chargement image:', imageUrl);
               e.target.style.display = 'none';
-              e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
+              const fallback = e.target.parentElement?.querySelector('.fallback-icon');
+              if (fallback) fallback.style.display = 'flex';
             }}
           />
         ) : null}
         
         {/* Icône de fallback */}
-        <div className={`absolute inset-0 flex items-center justify-center ${imageUrl ? 'fallback-icon' : ''}`} style={imageUrl ? { display: 'none' } : {}}>
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={imageUrl ? { display: 'none' } : { display: 'flex' }}
+        >
           <Building2 className="w-12 h-12 text-white/30" />
         </div>
         

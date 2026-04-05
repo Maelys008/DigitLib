@@ -19,7 +19,7 @@ export default function Dashboard() {
     available: 0,
     borrowed: 0,
     reservations: 0,
-    lateReturns: 0
+    lateReturns: 0  
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +44,8 @@ export default function Dashboard() {
         setLibrary(lib);
         await loadBooks(lib);
         await loadMembers(lib);
-        await loadReservations(lib); 
+        await loadReservations(lib);
+        await loadUnpaidPenalties(lib); // NOUVEAU
         setIsLoading(false);
         return;
       }
@@ -58,7 +59,8 @@ export default function Dashboard() {
           setLibrary(userLibrary);
           await loadBooks(userLibrary);
           await loadMembers(userLibrary);
-          await loadReservations(userLibrary); 
+          await loadReservations(userLibrary);
+          await loadUnpaidPenalties(userLibrary); 
         } else {
           console.log('Aucune bibliothèque trouvée pour cet utilisateur');
         }
@@ -131,6 +133,26 @@ export default function Dashboard() {
     }
   };
 
+  // NOUVELLE FONCTION : Charger le nombre de pénalités non payées
+  const loadUnpaidPenalties = async (lib) => {
+    try {
+      const data = await api.getUnpaidPenaltiesCount(lib.id);
+      console.log('Pénalités non payées:', data);
+      
+      const unpaidCount = data.count || 0;
+      
+      setStats(prev => ({
+        ...prev,
+        lateReturns: unpaidCount  
+      }));
+    } catch (error) {
+      console.error('Erreur chargement pénalités non payées:', error);
+      setStats(prev => ({
+        ...prev,
+        lateReturns: 0
+      }));
+    }
+  };
 
   const handleManageBooks = () => {
     router.visit('/librarian/books');
@@ -139,14 +161,22 @@ export default function Dashboard() {
   const handleManageInternalMembers = () => {
     router.visit('/librarian/internal-members');
   };
-const handleManageUsers = () => {
-  router.visit('/librarian/manage-users');
-};
+  
+  const handleManageUsers = () => {
+    router.visit('/librarian/manage-users');
+  };
+  
+  const handleManagePenalties = () => {
+    router.visit('/librarian/manage-penalties');
+  };
+  
   const handleViewIncidents = () => console.log('Voir incidents');
   const handleViewReports = () => console.log('Rapports');
+  
   const handleBorrowingRules = () => {
     router.visit('/librarian/borrowing-rules');
   };
+  
   const handlePartnerLibraries = () => console.log('Bibliothèques partenaires');
 
   if (isLoading) {
@@ -186,6 +216,7 @@ const handleManageUsers = () => {
           onManageBooks={handleManageBooks}
           onManageInternalMembers={handleManageInternalMembers}  
           onManageUsers={handleManageUsers}
+          onManagePenalties={handleManagePenalties} 
           onViewIncidents={handleViewIncidents}
           onViewReports={handleViewReports}
           onBorrowingRules={handleBorrowingRules}

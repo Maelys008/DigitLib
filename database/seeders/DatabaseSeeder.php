@@ -17,10 +17,11 @@ class DatabaseSeeder extends Seeder
              GenreSeeder::class,
              RoleSeeder::class,
              BadgeSeeder::class,
-             BookSeeder::class,
-            // UserSeeder::class,
+             //BookSeeder::class,
+             //BadgeSeeder::class,
+            UserSeeder::class,
             // LibraryAndBookSeeder::class,
-            // ClubSeeder::class,
+            ClubSeeder::class,
         ]);
     }
 }

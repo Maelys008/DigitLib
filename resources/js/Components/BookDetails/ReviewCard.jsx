@@ -41,9 +41,10 @@ export default function ReviewCard({
     try {
       const result = await api.likeReview(review.id);
       if (result.success) {
-        setIsLiked(!isLiked);
-        setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
-        if (onLike) onLike(review.id, !isLiked);
+      // Version simplifiée : on ne toggle pas, on incrémente juste
+        setLikesCount(result.data.likes_count);
+        setIsLiked(true);
+        if (onLike) onLike(review.id, true);
       }
     } catch (error) {
       console.error('Erreur like:', error);
@@ -61,7 +62,6 @@ export default function ReviewCard({
     <div className={`${variant === 'list' ? 'border-b border-gray-100 last:border-0' : ''}`}>
       <div className={`${variant === 'list' ? 'py-4' : 'bg-gray-50 rounded-xl p-4'} ${className}`}>
         <div className="flex items-start gap-3 mb-2">
-          {/* Avatar */}
           <div className={`w-10 h-10 rounded-full ${getAvatarColor(userName)} flex items-center justify-center text-white font-medium text-sm flex-shrink-0`}>
             {getInitials(userName)}
           </div>
@@ -73,9 +73,7 @@ export default function ReviewCard({
                 <p className="text-xs text-gray-400 mt-0.5">{reviewDate}</p>
               </div>
               
-              {/* Note et like */}
               <div className="flex items-center gap-3">
-                {/* Note */}
                 {rating > 0 && (
                   <div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -83,7 +81,6 @@ export default function ReviewCard({
                   </div>
                 )}
                 
-                {/* Bouton like */}
                 <button
                   onClick={handleLike}
                   disabled={isLiking}
@@ -105,7 +102,6 @@ export default function ReviewCard({
           </div>
         </div>
         
-        {/* Commentaire */}
         <div className="pl-13"> 
           <p className="text-sm text-gray-600 leading-relaxed">
             {displayedComment}

@@ -20,6 +20,10 @@ export default function ManageUsers() {
   const [penaltyReason, setPenaltyReason] = useState('');
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [message, setMessage] = useState(null);
+  const [penaltyError, setPenaltyError] = useState('');
+
+  // Vérifier si l'état du livre nécessite une pénalité
+  const requiresPenalty = returnCondition === 'abimé' || returnCondition === 'très abimé';
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,15 +55,39 @@ export default function ManageUsers() {
     loadData();
   }, [user]);
 
+  // Réinitialiser les champs de pénalité quand l'état du livre change
+  useEffect(() => {
+    if (!requiresPenalty) {
+      setPenaltyAmount('');
+      setPenaltyReason('');
+      setPenaltyError('');
+    }
+  }, [returnCondition]);
+
   const handleReturnBook = async () => {
     if (!returningLoan) return;
+    
+    // Validation de la pénalité si nécessaire
+    if (requiresPenalty) {
+      const amount = parseFloat(penaltyAmount);
+      if (!penaltyAmount || isNaN(amount) || amount <= 0) {
+        setPenaltyError('La pénalité doit être supérieure à 0 FCFA');
+        return;
+      }
+      if (!penaltyReason.trim()) {
+        setPenaltyError('Veuillez indiquer une raison pour la pénalité');
+        return;
+      }
+    }
+    
+    setPenaltyError('');
     
     try {
       const result = await api.returnBook(
         returningLoan.id,
         returnCondition,
-        penaltyAmount ? parseFloat(penaltyAmount) : null,
-        penaltyReason
+        requiresPenalty ? parseFloat(penaltyAmount) : null,
+        requiresPenalty ? penaltyReason : null
       );
       
       if (result.success) {
@@ -71,6 +99,7 @@ export default function ManageUsers() {
         setPenaltyAmount('');
         setPenaltyReason('');
         setReturnCondition('bon');
+        setPenaltyError('');
       } else {
         setMessage({ type: 'error', text: result.message });
       }
@@ -83,6 +112,10 @@ export default function ManageUsers() {
 
   const openReturnModal = (loan) => {
     setReturningLoan(loan);
+    setReturnCondition('bon');
+    setPenaltyAmount('');
+    setPenaltyReason('');
+    setPenaltyError('');
     setShowReturnModal(true);
   };
 
@@ -275,38 +308,61 @@ export default function ManageUsers() {
                   onChange={(e) => setReturnCondition(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 >
-                  <option value="neuf">Neuf - Excellent état</option>
-                  <option value="bon">Bon - Quelques signes d'usage</option>
-                  <option value="abimé">Abîmé - Dommages mineurs</option>
-                  <option value="très abimé">Très abîmé - Dommages importants</option>
+                  <option value="neuf">Neuf </option>
+                  <option value="bon">Bon </option>
+                  <option value="abimé">Abîmé </option>
+                  <option value="très abimé">Très abîmé </option>
                 </select>
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pénalité supplémentaire (FCFA)
-                </label>
-                <input
-                  type="number"
-                  value={penaltyAmount}
-                  onChange={(e) => setPenaltyAmount(e.target.value)}
-                  placeholder="0"
-                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Raison de la pénalité
-                </label>
-                <input
-                  type="text"
-                  value={penaltyReason}
-                  onChange={(e) => setPenaltyReason(e.target.value)}
-                  placeholder="Livre abîmé, page déchirée, etc."
-                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                />
-              </div>
+              {/* Champs de pénalité - affichés uniquement si le livre est abîmé ou très abîmé */}
+              {requiresPenalty && (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pénalité supplémentaire (FCFA) *
+                    </label>
+                    <input
+                      type="number"
+                      value={penaltyAmount}
+                      onChange={(e) => {
+                        setPenaltyAmount(e.target.value);
+                        setPenaltyError('');
+                      }}
+                      placeholder="Montant de la pénalité"
+                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white ${
+                        penaltyError && !penaltyAmount ? 'border-red-500' : 'border-gray-200'
+                      }`}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Le montant doit être supérieur à 0 FCFA</p>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Raison de la pénalité *
+                    </label>
+                    <input
+                      type="text"
+                      value={penaltyReason}
+                      onChange={(e) => {
+                        setPenaltyReason(e.target.value);
+                        setPenaltyError('');
+                      }}
+                      placeholder="Ex: Page déchirée, couverture abîmée, etc."
+                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white ${
+                        penaltyError && !penaltyReason ? 'border-red-500' : 'border-gray-200'
+                      }`}
+                    />
+                  </div>
+                  
+                  {/* Message d'erreur de pénalité */}
+                  {penaltyError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                      <p className="text-red-600 text-sm">{penaltyError}</p>
+                    </div>
+                  )}
+                </>
+              )}
               
               <div className="flex gap-3">
                 <button

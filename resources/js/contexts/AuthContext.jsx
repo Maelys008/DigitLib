@@ -1,7 +1,6 @@
-// resources/js/contexts/AuthContext.jsx
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { router } from '@inertiajs/react';
 
 const AuthContext = createContext();
 
@@ -10,7 +9,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -55,6 +53,12 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     await api.logout();
     setUser(null);
+    
+    // Ne supprimer que les données de session
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
+    
+    router.visit('/login');
   };
 
   const updateUser = (newData) => {
@@ -62,6 +66,7 @@ export function AuthProvider({ children }) {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
+  
   const isLibrarian = user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
   const isReader = user?.role === 'reader' || user?.role === null;

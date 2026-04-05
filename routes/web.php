@@ -163,6 +163,9 @@ Route::get('/librarian/library/{id}', function ($id) {
 Route::get('/notifications', function () {
     return Inertia::render('Notifications');
 })->name('notifications');
+Route::get('/notifications/{id}', function ($id) {
+    return Inertia::render('NotificationDetail', ['id' => $id]);
+})->name('notifications.show');
 Route::get('/librarian/borrowing-rules', function () {
     return Inertia::render('Librarian/BorrowingRules');
 })->name('librarian.borrowing-rules');
@@ -181,8 +184,33 @@ Route::get('/libraries/{id}', function ($id) {
 Route::get('/libraries', function () {
     return Inertia::render('AllLibraries');
 })->name('libraries.index');
+Route::get('/librarian/manage-penalties', function () {
+    return Inertia::render('Librarian/ManagePenalties');
+})->name('librarian.manage-penalties');
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->name('profile');
 
-Route::get('/libraries/{id}', function ($id) {
-    return Inertia::render('LibraryDetails', ['id' => $id]);
-})->name('library.details');
-require __DIR__.'/auth.php';
+Route::get('/profile/edit', function () {
+    return Inertia::render('EditProfile');
+})->name('profile.edit');
+
+Route::get('/profile/change-password', function () {
+    return Inertia::render('ChangePassword');
+})->name('profile.change-password');
+
+
+// routes/web.php
+Route::get('/clubs/create', function () {
+    return Inertia::render('Clubs/Create');
+})->name('clubs.create');
+
+Route::get('/clubs', function () {
+    return Inertia::render('Clubs/Index');
+})->name('clubs.index');
+
+Route::get('/clubs/{club}', function ($club) {
+    return Inertia::render('Clubs/Show', ['clubId' => (int) $club]);
+})->name('clubs.show');
+
+require __DIR__ . '/auth.php';

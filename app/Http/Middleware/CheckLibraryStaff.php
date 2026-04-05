@@ -6,7 +6,6 @@ use App\Models\Internal_member;
 use App\Models\Library;
 use Closure;
 use Illuminate\Http\Request;
-use Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckLibraryStaff

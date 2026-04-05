@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     protected $fillable =
-        [
-            'user_id',
-            'returned_by',
-            'copy_id',
-            'loan_date',
-            'expected_return_date',
-            'actual_return_date',
-            'condition_on_return',
-        ];
+    [
+        'user_id',
+        'returned_by',
+        'copy_id',
+        'loan_date',
+        'expected_return_date',
+        'actual_return_date',
+        'condition_on_return',
+    ];
 
     protected $casts = [
         'loan_date' => 'date',
@@ -38,13 +38,13 @@ class Loan extends Model
         return $this->hasOne(Penalty::class);
     }
 
-     public function library()
+    public function library()
     {
-        return $this->belongsTo(Library::class);
+        return $this->copy->book->library();
     }
 
     public function book()
     {
-        return $this->belongsTo(Book::class);
+        return $this->copy->book();
     }
 }

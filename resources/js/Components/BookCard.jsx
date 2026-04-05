@@ -4,14 +4,26 @@ import { router } from "@inertiajs/react";
 export default function BookCard({ 
   livre, 
   onClick,
-  variant = 'default', // 'default', 'horizontal', 'cover', 'small'
+  variant = 'default', 
   showNote = false,
-  backgroundColor = null, // Pour les cartes avec fond coloré (rose, vert, etc.)
+  backgroundColor = null, 
   className = ''
 }) {
 
- 
-
+  // Fonction pour obtenir l'URL correcte de l'image
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '/placeholder-book.jpg';
+    
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    if (imagePath.startsWith('/storage/')) {
+      return `http://localhost:8000${imagePath}`;
+    }
+    
+    return `http://localhost:8000/storage/${imagePath}`;
+  };
 
   const handleClick = () => {
     if (onClick) {
@@ -20,6 +32,8 @@ export default function BookCard({
       router.visit(`/book/${livre.id}`);
     }
   };
+
+  const imageUrl = getImageUrl(livre.image_couverture);
 
   // Variant pour les sections horizontales (Meilleurs du mois, Nouveautés, Populaires, etc.)
   if (variant === 'horizontal') {
@@ -37,9 +51,12 @@ export default function BookCard({
         <div className={`aspect-square w-full ${!livre.image_couverture && backgroundColor ? 'p-4' : ''}`}>
           {livre.image_couverture ? (
             <img 
-              src={livre.image_couverture} 
+              src={imageUrl}
               alt={livre.titre}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = '/placeholder-book.jpg';
+              }}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-center">
@@ -82,9 +99,12 @@ export default function BookCard({
         <div className="aspect-[2/3] w-full bg-gray-200">
           {livre.image_couverture ? (
             <img 
-              src={livre.image_couverture} 
+              src={imageUrl}
               alt={livre.titre}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = '/placeholder-book.jpg';
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -112,9 +132,12 @@ export default function BookCard({
     >
       <div className="relative">
         <img 
-          src={livre.image_couverture || '/placeholder-book.jpg'} 
+          src={imageUrl}
           alt={livre.titre}
           className="w-full h-48 object-cover"
+          onError={(e) => {
+            e.target.src = '/placeholder-book.jpg';
+          }}
         />
         
         <button 
