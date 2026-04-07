@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Star, Heart } from 'lucide-react';
-import api from '../../services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ReviewCard({ 
   review, 
@@ -8,8 +8,14 @@ export default function ReviewCard({
   className = '',
   onLike 
 }) {
+  const { isAuthenticated } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isLiked, setIsLiked] = useState(review.is_liked || false);
+  
+  // Initialiser les likes depuis localStorage
+  const [isLiked, setIsLiked] = useState(() => {
+    const likedReviews = JSON.parse(localStorage.getItem('liked_reviews') || '[]');
+    return likedReviews.includes(review.id);
+  });
   const [likesCount, setLikesCount] = useState(review.likes_count || 0);
   const [isLiking, setIsLiking] = useState(false);
 
@@ -35,22 +41,31 @@ export default function ReviewCard({
 
   const handleLike = async (e) => {
     e.stopPropagation();
-    if (isLiking) return;
+    if (!isAuthenticated || isLiking) return;
     
     setIsLiking(true);
-    try {
-      const result = await api.likeReview(review.id);
-      if (result.success) {
-      // Version simplifiée : on ne toggle pas, on incrémente juste
-        setLikesCount(result.data.likes_count);
+    
+    // Simuler l'appel API (pas de backend pour les likes)
+    setTimeout(() => {
+      const likedReviews = JSON.parse(localStorage.getItem('liked_reviews') || '[]');
+      
+      if (isLiked) {
+        // Unlike
+        const newLikedReviews = likedReviews.filter(id => id !== review.id);
+        localStorage.setItem('liked_reviews', JSON.stringify(newLikedReviews));
+        setIsLiked(false);
+        setLikesCount(prev => prev - 1);
+        if (onLike) onLike(review.id, false);
+      } else {
+        // Like
+        likedReviews.push(review.id);
+        localStorage.setItem('liked_reviews', JSON.stringify(likedReviews));
         setIsLiked(true);
+        setLikesCount(prev => prev + 1);
         if (onLike) onLike(review.id, true);
       }
-    } catch (error) {
-      console.error('Erreur like:', error);
-    } finally {
       setIsLiking(false);
-    }
+    }, 300);
   };
 
   const shouldTruncate = commentText.length > 120;

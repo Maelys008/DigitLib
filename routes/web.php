@@ -200,17 +200,16 @@ Route::get('/profile/change-password', function () {
 })->name('profile.change-password');
 
 
-// routes/web.php
-Route::get('/clubs/create', function () {
-    return Inertia::render('Clubs/Create');
-})->name('clubs.create');
-
 Route::get('/clubs', function () {
     return Inertia::render('Clubs/Index');
 })->name('clubs.index');
 
-Route::get('/clubs/{club}', function ($club) {
-    return Inertia::render('Clubs/Show', ['clubId' => (int) $club]);
+Route::get('/clubs/create', function () {
+    return Inertia::render('Clubs/Create');
+})->name('clubs.create');
+
+Route::get('/clubs/{id}', function ($id) {
+    return Inertia::render('Clubs/Show', ['id' => $id]);
 })->name('clubs.show');
 
 require __DIR__ . '/auth.php';

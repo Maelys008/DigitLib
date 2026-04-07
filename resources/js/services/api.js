@@ -345,6 +345,15 @@ class ApiService {
             return null;
         }
     }
+async getLibraryInscriptions(libraryId) {
+    try {
+        const response = await this.axios.get(`/libraries/${libraryId}/inscriptions`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching library inscriptions:', error);
+        return [];
+    }
+}
 
     async createLibrary(formData) {
         try {
@@ -690,109 +699,129 @@ class ApiService {
     }
 
     // --- CLUBS ---
-    // Récupérer tous les clubs
-    async getClubs() {
-        try {
-            const response = await this.axios.get("/clubs");
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching clubs:", error);
-            return [];
-        }
-    }
 
-    // Récupérer un club précis + statut d'adhésion
-    async getClub(id) {
-        try {
-            const response = await this.axios.get(`/clubs/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching club:", error);
-            return null;
-        }
+// Récupérer tous les clubs
+async getClubs() {
+    try {
+        const response = await this.axios.get("/clubs");
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching clubs:", error);
+        return [];
     }
+}
 
-    // Rejoindre un club
-    //     async joinClub(clubId) {
-    //     try {
-    //         const response = await this.axios.post(`/clubs/${clubId}/join`);
-    //         return { success: true, message: response.data.message };
-    //     } catch (error) {
-    //         return { success: false, message: error.response?.data?.message || "Erreur" };
-    //     }
-    // }
-
-    // resources/js/services/api.js
-    async joinClub(clubId) {
-        try {
-            const response = await this.axios.post(`/clubs/${clubId}/join`);
-            console.log("Join response:", response); // ← Ajouter pour debug
-            return {
-                success: true,
-                message: response.data.message,
-            };
-        } catch (error) {
-            console.error("Join error:", error.response?.data); // ← Ajouter pour debug
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de l'adhésion",
-            };
-        }
+// Récupérer un club spécifique
+async getClub(id) {
+    try {
+        const response = await this.axios.get(`/clubs/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching club:", error);
+        return null;
     }
+}
 
-    // Récupérer les messages d'un club
-    async getClubMessages(clubId) {
-        try {
-            const response = await this.axios.get(`/clubs/${clubId}/messages`);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching messages:", error);
-            return [];
-        }
+// Créer un club
+async createClub(name, description = '') {
+    try {
+        const response = await this.axios.post('/clubs', {
+            name: name,
+            description: description
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error creating club:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la création du club'
+        };
     }
+}
 
-    // Envoyer un message
-    async sendClubMessage(clubId, message) {
-        try {
-            const response = await this.axios.post(
-                `/clubs/${clubId}/messages`,
-                { message },
-            );
-            return { success: true, data: response.data };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.response?.data?.message || "Erreur",
-            };
-        }
+// Rejoindre un club
+async joinClub(clubId) {
+    try {
+        const response = await this.axios.post(`/clubs/${clubId}/join`);
+        return { success: true, message: response.data.message };
+    } catch (error) {
+        console.error("Join error:", error.response?.data);
+        return {
+            success: false,
+            message: error.response?.data?.message || "Erreur lors de l'adhésion",
+        };
     }
+}
 
-    // Quitter un club
-    async leaveClub(clubId) {
-        try {
-            const response = await this.axios.delete(`/clubs/${clubId}/leave`);
-            return {
-                success: true,
-                message: response.data.message,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.response?.data?.message || "Erreur",
-            };
-        }
+// Quitter un club
+async leaveClub(clubId) {
+    try {
+        const response = await this.axios.delete(`/clubs/${clubId}/leave`);
+        return { success: true, message: response.data.message };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Erreur",
+        };
     }
+}
 
-    async deleteClub(clubId) {
-        try {
-            const response = await this.axios.delete(`/clubs/${clubId}`);
-            return { success: true, message: response.data.message };
-        } catch (error) {
-            console.error("Erreur suppression club:", error);
-            return { success: false, message: "Erreur lors de la suppression" };
-        }
+// Récupérer les messages d'un club
+async getClubMessages(clubId) {
+    try {
+        const response = await this.axios.get(`/clubs/${clubId}/messages`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching messages:", error);
+        return [];
     }
+}
+
+// Envoyer un message dans un club
+async sendClubMessage(clubId, message) {
+    try {
+        const response = await this.axios.post(`/clubs/${clubId}/messages`, { message });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Erreur",
+        };
+    }
+}
+
+// Supprimer un club (admin uniquement)
+async deleteClub(clubId) {
+    try {
+        const response = await this.axios.delete(`/clubs/${clubId}`);
+        return { success: true, message: response.data.message };
+    } catch (error) {
+        console.error("Erreur suppression club:", error);
+        return { success: false, message: "Erreur lors de la suppression" };
+    }
+}
+// Supprimer un message
+async deleteMessage(messageId) {
+    try {
+        const response = await this.axios.delete(`/messages/${messageId}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de la suppression"
+        };
+    }
+}
+// Récupérer les bibliothèques que l'utilisateur a rejointes
+async getUserJoinedLibraries() {
+    try {
+        const response = await this.axios.get('/user/libraries');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user libraries:', error);
+        return [];
+    }
+}
 }
 export default new ApiService();

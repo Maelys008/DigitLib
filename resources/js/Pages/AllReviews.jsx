@@ -12,6 +12,26 @@ export default function AllReviews() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fonction pour formater la date correctement
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Date inconnue';
+    
+    try {
+      const date = new Date(dateString);
+      // Vérifier si la date est valide
+      if (isNaN(date.getTime())) {
+        return 'Date inconnue';
+      }
+      return date.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'Date inconnue';
+    }
+  };
+
   useEffect(() => {
     const fetchReviews = async () => {
       setIsLoading(true);
@@ -25,15 +45,18 @@ export default function AllReviews() {
           reviewsData = response;
         }
         
+        console.log('Reviews data:', reviewsData); // Pour debug
+        
         // Transformer les données pour ReviewCard
         const formattedReviews = reviewsData.map(review => ({
           id: review.id,
           nom: review.user?.name || 'Utilisateur',
           note: review.rating,
-          date: new Date(review.created_at).toLocaleDateString('fr-FR'),
+          date: formatDate(review.created_at), // Utiliser la fonction formatDate
           commentaire: review.comment,
           likes_count: review.likes_count || 0,
-          is_liked: review.is_liked || false
+          is_liked: review.is_liked || false,
+          created_at: review.created_at
         }));
         
         setReviews(formattedReviews);
@@ -42,9 +65,13 @@ export default function AllReviews() {
         setError('Impossible de charger les avis');
         
         // Fallback vers mockData en cas d'erreur
-        const { avis: mockAvis } = await import('../data/mockData');
-        const filteredMock = mockAvis.filter(a => a.livre_id === bookId);
-        setReviews(filteredMock);
+        try {
+          const { avis: mockAvis } = await import('../data/mockData');
+          const filteredMock = mockAvis.filter(a => a.livre_id === bookId);
+          setReviews(filteredMock);
+        } catch (mockError) {
+          console.error('Erreur chargement mock data:', mockError);
+        }
       } finally {
         setIsLoading(false);
       }

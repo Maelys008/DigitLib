@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, ThumbsUp } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import SectionHeader from '@/Components/SectionHeader';
 import ReviewCard from './ReviewCard';
 import HorizontalScroll from '@/Components/HorizontalScroll';
@@ -11,80 +11,64 @@ export default function ReviewSection({
   reviews: initialReviews, 
   bookId,
   bookTitle,
-  className = '' 
+  className = '',
+  onReviewAdded 
 }) {
   const { isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [likingId, setLikingId] = useState(null);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.getBookReviews(bookId);
-        
-        let reviewsData = [];
-        if (response?.data) {
-          reviewsData = response.data;
-        } else if (Array.isArray(response)) {
-          reviewsData = response;
-        }
-        
-        const formattedReviews = reviewsData.map(review => ({
-          id: review.id,
-          nom: review.user?.name || 'Utilisateur',
-          note: review.rating,
-          date: new Date(review.created_at).toLocaleDateString('fr-FR'),
-          commentaire: review.comment,
-          likes_count: review.likes_count || 0,
-          is_liked: review.is_liked || false,
-          created_at: review.created_at
-        }));
-        
-        setReviews(formattedReviews);
-      } catch (error) {
-        console.error('Erreur chargement avis:', error);
-        if (initialReviews && initialReviews.length > 0) {
-          setReviews(initialReviews);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchReviews();
-  }, [bookId, initialReviews]);
-
-  const handleLike = async (reviewId) => {
-    if (!isAuthenticated) return;
-    
-    setLikingId(reviewId);
+  // Charger les avis depuis l'API au lieu d'utiliser initialReviews
+  const fetchReviews = async () => {
+    setIsLoading(true);
     try {
-      const result = await api.likeReview(reviewId);
-      if (result.success) {
-        setReviews(prevReviews => 
-          prevReviews.map(review => 
-            review.id === reviewId 
-              ? { 
-                  ...review, 
-                  likes_count: result.data.likes_count,
-                  is_liked: !review.is_liked 
-                }
-              : review
-          )
-        );
+      const response = await api.getBookReviews(bookId);
+      
+      let reviewsData = [];
+      if (response?.data) {
+        reviewsData = response.data;
+      } else if (Array.isArray(response)) {
+        reviewsData = response;
       }
+      
+      // Récupérer les likes depuis localStorage
+      const likedReviews = JSON.parse(localStorage.getItem('liked_reviews') || '[]');
+      
+      const formattedReviews = reviewsData.map(review => ({
+        id: review.id,
+        nom: review.user?.name || 'Utilisateur',
+        note: review.rating,
+        date: new Date(review.created_at).toLocaleDateString('fr-FR'),
+        commentaire: review.comment,
+        likes_count: review.likes_count || 0,
+        is_liked: likedReviews.includes(review.id),
+        created_at: review.created_at
+      }));
+      
+      setReviews(formattedReviews);
     } catch (error) {
-      console.error('Erreur like:', error);
+      console.error('Erreur chargement avis:', error);
     } finally {
-      setLikingId(null);
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchReviews();
+  }, [bookId]); // ← Recharger quand bookId change
+
   const handleReviewCreated = (newReview) => {
+    // Ajouter le nouvel avis à la liste
     setReviews(prev => [newReview, ...prev]);
+    
+    // Recharger depuis l'API pour être sûr d'avoir la bonne note
+    fetchReviews();
+    
+    // Appeler la fonction du parent
+    if (onReviewAdded) {
+      onReviewAdded(newReview);
+    }
   };
 
   if (isLoading) {
@@ -109,11 +93,7 @@ export default function ReviewSection({
         <HorizontalScroll>
           {reviews.map((review) => (
             <div key={review.id} className="min-w-[280px] max-w-[280px]">
-              <ReviewCard 
-                review={review} 
-                onLike={() => handleLike(review.id)}
-                isLiking={likingId === review.id}
-              />
+              <ReviewCard review={review} />
             </div>
           ))}
         </HorizontalScroll>

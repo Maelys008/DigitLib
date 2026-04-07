@@ -158,17 +158,25 @@ class ClubController extends Controller
         return response()->json(['message' => 'Message supprimé.']);
     }
 
-    public function show(Request $request, $id)
-    {
-        $club = Club::withCount('members')->findOrFail($id);
+  public function show(Request $request, $id)
+{
+    $club = Club::with(['creator:id,name']) // ← Charger le créateur
+        ->withCount('members') // ← Compter les membres
+        ->findOrFail($id);
 
-        // Vérification cruciale :
+    // Vérifier si l'utilisateur connecté est membre
+    $club->is_joined = false;
+    if ($request->user()) {
         $club->is_joined = Club_member::where('user_id', $request->user()->id)
             ->where('club_id', $id)
             ->exists();
-
-        return response()->json(['club' => $club]);
     }
+
+    // Ajouter le nombre de membres (déjà fait par withCount)
+    // $club->members_count est automatiquement ajouté par withCount
+
+    return response()->json(['club' => $club]);
+}
 
     public function destroy(Request $request, $id)
 {

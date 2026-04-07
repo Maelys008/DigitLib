@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
-// use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -51,60 +50,43 @@ class ReviewController extends Controller
         }
     }
 
-   public function like($reviewId)
-{
-    try {
-        $review = Review::findOrFail($reviewId);
-        
-        // Version avec toggle (like/unlike) mais sans table
-        // On utilise session pour stocker les likes temporairement
-        $likedReviews = session()->get('liked_reviews', []);
-        
-        if (in_array($reviewId, $likedReviews)) {
-            $review->decrement('likes_count');
-            $likedReviews = array_diff($likedReviews, [$reviewId]);
-            $message = 'Like retiré.';
-            $isLiked = false;
-        } else {
+    public function like($reviewId)
+    {
+        try {
+            $review = Review::findOrFail($reviewId);
+            
+            // Version simple sans table review_likes
             $review->increment('likes_count');
-            $likedReviews[] = $reviewId;
-            $message = 'Vous avez trouvé cet avis utile.';
-            $isLiked = true;
-        }
-        
-        session()->put('liked_reviews', $likedReviews);
-        $newCount = $review->fresh()->likes_count;
+            $newCount = $review->fresh()->likes_count;
 
-        return response()->json([
-            'message' => $message,
-            'likes_count' => $newCount,
-            'is_liked' => $isLiked
-        ]);
-        
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Erreur lors du like'], 500);
+            return response()->json([
+                'message' => 'Vous avez trouvé cet avis utile.',
+                'likes_count' => $newCount,
+                'is_liked' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur like review: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors du like'], 500);
+        }
     }
-}
 
     public function index($bookId)
     {
         try {
             $reviews = Review::where('book_id', $bookId)
                 ->with('user:id,name')
-                ->orderBy('likes_count', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->paginate(10);
-
-            // Pas de is_liked car on ne suit pas les likes individuels
-            foreach ($reviews as $review) {
-                $review->is_liked = false;
-            }
+                ->get();
 
             return response()->json($reviews);
             
         } catch (\Exception $e) {
             Log::error('Erreur index reviews: ' . $e->getMessage());
-            return response()->json(['message' => 'Erreur lors du chargement des avis'], 500);
+            return response()->json([
+                'message' => 'Erreur lors du chargement des avis',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -18,12 +18,14 @@ const normalizeBook = (book) => ({
   ...book,
   image_couverture: book.cover_url || book.cover_image,
   nb_disponibles: book.nb_available,
-  note: book.note ??0,
+  note: book.note ?? 0,
   titre: book.title,
   auteur: book.author,
+  total_loans: book.total_loans || 0, // Pour compter les emprunts
+  created_at: book.created_at,
 });
 
-// Fonction pour récupérer TOUS les livres 
+// Fonction pour récupérer TOUS les livres avec statistiques
 const fetchAllBooks = async () => {
   let allBooks = [];
   let currentPage = 1;
@@ -58,7 +60,7 @@ const fetchAllBooks = async () => {
 };
 
 export default function Home() {
- const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   
   const [allBooks, setAllBooks] = useState([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
@@ -69,14 +71,13 @@ export default function Home() {
   const [livresNouveaux, setLivresNouveaux] = useState([]);
   const [livresRomans, setLivresRomans] = useState([]);
 
-const notificationsNonLues = notifications.filter(n => n.statut === 'non_lu');
-const [libraries, setLibraries] = useState([]);
- const [isLoadingLibraries, setIsLoadingLibraries] = useState(true);
+  const [libraries, setLibraries] = useState([]);
+  const [isLoadingLibraries, setIsLoadingLibraries] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingBooks(true);
-       setIsLoadingLibraries(true);
+      setIsLoadingLibraries(true);
 
       try {
         const allBooksData = await fetchAllBooks();
@@ -87,14 +88,63 @@ const [libraries, setLibraries] = useState([]);
         const first6Genres = genresResponse.data?.slice(0, 6) || [];
         setGenresList(first6Genres);
 
-        const allBooksList = normalizedAllBooks;
-        const sortedByDate = [...normalizedAllBooks].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        // ========== 1. MEILLEURS DU MOIS ==========
+        // Trier par: emprunts du mois (simulé par total_loans), note, date
+        const bestOfMonth = [...normalizedAllBooks]
+          .sort((a, b) => {
+            // Priorité au nombre d'emprunts
+            if (a.total_loans !== b.total_loans) {
+              return b.total_loans - a.total_loans;
+            }
+            // Puis par note
+            if (a.note !== b.note) {
+              return b.note - a.note;
+            }
+            // Enfin par date
+            return new Date(b.created_at) - new Date(a.created_at);
+          })
+          .slice(0, 40); // Limite 40 livres
+        setLivresMembres(bestOfMonth.slice(0, 12)); // Affichage 12 sur l'accueil
 
-        setLivresMembres(allBooksList.slice(0, 12));
-        setLivresPopulaires(allBooksList.slice(5, 17).length > 0 ? allBooksList.slice(5, 17) : allBooksList.slice(0, 12));
-        setLivresNouveaux(sortedByDate.slice(0, 3));
-        setLivresRomans(normalizedAllBooks.filter(l => l.genre?.name === 'Roman').slice(0, 17));
-         const librariesData = await api.getLibraries();
+        // ========== 2. NOUVEAUTÉS ==========
+        // Trier par date d'ajout (le plus récent d'abord)
+        const nouveautes = [...normalizedAllBooks]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 20); // Limite 20 livres
+        setLivresNouveaux(nouveautes.slice(0, 3)); // 3 sur l'accueil
+
+        // ========== 3. POPULAIRES ==========
+        // Ne montrer que les livres disponibles + trier par emprunts et note
+        const populaires = [...normalizedAllBooks]
+          .filter(book => book.nb_disponibles > 0) // Uniquement disponibles
+          .sort((a, b) => {
+            if (a.total_loans !== b.total_loans) {
+              return b.total_loans - a.total_loans;
+            }
+            return b.note - a.note;
+          })
+          .slice(0, 40); // Limite 40 livres
+        setLivresPopulaires(populaires.slice(0, 12)); // Affichage 12 sur l'accueil
+
+        // ========== 4. ROMANS ==========
+        // Filtrer par genre "Roman", trier par date et note
+        const romans = [...normalizedAllBooks]
+          .filter(book => {
+            const genreName = typeof book.genre === 'string' ? book.genre : book.genre?.name;
+            return genreName === 'Roman';
+          })
+          .sort((a, b) => {
+            // Par date d'abord
+            const dateCompare = new Date(b.created_at) - new Date(a.created_at);
+            if (dateCompare !== 0) return dateCompare;
+            // Puis par note
+            return b.note - a.note;
+          })
+          .slice(0, 20); // Limite 20 livres
+        setLivresRomans(romans.slice(0, 17)); // Affichage 17 sur l'accueil
+
+        // Bibliothèques
+        const librariesData = await api.getLibraries();
         const librariesWithStats = await Promise.all(librariesData.map(async (lib) => {
           const books = await api.getBooks({ library_id: lib.id });
           const members = await api.getLibraryInscriptions(lib.id);
@@ -108,16 +158,17 @@ const [libraries, setLibraries] = useState([]);
 
       } catch (error) {
         console.error('Erreur chargement livres ou genres:', error);
+        // Fallback vers mockData
         const { livres, genres: mockGenres } = await import('../data/mockData');
         setAllBooks(livres);
         setGenresList(mockGenres.slice(0, 6));
-        setLivresMembres(livres.slice(0, 17));
-        setLivresPopulaires(livres.slice(0, 17));
-        setLivresNouveaux(livres.slice(-3));
+        setLivresMembres(livres.slice(0, 12));
+        setLivresPopulaires(livres.slice(0, 12));
+        setLivresNouveaux(livres.slice(0, 3));
         setLivresRomans(livres.filter(l => l.genre === 'Roman').slice(0, 17));
       } finally {
         setIsLoadingBooks(false);
-          setIsLoadingLibraries(false); 
+        setIsLoadingLibraries(false);
       }
     };
 
@@ -136,13 +187,12 @@ const [libraries, setLibraries] = useState([]);
 
   return (
     <>
-      {/* TopBar  */}
       <TopBar />
       
       <MobileLayout noPadding>
-        {/* SECTION 1: Meilleurs du mois - avec mt-8 pour descendre un peu */}
+        {/* SECTION 1: Meilleurs du mois */}
         <div className="px-6 mt-8">
-          <SectionHeader titre="Meilleurs du mois" voirToutLien="best-of-month" />
+          <SectionHeader titre="Meilleurs du mois" voirToutLien="/best-of-month" />
           <HorizontalScroll>
             {livresMembres.slice(0, 12).map((livre, index) => (
               <BookCard
@@ -159,16 +209,16 @@ const [libraries, setLibraries] = useState([]);
           <SectionHeader titre="Genres" voirToutLien="/genres" />
           <div className="grid grid-cols-2 gap-3"> 
             {genresList.map((genre, index) => {
-                const IconComponent = genreIcons[genre.name]; 
-                return (
-                  <GenreCard
-                    key={index}
-                    genre={genre.name}
-                    icon={IconComponent}
-                    bookCount={getBookCountByGenre(genre.name, allBooks)}
-                  />
-                );
-              })}
+              const IconComponent = genreIcons[genre.name]; 
+              return (
+                <GenreCard
+                  key={index}
+                  genre={genre.name}
+                  icon={IconComponent}
+                  bookCount={getBookCountByGenre(genre.name, allBooks)}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -185,7 +235,7 @@ const [libraries, setLibraries] = useState([]);
           </div>
         </div>
 
-        {/* SECTION 5: Populaires */}
+        {/* SECTION 4: Populaires */}
         <div className="px-6 mt-6">
           <SectionHeader titre="Populaires" voirToutLien="/populaires" />
           <HorizontalScroll>
@@ -198,7 +248,8 @@ const [libraries, setLibraries] = useState([]);
             ))}
           </HorizontalScroll>
         </div>
-         {/* NOUVELLE SECTION: Bibliothèques disponibles */}
+
+        {/* SECTION 5: Bibliothèques disponibles */}
         <div className="px-6 mt-6">
           <SectionHeader titre="Bibliothèques disponibles" voirToutLien="/libraries" />
           {isLoadingLibraries ? (

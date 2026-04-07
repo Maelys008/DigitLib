@@ -51,7 +51,7 @@ export default function BookDetail() {
     setTimeout(() => setReservationSuccessMessage(null), 5000);
   };
 
-    const handleReviewCreated = (newReview) => {
+ const handleReviewCreated = (newReview) => {
   setAvisDuLivre(prev => [newReview, ...prev]);
   
   // Recalculer la nouvelle note moyenne

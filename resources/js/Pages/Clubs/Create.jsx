@@ -1,7 +1,6 @@
-// resources/js/Pages/Clubs/Create.jsx
 import MobileLayout from "@/Layouts/MobileLayout";
 import { useState } from "react";
-import { ArrowLeft, Save, Loader2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Users, FileText, X } from "lucide-react";
 import { router } from "@inertiajs/react";
 import api from "../../services/api";
 
@@ -24,6 +23,10 @@ export default function ClubsCreate() {
 
         if (!formData.name.trim()) {
             setError("Le nom du club est requis");
+            return;
+        }
+        if (!formData.description.trim()) {
+            setError("La description est requise");
             return;
         }
 
@@ -55,9 +58,12 @@ export default function ClubsCreate() {
                         >
                             <ArrowLeft className="w-5 h-5 text-gray-600" />
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900">
-                            Créer un club
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <h1 className="text-xl font-bold text-gray-900">Créer un club</h1>
+                        </div>
                     </div>
                 </div>
 
@@ -72,19 +78,22 @@ export default function ClubsCreate() {
 
                         {/* Nom du club */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Nom du club *
                             </label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Ex: Club Lecture Fantasy"
-                                className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                                maxLength="255"
-                                required
-                            />
+                            <div className="relative">
+                                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Ex: Les amoureux du Roman"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 transition-colors"
+                                    maxLength="255"
+                                    required
+                                />
+                            </div>
                             <p className="text-xs text-gray-400 mt-1">
                                 {formData.name.length}/255 caractères
                             </p>
@@ -92,45 +101,43 @@ export default function ClubsCreate() {
 
                         {/* Description */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Description
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Description *
                             </label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder="Décrivez l'objectif de votre club..."
-                                className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
-                            />
+                            <div className="relative">
+                                <FileText className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    placeholder="Décrivez votre club, les thèmes abordés, vos objectifs..."
+                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        {/* Information */}
-                        {/* <div className="bg-purple-50 rounded-xl p-4">
-                            <p className="text-sm text-purple-800">
-                                💡 Une fois le club créé, vous en serez automatiquement le
-                                créateur et pourrez :
+                        {/* Conseil */}
+                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
+                            <p className="text-sm text-blue-900">
+                                💡 <strong>Conseil :</strong> Choisissez un nom accrocheur et une description claire pour attirer des membres !
                             </p>
-                            <ul className="mt-2 text-sm text-purple-700 list-disc list-inside space-y-1">
-                                <li>Inviter d'autres lecteurs</li>
-                                <li>Animer les discussions</li>
-                                <li>Gérer les membres</li>
-                            </ul>
-                        </div> */}
+                        </div>
 
                         {/* Boutons */}
                         <div className="flex gap-3 pt-4">
                             <button
                                 type="button"
                                 onClick={() => router.visit("/clubs")}
-                                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all"
                             >
                                 Annuler
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="flex-1 py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <>
