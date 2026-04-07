@@ -11,9 +11,12 @@ use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialAuthController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\ShelfController;
 use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
+
 
 
 // -------------------------------------------------------------------------
@@ -34,7 +37,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'handleProviderCallback']);
 
-//Consultation de librairie
+// Consultation de librairie
 Route::get('/libraries', [LibraryController::class, 'index']);
 
 // Consultation Livres (Public)
@@ -56,13 +59,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/profil', [ProfilController::class, 'show']);
     Route::put('/profil', [ProfilController::class, 'update']);
     Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
-    Route::get('/profile/status', [ProfilController::class, 'status']); //info sur le badge
-
-    // Route::get('/badges', function () {
-    //     return response()->json(Badge::orderBy('condition_of_obtaining', 'asc')->get());
-    // });
-
-
+    Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
 
     // --- Emprunts (Loans) ---
     Route::get('/loans', [LoanController::class, 'index']);           // Mes emprunts
@@ -104,6 +101,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('books/{book}/reviews', [ReviewController::class, 'index']);    // Voir les avis d'un livre
     Route::post('books/{book}/reviews', [ReviewController::class, 'store']);   // Ajouter/Modifier son avis
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
+
+    // Favoris
+Route::get('/favorites', [FavoriteController::class, 'index']);
+Route::post('/favorites/{book}', [FavoriteController::class, 'toggle']);
+
+// Étagères
+Route::get('/shelves', [ShelfController::class, 'index']);
+Route::post('/shelves', [ShelfController::class, 'store']);
+Route::get('/shelves/{shelf}', [ShelfController::class, 'show']);
+Route::put('/shelves/{shelf}', [ShelfController::class, 'update']);
+Route::delete('/shelves/{shelf}', [ShelfController::class, 'destroy']);
+
+Route::post('/shelves/{shelf}/books/{book}', [ShelfController::class, 'attachBook']);
+Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'detachBook']);
 });
 
 // ---------------------------------------------------------------------
@@ -124,7 +135,6 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::post('/books', [BookController::class, 'store']);
     Route::put('/books/{id}', [BookController::class, 'update']);
     Route::delete('/books/{id}', [BookController::class, 'destroy']);
-
 
     Route::post('/libraries/{library}/books', [BookController::class, 'store']);
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
