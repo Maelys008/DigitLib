@@ -10,9 +10,8 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\ReviewController;
-use App\Http\Controllers\Api\SocialAuthController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\ShelfController;
+use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\ShelfController;
 use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
@@ -103,8 +102,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 
     // Favoris
-Route::get('/favorites', [FavoriteController::class, 'index']);
-Route::post('/favorites/{book}', [FavoriteController::class, 'toggle']);
+ Route::get('/favorites', [FavoriteController::class, 'index']);
+Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
+Route::get('/favorites/check/{book}', [FavoriteController::class, 'check']);
 
 // Étagères
 Route::get('/shelves', [ShelfController::class, 'index']);

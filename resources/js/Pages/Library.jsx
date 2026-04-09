@@ -222,7 +222,6 @@ export default function Library() {
                 >
                   <Heart className="w-5 h-5 text-gray-700 mr-3" />
                   <span className="text-gray-900 font-medium">Favoris</span>
-                  <span className="text-gray-900 font-semibold ml-2">({favorisCount})</span>
                 </button>
                 <button
                   onClick={() => router.visit('/read-books')}
