@@ -39,7 +39,7 @@ export default function LoanCard({
   const status = type === 'reservation' ? loan.status : null;
 
   const daysInfo = expectedDate ? getDaysStatus(expectedDate) : null;
-
+e 
   return (
     <div 
       className={`

@@ -17,7 +17,6 @@ use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
 
-
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
 // -------------------------------------------------------------------------
@@ -120,9 +119,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 // ROUTES ADMIN (Propriétaire de bibliothèque)
 // ---------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(function () {
-    Route::get('/libraries/{library}/stats', function () {
-        return response()->json(['message' => 'Accès autorisé aux stats privées']);
-    });
+    // Route::get('/libraries/{library}/stats', function () {
+    //     return response()->json(['message' => 'Accès autorisé aux stats privées']);
+    // });
     Route::post('/libraries/{library_id}/members', [InternalMemberController::class, 'store']);    // Route pour voir l'équipe
     Route::get('/libraries/{library_id}/members', [InternalMemberController::class, 'index']);
 });
@@ -139,6 +138,7 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
 
+    Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
     Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
 });

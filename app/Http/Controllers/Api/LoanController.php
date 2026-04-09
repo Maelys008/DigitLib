@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Badge;
 use App\Models\Book;
-use App\Models\Copy;
 use App\Models\Incident;
 use App\Models\Inscription;
 use App\Models\Internal_member;
@@ -13,23 +12,15 @@ use App\Models\Loan;
 use App\Models\Notification;
 use App\Models\Penalty;
 use App\Models\Reservation;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LoanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
-
-        // if ($user->role == 'admin') {
-        //     return Loan::with(['user', 'copy.book'])->get();
-        // }
 
         return Loan::with(['copy.book'])
             ->where('user_id', $user->id)
@@ -37,9 +28,6 @@ class LoanController extends Controller
             ->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -66,7 +54,7 @@ class LoanController extends Controller
 
         if ($currentLoansCount >= $maxAllowed) {
             return response()->json([
-                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : " . ($user->badge->name ?? 'Lecteur débutant') . '.',
+                'message' => "Limite d'emprunt atteinte ({$maxAllowed} livres). Votre rang actuel est : ".($user->badge->name ?? 'Lecteur débutant').'.',
                 'max_allowed' => $maxAllowed,
                 'current_loans' => $currentLoansCount,
             ], 403);
@@ -124,17 +112,20 @@ class LoanController extends Controller
                 $loan = Loan::create([
                     'user_id' => $user->id,
                     'copy_id' => $copy->id,
-                    'loan_date' => now(),
+                    'loan_date' => null, // il n'a pas encore le livre en main
                     'expected_return_date' => now()->addDays($library->loan_duration),
+                    'status' => 'pending_pickup',
+                    'pickup_deadline' => now()->addHours(48),
                 ]);
 
-                $returnDate = Carbon::parse($loan->expected_return_date)->format('d/m/Y');
+                $returnDateFormatted = Carbon::parse($loan->expected_return_date)->format('d/m/Y');
 
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'loan_success',
-                    'message' => "Emprunt réussi ! À rendre avant le {$returnDate}. " .
-                        "Pénalité de {$library->daily_penalty_amount} FCFA/jour en cas de retard.",
+                    'message' => 'Emprunt réservé ! Venez récupérer le livre avant le '
+                        .Carbon::parse($loan->pickup_deadline)->format('d/m/Y H:i')
+                        .". Passé ce délai, l'emprunt sera annulé automatiquement.",
                     'object_type' => 'loan',
                     'object' => $loan->id,
                     'date_sent' => now(),
@@ -168,20 +159,28 @@ class LoanController extends Controller
         });
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update()
     {
         //
+    }
+
+    public function confirmPickup(Request $request, Loan $loan)
+    {
+        if ($loan->status !== 'pending_pickup') {
+            return response()->json(['message' => 'Ce prêt n\'est pas en attente de retrait.'], 422);
+        }
+
+        $loan->update([
+            'status' => 'active',
+            'loan_date' => now(), // date réelle de remise
+        ]);
+
+        return response()->json(['message' => 'Prêt confirmé, le livre est maintenant en possession du lecteur.', 'loan' => $loan]);
     }
 
     public function returnBook(Request $request, $loanId)
@@ -215,49 +214,81 @@ class LoanController extends Controller
             ]);
             $copy->update(['condition' => $request->condition_on_return]);
 
-            // 3. Gestion du Score de l'utilisateur
-            $isLate = $now->greaterThan($loan->expected_return_date);
-            if ($isLate) {
-                $user->decrement('score');
+            // 3. Gestion du Score (bonus/malus)
+            $expectedDate = Carbon::parse($loan->expected_return_date)->startOfDay();
+            $returnDate = $now->copy()->startOfDay();
+
+            $pointsDelta = 0;
+            $isLate = false;
+
+            if ($returnDate->greaterThan($expectedDate)) {
+                // RETARD
+                $isLate = true;
+                $daysLate = $returnDate->diffInDays($expectedDate); // >= 1
+                $pointsLost = min($daysLate * 2, 30);
+                $pointsDelta = -$pointsLost;
             } else {
-                $user->increment('score');
+                // A L'HEURE OU EN AVANCE
+                $daysEarly = $expectedDate->diffInDays($returnDate); // 0 si jour même, >0 si en avance
+                $bonus = min($daysEarly * 2, 10); // max +10
+                $pointsDelta = 10 + $bonus;            // entre +10 et +20
             }
-            $this->refreshUserGrade($user);
 
-            // 4. Gestion des Pénalités (Automatique pour retard + Manuelle pour dégradation)
-            $totalPenalty = 0;
-            $reasons = [];
+            if ($pointsDelta !== 0) {
+                $user->increment('score', $pointsDelta);
+                $this->refreshUserGrade($user);
 
-            // A. Calcul automatique du retard (si non déjà géré par la commande console)
-            if ($isLate) {
-                $expectedDate = Carbon::parse($loan->expected_return_date)->startOfDay();
-                $daysLate = (int) $expectedDate->diffInDays($now->startOfDay());
-                if ($daysLate > 0) {
-                    $totalPenalty += $daysLate * ($library->daily_penalty_amount ?? 0);
-                    $reasons[] = "Retard de {$daysLate} jour(s)";
+                if ($pointsDelta > 0) {
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'type' => 'score_gain',
+                        'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
+                        'object_type' => 'loan',
+                        'object' => $loan->id,
+                        'date_sent' => $now,
+                    ]);
+                } else {
+                    $lost = abs($pointsDelta);
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'type' => 'score_loss',
+                        'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
+                        'object_type' => 'loan',
+                        'object' => $loan->id,
+                        'date_sent' => $now,
+                    ]);
                 }
             }
 
-            // B. Ajout d'une pénalité manuelle (ex: livre abîmé)
+            // 4. Gestion des Pénalités
+            $totalPenalty = 0;
+            $reasons = [];
+
+            if ($isLate) {
+                $daysLateForPenalty = $returnDate->diffInDays($expectedDate);
+                if ($daysLateForPenalty > 0) {
+                    $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
+                    $reasons[] = "Retard de {$daysLateForPenalty} jour(s)";
+                }
+            }
+
             if ($request->filled('additional_penalty_amount')) {
                 $totalPenalty += $request->additional_penalty_amount;
-                $reasons[] = $request->penalty_reason ?? "Frais de dégradation(Etat du livre : {$request->condition_on_return})";
+                $reasons[] = $request->penalty_reason
+                    ?? "Frais de dégradation (État du livre : {$request->condition_on_return})";
             }
-            $totalPenalty = (int) $totalPenalty;
 
+            $totalPenalty = (int) $totalPenalty;
             $penalty = null;
 
             if ($totalPenalty > 0) {
                 $penalty = Penalty::firstOrNew(['loan_id' => $loan->id]);
                 $penalty->user_id = $user->id;
-                $penalty->amount = $totalPenalty; // Le montant final calculé au moment du retour
+                $penalty->amount = $totalPenalty;
                 $penalty->reason = implode(' | ', $reasons);
-                $penalty->status = $penalty->status ?? 'non payé'; // On garde 'payé' si c'était déjà le cas (rare au retour)
-
+                $penalty->status = $penalty->status ?? 'non payé';
                 $penalty->save();
 
-
-                //    Notification pour l'ABONNÉ (le client)
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'penalty_final',
@@ -267,9 +298,8 @@ class LoanController extends Controller
                     'date_sent' => $now,
                 ]);
 
-                // Notification pour le MEMBRE INTERNE (le bibliothécaire)
                 Notification::create([
-                    'user_id' => $returnValidatedBy->id, // Destiné à celui qui clique
+                    'user_id' => $returnValidatedBy->id,
                     'type' => 'return_confirmation',
                     'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
                     'object_type' => 'loan',
@@ -278,7 +308,7 @@ class LoanController extends Controller
                 ]);
             }
 
-            // 5. Logique de libération du livre (Réservation vs Disponibilité)
+            // 5. Libération de l'exemplaire (réservation ou dispo)
             $nextReservation = Reservation::where('book_id', $book->id)
                 ->where('status', 'active')
                 ->orderBy('created_at', 'asc')
@@ -306,7 +336,7 @@ class LoanController extends Controller
 
             $message = 'Livre retourné avec succès.';
             if ($totalPenalty > 0) {
-                $message .= ' Une pénalité de ' . number_format($totalPenalty, 0, ',', ' ') . ' FCFA a été enregistrée (Statut: Non payée).';
+                $message .= ' Une pénalité de '.number_format($totalPenalty, 0, ',', ' ').' FCFA a été enregistrée (Statut: Non payée).';
             }
 
             return response()->json([
@@ -322,9 +352,6 @@ class LoanController extends Controller
         });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         //
@@ -342,7 +369,7 @@ class LoanController extends Controller
             Notification::create([
                 'user_id' => $user->id,
                 'type' => 'badge_upgrade',
-                'message' => "Felicitation ! Vous avez atteint le rang {$newBadge->name}",
+                'message' => "Félicitations ! Vous avez atteint le rang {$newBadge->name}",
                 'object_type' => 'badge',
                 'object' => $newBadge->name,
                 'date_sent' => now(),
@@ -359,6 +386,7 @@ class LoanController extends Controller
         }
 
         $libraryIds = $user->managedLibraries()->pluck('id');
+
         $loansQuery = Loan::whereHas('copy.book', function ($q) use ($libraryIds, $request) {
             $q->whereIn('library_id', $libraryIds);
             if ($request->filled('library_id')) {
@@ -367,7 +395,7 @@ class LoanController extends Controller
         })
             ->with(['user:id,name,email', 'copy.book:id,title'])
             ->orderBy('expected_return_date', 'asc');
-  
+
         $loans = $loansQuery->get();
 
         return response()->json($loans);
@@ -377,18 +405,16 @@ class LoanController extends Controller
     {
         $user = $request->user();
 
-        // On récupère les bibliothèques où l'utilisateur est membre interne
         $myLibraryIds = Internal_member::where('user_id', $user->id)
             ->pluck('library_id');
 
         if ($myLibraryIds->isEmpty()) {
             return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
         }
-        // On recupere les IDs des utillisateurs qui on rejoint ces bibliotheques
+
         $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
             ->pluck('user_id')
             ->toArray();
-
 
         $incidents = Incident::with(['user:id,name,email', 'loan.copy.book'])
             ->where(function ($query) use ($user, $memberUserIds) {

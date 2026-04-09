@@ -52,7 +52,7 @@ class SendLoanReminders extends Command
                     'date_sent' => now(),
                 ]);
             }
+            $this->info(count($loans) . ' notifications de rappel envoyées.');
         }
-        $this->info(count($loans) . ' notifications de rappel envoyées.');
     }
 }

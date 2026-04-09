@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
-    protected $fillable =
-    [
+    protected $fillable = [
         'user_id',
         'returned_by',
         'copy_id',
@@ -15,13 +14,17 @@ class Loan extends Model
         'expected_return_date',
         'actual_return_date',
         'condition_on_return',
+        'status',
+        'pickup_deadline',
     ];
 
     protected $casts = [
-        'loan_date' => 'date',
+        'loan_date'            => 'date',
         'expected_return_date' => 'date',
-        'actual_return_date' => 'date',
+        'actual_return_date'   => 'date',
+        'pickup_deadline'      => 'datetime',
     ];
+
 
     public function user()
     {
