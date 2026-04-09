@@ -17,8 +17,6 @@ use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
 
-
-
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
 // -------------------------------------------------------------------------
@@ -103,18 +101,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 
     // Favoris
-Route::get('/favorites', [FavoriteController::class, 'index']);
-Route::post('/favorites/{book}', [FavoriteController::class, 'toggle']);
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites/{book}', [FavoriteController::class, 'toggle']);
 
-// Étagères
-Route::get('/shelves', [ShelfController::class, 'index']);
-Route::post('/shelves', [ShelfController::class, 'store']);
-Route::get('/shelves/{shelf}', [ShelfController::class, 'show']);
-Route::put('/shelves/{shelf}', [ShelfController::class, 'update']);
-Route::delete('/shelves/{shelf}', [ShelfController::class, 'destroy']);
-
-Route::post('/shelves/{shelf}/books/{book}', [ShelfController::class, 'attachBook']);
-Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'detachBook']);
+    // Étagères
+    Route::get('/shelves', [ShelfController::class, 'index']);
+    Route::post('/shelves', [ShelfController::class, 'store']);
+    Route::get('/shelves/{shelf}', [ShelfController::class, 'show']);
+    Route::post('/shelves/{shelf}/books/{book}', [ShelfController::class, 'attachBook']);
+    Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'detachBook']);
+    Route::put('/shelves/{shelf}', [ShelfController::class, 'update']);
+    Route::delete('/shelves/{shelf}', [ShelfController::class, 'destroy']);
 });
 
 // ---------------------------------------------------------------------

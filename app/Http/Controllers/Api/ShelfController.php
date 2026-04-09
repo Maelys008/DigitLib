@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Shelf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ShelfController extends Controller
 {
@@ -20,7 +21,6 @@ class ShelfController extends Controller
 
         return response()->json($shelves);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -38,7 +38,14 @@ class ShelfController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'shelf_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+
         ]);
+
+        if ($request->hasFile('shelf_image')) {
+            $path = $request->file('shelf_image')->store('selves', 'public');
+            $data['shelf_image'] = $path;
+        }
 
         $shelf = Shelf::create([
             'user_id' => $request->user()->id,
@@ -60,7 +67,6 @@ class ShelfController extends Controller
         return response()->json($shelf);
     }
 
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -72,14 +78,25 @@ class ShelfController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, Shelf $shelf)
+    public function update(Request $request, Shelf $shelf)
     {
         $this->authorizeShelf($request, $shelf);
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
+            'shelf_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+
         ]);
+
+        if ($request->hasFile('shelf_image')) {
+            if ($shelf->shelf_image) {
+                Storage::disk('public')->delete($shelf->shelf_image);
+            }
+
+            $path = $request->file('shelf_image')->store('selves', 'public');
+            $data['shelf_image'] = $path;
+        }
 
         $shelf->update($data);
 
@@ -98,7 +115,7 @@ class ShelfController extends Controller
         return response()->json(['message' => 'Étagère supprimée']);
     }
 
-     public function attachBook(Request $request, Shelf $shelf, Book $book)
+    public function attachBook(Request $request, Shelf $shelf, Book $book)
     {
         $this->authorizeShelf($request, $shelf);
 
@@ -123,4 +140,3 @@ class ShelfController extends Controller
         }
     }
 }
-
