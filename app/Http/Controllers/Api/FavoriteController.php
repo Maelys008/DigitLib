@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Api\BookController;
 use App\Models\Book;
 use App\Models\Favorite;
 use Illuminate\Http\Request;
@@ -23,53 +22,8 @@ class FavoriteController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Toggle favorite status for a book
      */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Favorite $favorite)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Favorite $favorite)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Favorite $favorite)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Favorite $favorite)
-    {
-        //
-    }
-
     public function toggle(Request $request, Book $book)
     {
         $user = $request->user();
@@ -96,5 +50,19 @@ class FavoriteController extends Controller
             'favorited' => true,
             'message' => 'Ajouté aux favoris',
         ]);
+    }
+
+    /**
+     * Check if a book is favorited
+     */
+    public function check(Request $request, Book $book)
+    {
+        $user = $request->user();
+        
+        $isFavorite = Favorite::where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->exists();
+        
+        return response()->json(['is_favorite' => $isFavorite]);
     }
 }

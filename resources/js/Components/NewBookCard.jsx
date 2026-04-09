@@ -1,47 +1,78 @@
 import { Heart, Star } from "lucide-react";
 import { router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
+import api from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function NewBookCard({ livre, onClick, className = "" }) {
-    // Initialiser l'état à partir de localStorage
-    const [isLiked, setIsLiked] = useState(() => {
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        return favorites.some((fav) => fav.id === livre.id);
-    });
+    const { user, isAuthenticated } = useAuth();
+    const [isLiked, setIsLiked] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
-    // Fonction pour obtenir l'URL correcte de l'image
     const getImageUrl = (imagePath) => {
         if (!imagePath) return "/placeholder-book.jpg";
-
-        if (
-            imagePath.startsWith("http://") ||
-            imagePath.startsWith("https://")
-        ) {
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
             return imagePath;
         }
         if (imagePath.startsWith("/storage/")) {
             return `http://localhost:8000${imagePath}`;
         }
-
         return `http://localhost:8000/storage/${imagePath}`;
     };
 
-    // Mettre à jour localStorage quand isLiked change
     useEffect(() => {
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+        const checkFavorite = async () => {
+            if (!isAuthenticated) {
+                const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+                setIsLiked(favorites.some((fav) => fav.id === livre.id));
+                return;
+            }
+            
+            try {
+                const result = await api.isFavorite(livre.id);
+                setIsLiked(result.is_favorite);
+            } catch (error) {
+                console.error('Erreur vérification favori:', error);
+                const favorites = JSON.parse(localStorage.getItem(`favorites_${user?.id}`) || "[]");
+                setIsLiked(favorites.some((fav) => fav.id === livre.id));
+            }
+        };
+        
+        checkFavorite();
+    }, [livre.id, isAuthenticated, user?.id]);
 
-        if (isLiked) {
-            // Ajouter aux favoris si pas déjà présent
-            if (!favorites.some((fav) => fav.id === livre.id)) {
+    const handleLikeClick = async (e) => {
+        e.stopPropagation();
+        if (isToggling) return;
+        
+        setIsToggling(true);
+        
+        if (!isAuthenticated) {
+            const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+            if (isLiked) {
+                const newFavorites = favorites.filter((fav) => fav.id !== livre.id);
+                localStorage.setItem("favorites", JSON.stringify(newFavorites));
+                setIsLiked(false);
+            } else {
                 const newFavorites = [...favorites, livre];
                 localStorage.setItem("favorites", JSON.stringify(newFavorites));
+                setIsLiked(true);
             }
-        } else {
-            // Retirer des favoris
-            const newFavorites = favorites.filter((fav) => fav.id !== livre.id);
-            localStorage.setItem("favorites", JSON.stringify(newFavorites));
+            setIsToggling(false);
+            return;
         }
-    }, [isLiked, livre]);
+        
+        try {
+            const result = await api.toggleFavorite(livre.id);
+            if (result.success) {
+                setIsLiked(result.data.favorited);
+            }
+        } catch (error) {
+            console.error('Erreur favori:', error);
+        } finally {
+            setIsToggling(false);
+        }
+    };
 
     const handleClick = () => {
         if (onClick) {
@@ -51,21 +82,16 @@ export default function NewBookCard({ livre, onClick, className = "" }) {
         }
     };
 
-    const handleLikeClick = (e) => {
-        e.stopPropagation();
-        setIsLiked(!isLiked);
-    };
-
     const imageUrl = getImageUrl(livre.image_couverture);
 
     return (
         <div
             onClick={handleClick}
             className={`
-        flex gap-4 bg-[#F6F6F6] rounded-xl p-3
-        shadow-sm hover:shadow-md transition-all cursor-pointer
-        ${className}
-      `}
+                flex gap-4 bg-[#F6F6F6] rounded-xl p-3
+                shadow-sm hover:shadow-md transition-all cursor-pointer
+                ${className}
+            `}
         >
             <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0">
                 <img
@@ -86,13 +112,14 @@ export default function NewBookCard({ livre, onClick, className = "" }) {
 
                     <button
                         onClick={handleLikeClick}
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                        disabled={isToggling}
+                        className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
                     >
                         <Heart
                             className={`w-5 h-5 transition-colors ${
                                 isLiked
-                                    ? "fill-[#1C1C1C] text-[#1C1C1C]"
-                                    : "text-gray-400 hover:text-[#1C1C1C]"
+                                    ? "fill-[#1C1C1C]  text-[#1C1C1C] "
+                                    : "text-gray-400 hover:text-[#1C1C1C] "
                             }`}
                         />
                     </button>
@@ -103,11 +130,9 @@ export default function NewBookCard({ livre, onClick, className = "" }) {
                 </p>
 
                 <div className="flex justify-end mt-2">
-                    {livre.note && (
+                    {livre.note !== undefined && livre.note !== null && (
                         <div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
-                            <span className="text-xs font-medium">
-                                {livre.note}
-                            </span>
+                            <span className="text-xs font-medium">{livre.note}</span>
                         </div>
                     )}
                 </div>

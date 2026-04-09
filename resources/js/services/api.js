@@ -823,5 +823,135 @@ async getUserJoinedLibraries() {
         return [];
     }
 }
+// --- FAVORIS ---
+
+// Récupérer tous les favoris de l'utilisateur
+async getFavorites() {
+    try {
+        const response = await this.axios.get('/favorites');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching favorites:', error);
+        return [];
+    }
+}
+
+// Ajouter/Retirer un favori (toggle)
+async toggleFavorite(bookId) {
+    try {
+        const response = await this.axios.post(`/favorites/toggle/${bookId}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur'
+        };
+    }
+}
+
+// Vérifier si un livre est en favori
+async isFavorite(bookId) {
+    try {
+        const response = await this.axios.get(`/favorites/check/${bookId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error checking favorite:', error);
+        return { is_favorite: false };
+    }
+}
+// --- ÉTAGÈRES (SHELVES) ---
+
+// Récupérer toutes les étagères de l'utilisateur
+async getShelves() {
+    try {
+        const response = await this.axios.get('/shelves');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching shelves:', error);
+        return [];
+    }
+}
+
+// Récupérer une étagère spécifique avec ses livres
+async getShelf(id) {
+    try {
+        const response = await this.axios.get(`/shelves/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching shelf:', error);
+        return null;
+    }
+}
+
+// Créer une étagère
+async createShelf(data) {
+    try {
+        const response = await this.axios.post('/shelves', data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error creating shelf:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la création'
+        };
+    }
+}
+
+// Modifier une étagère
+async updateShelf(id, data) {
+    try {
+        const response = await this.axios.put(`/shelves/${id}`, data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error updating shelf:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la modification'
+        };
+    }
+}
+
+// Supprimer une étagère
+async deleteShelf(id) {
+    try {
+        const response = await this.axios.delete(`/shelves/${id}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error deleting shelf:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la suppression'
+        };
+    }
+}
+
+// Ajouter un livre à une étagère
+async addBookToShelf(shelfId, bookId) {
+    try {
+        const response = await this.axios.post(`/shelves/${shelfId}/books/${bookId}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error adding book to shelf:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de l\'ajout'
+        };
+    }
+}
+
+// Retirer un livre d'une étagère
+async removeBookFromShelf(shelfId, bookId) {
+    try {
+        const response = await this.axios.delete(`/shelves/${shelfId}/books/${bookId}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error removing book from shelf:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors du retrait'
+        };
+    }
+}
 }
 export default new ApiService();

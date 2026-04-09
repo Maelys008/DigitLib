@@ -1,6 +1,5 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { notifications } from '../data/mockData';
 import TopBar from '@/Components/TopBar';
 import SectionHeader from '@/Components/SectionHeader';
 import BookCard from '@/Components/BookCard';
@@ -21,7 +20,7 @@ const normalizeBook = (book) => ({
   note: book.note ?? 0,
   titre: book.title,
   auteur: book.author,
-  total_loans: book.total_loans || 0, // Pour compter les emprunts
+  total_loans: book.total_loans || 0, 
   created_at: book.created_at,
 });
 

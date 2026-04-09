@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookController;
 use App\Http\Controllers\Api\ClubController;
+use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\InternalMemberController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
@@ -10,12 +11,12 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\ShelfController;
 use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
+
 
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
@@ -102,7 +103,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
-    Route::post('/favorites/{book}', [FavoriteController::class, 'toggle']);
+    Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
+    Route::get('/favorites/check/{book}', [FavoriteController::class, 'check']);
 
     // Étagères
     Route::get('/shelves', [ShelfController::class, 'index']);

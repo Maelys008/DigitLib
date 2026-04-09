@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
@@ -49,7 +49,9 @@ class ShelfController extends Controller
 
         $shelf = Shelf::create([
             'user_id' => $request->user()->id,
-            ...$data,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'cover_image' => $data['cover_image'] ?? null,
         ]);
 
         return response()->json($shelf, 201);
@@ -58,11 +60,12 @@ class ShelfController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, Shelf $shelf)
+    public function show(Request $request, $id)
     {
-        $this->authorizeShelf($request, $shelf);
-
-        $shelf->load('books');
+        $shelf = Shelf::with('books')
+            ->where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
 
         return response()->json($shelf);
     }
@@ -78,9 +81,11 @@ class ShelfController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Shelf $shelf)
+    public function update(Request $request, Shelf $shelf, $id)
     {
-        $this->authorizeShelf($request, $shelf);
+        $shelf = Shelf::where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -106,37 +111,42 @@ class ShelfController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, Shelf $shelf)
+    public function destroy(Request $request, $id)
     {
-        $this->authorizeShelf($request, $shelf);
+        $shelf = Shelf::where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
 
         $shelf->delete();
 
         return response()->json(['message' => 'Étagère supprimée']);
     }
 
-    public function attachBook(Request $request, Shelf $shelf, Book $book)
+    /**
+     * Attach a book to a shelf
+     */
+    public function attachBook(Request $request, $shelfId, $bookId)
     {
-        $this->authorizeShelf($request, $shelf);
+        $shelf = Shelf::where('user_id', $request->user()->id)
+            ->where('id', $shelfId)
+            ->firstOrFail();
 
-        $shelf->books()->syncWithoutDetaching([$book->id]);
+        $shelf->books()->syncWithoutDetaching([$bookId]);
 
         return response()->json(['message' => 'Livre ajouté à l\'étagère']);
     }
 
-    public function detachBook(Request $request, Shelf $shelf, Book $book)
+    /**
+     * Detach a book from a shelf
+     */
+    public function detachBook(Request $request, $shelfId, $bookId)
     {
-        $this->authorizeShelf($request, $shelf);
+        $shelf = Shelf::where('user_id', $request->user()->id)
+            ->where('id', $shelfId)
+            ->firstOrFail();
 
-        $shelf->books()->detach($book->id);
+        $shelf->books()->detach($bookId);
 
         return response()->json(['message' => 'Livre retiré de l\'étagère']);
-    }
-
-    private function authorizeShelf(Request $request, Shelf $shelf)
-    {
-        if ($shelf->user_id !== $request->user()->id) {
-            abort(403, 'Accès interdit à cette étagère.');
-        }
     }
 }

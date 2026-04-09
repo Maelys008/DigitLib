@@ -13,9 +13,9 @@ class Shelf extends Model
         'shelf_image',
     ];
 
-     protected $appends = ['self_url'];
+     protected $appends = ['shelf_url'];
 
-    public function getSelfUrlAttribute()
+    public function getShelfUrlAttribute()
     {
         return $this->shelf_image ? asset('storage/'.$this->shelf_image) : null;
     }
