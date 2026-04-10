@@ -48,7 +48,7 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
         
         setIsSending(true);
         try {
-            // Utiliser un chemin relatif qui sera automatiquement converti par Inertia
+            
             const bookLink = `/book/${bookId}`;
             const shareMessage = message || `Je vous recommande le livre "${bookTitle}" !`;
             const fullMessage = `${shareMessage}\n\n${bookLink}`;

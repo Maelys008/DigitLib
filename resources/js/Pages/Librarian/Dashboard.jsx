@@ -77,31 +77,48 @@ export default function Dashboard() {
   }, [user]);
 
   const loadBooks = async (lib) => {
-    try {
-      const response = await api.getBooks({ library_id: lib.id });
+  try {
+    let allBooks = [];
+    let currentPage = 1;
+    let hasMore = true;
+    let totalCopies = 0;
+    let totalAvailable = 0;
+    
+    // Récupérer TOUS les livres de toutes les pages
+    while (hasMore) {
+      const response = await api.getBooks({ 
+        library_id: lib.id,
+        page: currentPage,
+        per_page: 100 // Nombre max par page
+      });
+      
       const booksData = response.data?.data || [];
+      allBooks = [...allBooks, ...booksData];
       
-      setBooks(booksData);
-      
-      let totalCopies = 0;
-      let totalAvailable = 0;
-      
+      // Calculer les totaux au fur et à mesure
       booksData.forEach(book => {
         totalCopies += book.nb_copy || 0;
         totalAvailable += book.nb_available || 0;
       });
       
-      setStats(prev => ({
-        ...prev,
-        totalCopies: totalCopies,
-        totalBooks: booksData.length,
-        available: totalAvailable,
-        borrowed: totalCopies - totalAvailable
-      }));
-    } catch (error) {
-      console.error('Erreur chargement livres:', error);
+      // Vérifier s'il y a une page suivante
+      hasMore = response.data?.current_page < response.data?.last_page;
+      currentPage++;
     }
-  };
+    
+    setBooks(allBooks);
+    setStats(prev => ({
+      ...prev,
+      totalCopies: totalCopies,
+      totalBooks: allBooks.length,
+      available: totalAvailable,
+      borrowed: totalCopies - totalAvailable
+    }));
+    
+  } catch (error) {
+    console.error('Erreur chargement livres:', error);
+  }
+};
 
   const loadMembers = async (lib) => {
     try {

@@ -45,7 +45,7 @@ export default function ReviewCard({
     
     setIsLiking(true);
     
-    // Simuler l'appel API (pas de backend pour les likes)
+    // Simuler l'appel API 
     setTimeout(() => {
       const likedReviews = JSON.parse(localStorage.getItem('liked_reviews') || '[]');
       

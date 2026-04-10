@@ -98,8 +98,8 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
       canvasRef.current.height = videoRef.current.videoHeight;
       context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
       
-      // Ici, tu pourrais utiliser une librairie comme instascan ou quagga pour lire le code-barres
-      // Pour l'instant, simulation
+    
+    
       const mockISBN = '978-2070612758';
       const mockBookData = {
         isbn: mockISBN,

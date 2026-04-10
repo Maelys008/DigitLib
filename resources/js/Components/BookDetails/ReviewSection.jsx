@@ -19,7 +19,7 @@ export default function ReviewSection({
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Charger les avis depuis l'API au lieu d'utiliser initialReviews
+  // Charger les avis depuis l'API 
   const fetchReviews = async () => {
     setIsLoading(true);
     try {

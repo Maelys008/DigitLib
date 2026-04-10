@@ -4,14 +4,17 @@ import NewBookCard from '@/Components/NewBookCard';
 import { ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../services/api';
+
 const normalizeBook = (book) => ({
   ...book,
   image_couverture: book.cover_url || book.cover_image,
   nb_disponibles: book.nb_available,
-  note: book.note || 4.0,
+  note: book.note || 0,
   titre: book.title,
   auteur: book.author,
+  genreName: typeof book.genre === 'string' ? book.genre : book.genre?.name || 'Inconnu',
 });
+
 const fetchAllBooks = async () => {
   let allBooks = [];
   let currentPage = 1;
@@ -57,7 +60,12 @@ export default function Romans() {
       try {
         const allBooksData = await fetchAllBooks();
         const normalizedBooks = allBooksData.map(normalizeBook);
-        const romans = normalizedBooks.filter(l => l.genre === 'Roman');
+        
+        // CORRECTION : Filtrer par genreName (qui est normalisé)
+        const romans = normalizedBooks.filter(l => l.genreName === 'Roman');
+        
+        console.log('Romans trouvés:', romans.length); // Pour debug
+        console.log('Premier livre:', romans[0]); // Pour debug
         
         setLivres(romans);
         setTotalBooks(romans.length);
@@ -90,6 +98,16 @@ export default function Romans() {
     );
   }
 
+  if (error) {
+    return (
+      <MobileLayout>
+        <div className="px-6 py-4 text-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </MobileLayout>
+    );
+  }
+
   return (
     <MobileLayout>
       <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
@@ -104,14 +122,21 @@ export default function Romans() {
           <p className="text-sm text-gray-500 mt-1">{totalBooks} livres</p>
         </div>
       </div>
-      <div className="px-6 py-4 space-y-3">
-        {livres.map((livre) => (
-          <NewBookCard
-            key={livre.id}
-            livre={livre}
-          />
-        ))}
-      </div>
+      
+      {livres.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Aucun roman trouvé</p>
+        </div>
+      ) : (
+        <div className="px-6 py-4 space-y-3">
+          {livres.map((livre) => (
+            <NewBookCard
+              key={livre.id}
+              livre={livre}
+            />
+          ))}
+        </div>
+      )}
     </MobileLayout>
   );
 }

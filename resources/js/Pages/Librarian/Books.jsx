@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import BooksSection from '@/Components/liberian/BooksSection';
 import AddBookModal from '@/Components/liberian/AddBookModal';
+import Pagination from '@/Components/Pagination'; 
 
 export default function Books() {
   const { user } = useAuth();
@@ -13,15 +14,21 @@ export default function Books() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [genres, setGenres] = useState([]);
-
-useEffect(() => {
-  const fetchGenres = async () => {
-    const { data } = await api.getGenres();
-    setGenres(data);
-  };
   
-  fetchGenres();
-}, []);
+  // États pour la pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const perPage = 10;
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const { data } = await api.getGenres();
+      setGenres(data);
+    };
+    fetchGenres();
+  }, []);
+
   useEffect(() => {
     if (user) {
       const key = `user_library_${user.id}`;
@@ -29,19 +36,36 @@ useEffect(() => {
       if (savedLibrary) {
         const lib = JSON.parse(savedLibrary);
         setLibrary(lib);
-        loadBooks(lib);
+        loadBooks(lib, 1);
       }
     }
-    setIsLoading(false);
-  }, [user]); 
+  }, [user]);
 
-  const loadBooks = async (lib) => {
+  // Recharger quand la page change
+  useEffect(() => {
+    if (library) {
+      loadBooks(library, currentPage);
+    }
+  }, [currentPage]);
+
+  const loadBooks = async (lib, page = 1) => {
+    setIsLoading(true);
     try {
-      const response = await api.getBooks({ library_id: lib.id });
+      const response = await api.getBooks({ 
+        library_id: lib.id,
+        page: page,
+        per_page: perPage
+      });
+      
       const booksData = response.data?.data || [];
       setBooks(booksData);
+      setTotalPages(response.data?.last_page || 1);
+      setTotalBooks(response.data?.total || 0);
+      
     } catch (error) {
       console.error('Erreur chargement livres:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,7 +73,9 @@ useEffect(() => {
     try {
       const response = await api.createBook(formData);
       if (response.success) {
-        await loadBooks(library);
+        // Revenir à la première page après ajout
+        setCurrentPage(1);
+        await loadBooks(library, 1);
         return { success: true };
       }
       return { success: false, message: response.message };
@@ -60,18 +86,22 @@ useEffect(() => {
 
   const handleEditBook = (book) => {
     console.log('Modifier livre:', book);
-
   };
 
   const handleDeleteBook = async (bookId) => {
     if (confirm('Voulez-vous vraiment supprimer ce livre ?')) {
       try {
         await api.deleteBook(bookId);
-        await loadBooks(library);
+        await loadBooks(library, currentPage);
       } catch (error) {
         alert('Erreur lors de la suppression');
       }
     }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (isLoading) {
@@ -110,9 +140,13 @@ useEffect(() => {
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des livres</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Gestion des livres</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {totalBooks} livre{totalBooks > 1 ? 's' : ''} au total
+              </p>
+            </div>
           </div>
-
         </div>
       </div>
 
@@ -123,6 +157,17 @@ useEffect(() => {
           onEditBook={handleEditBook}
           onDeleteBook={handleDeleteBook}
         />
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </div>
 
       <AddBookModal 
@@ -130,7 +175,7 @@ useEffect(() => {
         onClose={() => setShowAddBookModal(false)}
         onSubmit={handleAddBook}
         libraryId={library.id}
-				genres={genres}
+        genres={genres}
       />
     </div>
   );

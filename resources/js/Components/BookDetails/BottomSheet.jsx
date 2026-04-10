@@ -5,12 +5,12 @@ export default function BottomSheet({ isOpen, onClose, onLike, isLiked, onShare,
 
   const handleLikeClick = () => {
     onLike();
-    // Ne ferme pas le bottom sheet ici
+    
   };
 
   const handleShareClick = () => {
     onShare();
-    // Ne ferme pas le bottom sheet ici, c'est le parent qui ferme après
+    
   };
 
   return (

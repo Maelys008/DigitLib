@@ -89,7 +89,7 @@ export default function ClubsCreate() {
                                     value={formData.name}
                                     onChange={handleChange}
                                     placeholder="Ex: Les amoureux du Roman"
-                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 transition-colors"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-noneocus:ring-2 focus:ring-orange-600 transition-all focus:border-transparent transition-colors"
                                     maxLength="255"
                                     required
                                 />
@@ -111,8 +111,8 @@ export default function ClubsCreate() {
                                     value={formData.description}
                                     onChange={handleChange}
                                     rows={4}
-                                    placeholder="Décrivez votre club, les thèmes abordés, vos objectifs..."
-                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                                    placeho lder="Décrivez votre club, les thèmes abordés, vos objectifs..."
+                                    className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-noneocus:ring-2 focus:ring-orange-600 transition-all focus:border-transparent transition-colors resize-none"
                                     required
                                 />
                             </div>

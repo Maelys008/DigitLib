@@ -54,7 +54,7 @@ export default function WriteReviewModal({
       const formattedReview = {
         id: newReview.id,
         nom: user?.name || 'Utilisateur',
-        note: rating,  // ← La note est ici
+        note: rating,  
         date: new Date().toLocaleDateString('fr-FR'),
         commentaire: comment.trim(),
         likes_count: 0,

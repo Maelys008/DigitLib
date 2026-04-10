@@ -110,7 +110,7 @@ export default function ClubsIndex() {
                             placeholder="Rechercher un club..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-noneocus:ring-2 focus:ring-orange-600 transition-all focus:border-transparent"
                         />
                     </div>
                 </div>

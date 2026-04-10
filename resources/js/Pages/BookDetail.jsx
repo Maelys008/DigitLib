@@ -12,17 +12,6 @@ import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
-const normalizeBook = (book) => ({
-  ...book,
-  image_couverture: book.cover_url || book.cover_image,
-  nb_disponibles: book.nb_available,
-  note: book.note || 4.0,
-  titre: book.title,
-  auteur: book.author,
-  annee_publication: book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : null,
-  genreName: typeof book.genre === 'string' ? book.genre : book.genre?.name || 'Inconnu',
-});
-
 export default function BookDetail() {
   const { user, isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
@@ -41,6 +30,19 @@ export default function BookDetail() {
   const { props } = usePage();
   const { id } = props;
 
+  // Fonction normalizeBook à l'intérieur du composant
+  const normalizeBook = (book) => ({
+    ...book,
+    image_couverture: book.cover_url || book.cover_image,
+    nb_disponibles: book.nb_available,
+    note: book.note || 4.0,
+    titre: book.title,
+    auteur: book.author,
+    annee_publication: book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : null,
+    genreName: typeof book.genre === 'string' ? book.genre : book.genre?.name || 'Inconnu',
+    genre_id: book.genre?.id || book.genre_id,
+  });
+
   const clearJoinWarning = () => setShowJoinWarning(false);
   const clearSuccessMessage = () => setSuccessMessage(null);
   const clearReservationSuccessMessage = () => setReservationSuccessMessage(null);
@@ -51,16 +53,16 @@ export default function BookDetail() {
     setTimeout(() => setReservationSuccessMessage(null), 5000);
   };
 
- const handleReviewCreated = (newReview) => {
-  setAvisDuLivre(prev => [newReview, ...prev]);
-  
-  // Recalculer la nouvelle note moyenne
-  const allReviews = [newReview, ...avisDuLivre];
-  const totalNotes = allReviews.reduce((sum, r) => sum + r.note, 0);
-  const newAverage = (totalNotes / allReviews.length).toFixed(1);
-  
-  setLivre(prev => ({ ...prev, note: parseFloat(newAverage) }));
-};
+  const handleReviewCreated = (newReview) => {
+    setAvisDuLivre(prev => [newReview, ...prev]);
+    
+    const allReviews = [newReview, ...avisDuLivre];
+    const totalNotes = allReviews.reduce((sum, r) => sum + r.note, 0);
+    const newAverage = (totalNotes / allReviews.length).toFixed(1);
+    
+    setLivre(prev => ({ ...prev, note: parseFloat(newAverage) }));
+  };
+
   useEffect(() => {
     const fetchBook = async () => {
       setIsLoading(true);
@@ -87,10 +89,17 @@ export default function BookDetail() {
         
         const normalizedBooks = booksData.map(normalizeBook);
         
-        const recommandations = normalizedBooks.filter(l => 
-          l.genreName?.toLowerCase().trim() === normalizedBook.genreName?.toLowerCase().trim() 
-          && l.id !== normalizedBook.id
-        ).slice(0, 17);
+        // Recommandations - prend tous les livres du même genre
+        const recommandations = normalizedBooks.filter(l => {
+          const currentGenre = (normalizedBook.genreName || '').toLowerCase().trim();
+          const otherGenre = (l.genreName || '').toLowerCase().trim();
+          return currentGenre === otherGenre && l.id !== normalizedBook.id;
+        });
+        
+        console.log('=== RECOMMANDATIONS ===');
+        console.log('Livre:', normalizedBook.titre);
+        console.log('Genre:', normalizedBook.genreName);
+        console.log('Total livres du même genre:', recommandations.length);
         
         setLivresRecommandes(recommandations);
         setAvisDuLivre([]);
@@ -113,7 +122,6 @@ export default function BookDetail() {
         console.error('Erreur chargement livre:', error);
         setError('Impossible de charger le livre');
         
-
         try {
           const { livres: mockLivres, avis: mockAvis } = await import('../data/mockData');
           const mockBook = mockLivres.find(l => l.id === parseInt(id));
@@ -121,7 +129,7 @@ export default function BookDetail() {
             setLivre(mockBook);
             const mockRecommandations = mockLivres.filter(l => 
               l.genre === mockBook.genre && l.id !== mockBook.id
-            ).slice(0, 17);
+            );
             setLivresRecommandes(mockRecommandations);
             setAvisDuLivre(mockAvis.filter(a => a.livre_id === parseInt(id)));
           }
@@ -135,7 +143,7 @@ export default function BookDetail() {
     };
     
     fetchBook();
-  }, [id, isAuthenticated]); 
+  }, [id, isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -179,7 +187,7 @@ export default function BookDetail() {
         onLike={(liked) => setIsLiked(liked)}
         isLiked={isLiked}
       />
-				
+        
       {/* SECTION INFOS PRINCIPALES */}
       <div className="px-6 pt-4">
         <div className="grid grid-cols-4 gap-2 mb-4">
@@ -208,7 +216,7 @@ export default function BookDetail() {
           </div>
         </div>
         
-        {/* MESSAGE D'AVERTISSEMENT POUR REJOINDRE LA BIBLIOTHÈQUE */}
+        {/* MESSAGE D'AVERTISSEMENT */}
         {showJoinWarning && (
           <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl animate-fade-in">
             <div className="flex items-start gap-3">
@@ -306,7 +314,7 @@ export default function BookDetail() {
           reviews={avisDuLivre} 
           bookId={livre.id}
           bookTitle={livre.titre}
-           onReviewAdded={handleReviewCreated}
+          onReviewAdded={handleReviewCreated}
         />
         
         {/* LIVRES RECOMMANDÉS */}
