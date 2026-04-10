@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
              BadgeSeeder::class,
              //BookSeeder::class,
              //BadgeSeeder::class,
-            UserSeeder::class,
+            //UserSeeder::class,
             // LibraryAndBookSeeder::class,
-            ClubSeeder::class,
+            //ClubSeeder::class,
         ]);
     }
 }

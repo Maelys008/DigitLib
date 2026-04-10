@@ -39,16 +39,17 @@ export default function CreateShelf() {
         fileInputRef.current.click();
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setShelfImage(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+   const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        // Juste pour l'aperçu
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setShelfImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+    }
+};
 
     const handleCheckboxChange = (livre) => {
         setSelectedBooks(prev => {
@@ -61,23 +62,26 @@ export default function CreateShelf() {
         });
     };
 
-    const handleCreate = async () => {
+  const handleCreate = async () => {
     if (!shelfName.trim()) return;
     
     setIsSubmitting(true);
     
     try {
-        // Créer l'étagère avec l'image en base64 ou URL
-        const shelfResult = await api.createShelf({
-            name: shelfName,
-            description: shelfDescription,
-            cover_image: shelfImage // L'image est déjà en base64
-        });
+        const formData = new FormData();
+        formData.append('name', shelfName);
+        if (shelfDescription) formData.append('description', shelfDescription);
+        
+        // CORRECTION : envoyer 'shelf_image' au lieu de 'cover_image'
+        if (fileInputRef.current.files[0]) {
+            formData.append('shelf_image', fileInputRef.current.files[0]);
+        }
+        
+        const shelfResult = await api.createShelf(formData);
         
         if (shelfResult.success) {
             const shelfId = shelfResult.data.id;
             
-            // Ajouter les livres sélectionnés
             for (const book of selectedBooks) {
                 await api.addBookToShelf(shelfId, book.id);
             }

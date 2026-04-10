@@ -174,6 +174,8 @@ export default function BookDetail() {
       <BookHeader 
         imageUrl={livre.image_couverture}
         titre={livre.titre}
+        auteur={livre.auteur}
+        bookId={livre.id} 
         onLike={(liked) => setIsLiked(liked)}
         isLiked={isLiked}
       />

@@ -76,28 +76,45 @@ export default function EditProfile() {
     }
   };
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    setErrors({});
+const handleSave = async () => {
+    if (!shelfName.trim()) return;
+    
+    setIsSubmitting(true);
     
     try {
-      const result = await api.updateProfile({
-        name: formData.name,
-        tel: formData.tel
-      });
-      
-      if (result.success) {
-        router.visit('/profile');
-      } else {
-        setErrors({ general: result.message });
-      }
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('name', shelfName);
+        if (shelfDescription) formData.append('description', shelfDescription);
+        
+        // CORRECTION : envoyer 'shelf_image'
+        if (fileInputRef.current.files[0]) {
+            formData.append('shelf_image', fileInputRef.current.files[0]);
+        }
+        
+        await api.updateShelf(id, formData);
+        
+        // Gestion des livres...
+        const currentBookIds = currentBooks.map(b => b.id);
+        const selectedBookIds = selectedBooks.map(b => b.id);
+        
+        const toRemove = currentBookIds.filter(id => !selectedBookIds.includes(id));
+        for (const bookId of toRemove) {
+            await api.removeBookFromShelf(id, bookId);
+        }
+        
+        const toAdd = selectedBookIds.filter(id => !currentBookIds.includes(id));
+        for (const bookId of toAdd) {
+            await api.addBookToShelf(id, bookId);
+        }
+        
+        router.visit(`/shelves/${id}`);
     } catch (error) {
-      setErrors({ general: 'Erreur lors de la mise à jour' });
+        console.error('Erreur sauvegarde:', error);
     } finally {
-      setIsLoading(false);
+        setIsSubmitting(false);
     }
-  };
-
+};
   const handleChangePassword = () => {
     router.visit('/profile/change-password');
   };

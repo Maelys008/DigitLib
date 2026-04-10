@@ -60,11 +60,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
     Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
 
+        // ==================== RAPPORTS ====================
+    Route::get('/libraries/{library}/reports/stats', [LibraryController::class, 'reportsStats']);
+    Route::get('/libraries/{library}/reports/top-books', [LibraryController::class, 'topBooks']);
+    Route::get('/libraries/{library}/reports/top-users', [LibraryController::class, 'topUsers']);
+    Route::get('/libraries/{library}/reports/genre-distribution', [LibraryController::class, 'genreDistribution']);
+    Route::get('/libraries/{library}/reports/active-penalties', [LibraryController::class, 'activePenalties']);
+
+
     // --- Emprunts (Loans) ---
     Route::get('/loans', [LoanController::class, 'index']);           // Mes emprunts
     Route::post('/loans', [LoanController::class, 'store']);          // Emprunter
     // Route::put('/loans/{id}', [LoanController::class, 'update']);     // Retourner
     Route::get('/library-loans', [LoanController::class, 'libraryDashboard']); // Dashboard Admin
+    Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
 
     // --- Bibliothèques (Libraries) ---
     Route::post('/libraries/join', [LibraryController::class, 'join']);
@@ -74,6 +83,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
     Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
     Route::get('/libraries/{library}/loans', [LibraryController::class, 'loans']);
+    Route::get('/libraries/partners', [LibraryController::class, 'partnerLibraries']);
+    Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
     // --- Pénalités ---
     Route::get('/penalties', [PenaltyController::class, 'index']);
     Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);

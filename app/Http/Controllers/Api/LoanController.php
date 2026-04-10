@@ -373,31 +373,41 @@ class LoanController extends Controller
         return response()->json($loans);
     }
 
-    public function libraryIncidents(Request $request)
-    {
-        $user = $request->user();
+   public function libraryIncidents(Request $request)
+{
+    $user = $request->user();
 
-        // On récupère les bibliothèques où l'utilisateur est membre interne
-        $myLibraryIds = Internal_member::where('user_id', $user->id)
-            ->pluck('library_id');
+    // On récupère les bibliothèques où l'utilisateur est membre interne
+    $myLibraryIds = Internal_member::where('user_id', $user->id)
+        ->pluck('library_id');
 
-        if ($myLibraryIds->isEmpty()) {
-            return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
-        }
-        // On recupere les IDs des utillisateurs qui on rejoint ces bibliotheques
-        $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
-            ->pluck('user_id')
-            ->toArray();
-
-
-        $incidents = Incident::with(['user:id,name,email', 'loan.copy.book'])
-            ->where(function ($query) use ($user, $memberUserIds) {
-                $query->where('user_id', $user->id)
-                    ->orWhereIn('user_id', $memberUserIds);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($incidents);
+    if ($myLibraryIds->isEmpty()) {
+        return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
     }
+    
+    // On recupere les IDs des utilisateurs qui ont rejoint ces bibliotheques
+    $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
+        ->pluck('user_id')
+        ->toArray();
+
+    // Récupérer les incidents avec les relations
+    $incidents = Incident::with([
+        'user:id,name,email',
+        'loan' => function($query) {
+            $query->with(['copy' => function($q) {
+                $q->with(['book' => function($b) {
+                    $b->select('id', 'title');
+                }]);
+            }]);
+        }
+    ])
+    ->where(function ($query) use ($user, $memberUserIds) {
+        $query->where('user_id', $user->id)
+            ->orWhereIn('user_id', $memberUserIds);
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    return response()->json($incidents);
+}
 }

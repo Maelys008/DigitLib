@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ShelfController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $shelves = Shelf::withCount('books')
@@ -22,24 +19,12 @@ class ShelfController extends Controller
         return response()->json($shelves);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'shelf_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-
         ]);
 
         if ($request->hasFile('shelf_image')) {
@@ -51,15 +36,12 @@ class ShelfController extends Controller
             'user_id' => $request->user()->id,
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'cover_image' => $data['cover_image'] ?? null,
+            'shelf_image' => $data['shelf_image'] ?? null,  // ← CORRIGÉ : shelf_image au lieu de cover_image
         ]);
 
         return response()->json($shelf, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Request $request, $id)
     {
         $shelf = Shelf::with('books')
@@ -70,18 +52,7 @@ class ShelfController extends Controller
         return response()->json($shelf);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Shelf $Shelf)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Shelf $shelf, $id)
+    public function update(Request $request, $id)
     {
         $shelf = Shelf::where('user_id', $request->user()->id)
             ->where('id', $id)
@@ -91,7 +62,6 @@ class ShelfController extends Controller
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'shelf_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-
         ]);
 
         if ($request->hasFile('shelf_image')) {
@@ -108,9 +78,6 @@ class ShelfController extends Controller
         return response()->json($shelf);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request, $id)
     {
         $shelf = Shelf::where('user_id', $request->user()->id)
@@ -122,9 +89,6 @@ class ShelfController extends Controller
         return response()->json(['message' => 'Étagère supprimée']);
     }
 
-    /**
-     * Attach a book to a shelf
-     */
     public function attachBook(Request $request, $shelfId, $bookId)
     {
         $shelf = Shelf::where('user_id', $request->user()->id)
@@ -136,9 +100,6 @@ class ShelfController extends Controller
         return response()->json(['message' => 'Livre ajouté à l\'étagère']);
     }
 
-    /**
-     * Detach a book from a shelf
-     */
     public function detachBook(Request $request, $shelfId, $bookId)
     {
         $shelf = Shelf::where('user_id', $request->user()->id)

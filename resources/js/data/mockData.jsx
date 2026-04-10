@@ -54,7 +54,7 @@ export const bibliotheques = [
     id: 1,
     nom: "Bibliothèque Nationale du Bénin",
     adresse: "Cotonou, Avenue Steinmetz",
-    description: "La plus grande bibliothèque du pays avec plus de 50 000 ouvrages",
+    description: "c",
     bibliotheque_parent_id: null,
     nb_livres: 52000,
     nb_membres: 12450,

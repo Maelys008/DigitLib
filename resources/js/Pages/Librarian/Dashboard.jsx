@@ -7,11 +7,13 @@ import DashboardHeader from '@/Components/liberian/DashboardHeader';
 import LibraryInfoCard from '@/Components/liberian/LibraryInfoCard';
 import StatisticsGrid from '@/Components/liberian/StatisticsGrid';
 import ActionButtons from '@/Components/liberian/ActionButtons';
+import ReportsModal from '@/Components/liberian/ReportsModal'; 
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [library, setLibrary] = useState(null);
   const [books, setBooks] = useState([]);
+  const [showReportsModal, setShowReportsModal] = useState(false); 
   const [stats, setStats] = useState({
     totalCopies: 0,
     totalBooks: 0,
@@ -45,7 +47,7 @@ export default function Dashboard() {
         await loadBooks(lib);
         await loadMembers(lib);
         await loadReservations(lib);
-        await loadUnpaidPenalties(lib); // NOUVEAU
+        await loadUnpaidPenalties(lib);
         setIsLoading(false);
         return;
       }
@@ -133,7 +135,6 @@ export default function Dashboard() {
     }
   };
 
-  // NOUVELLE FONCTION : Charger le nombre de pénalités non payées
   const loadUnpaidPenalties = async (lib) => {
     try {
       const data = await api.getUnpaidPenaltiesCount(lib.id);
@@ -170,14 +171,21 @@ export default function Dashboard() {
     router.visit('/librarian/manage-penalties');
   };
   
-  const handleViewIncidents = () => console.log('Voir incidents');
-  const handleViewReports = () => console.log('Rapports');
+  const handleViewIncidents = () => {
+    router.visit('/librarian/incidents');
+  };
+  
+  const handleViewReports = () => {
+    setShowReportsModal(true);
+  };
   
   const handleBorrowingRules = () => {
     router.visit('/librarian/borrowing-rules');
   };
   
-  const handlePartnerLibraries = () => console.log('Bibliothèques partenaires');
+const handlePartnerLibraries = () => {
+    router.visit('/librarian/partner-libraries');
+};
 
   if (isLoading) {
     return (
@@ -223,6 +231,13 @@ export default function Dashboard() {
           onPartnerLibraries={handlePartnerLibraries}
         />
       </div>
+
+      {/* Modal des rapports */}
+      <ReportsModal 
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
+        libraryId={library?.id}
+      />
     </div>
   );
 }

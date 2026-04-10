@@ -1,16 +1,17 @@
-import { Fragment } from 'react';
-import { Heart, BookmarkPlus, Share2, Download, CheckCircle, X } from 'lucide-react';
+import { Heart, Share2, Loader2 } from 'lucide-react';
 
-export default function BottomSheet({ isOpen, onClose, onLike, isLiked }) {
+export default function BottomSheet({ isOpen, onClose, onLike, isLiked, onShare, isToggling }) {
   if (!isOpen) return null;
 
-  const menuItems = [
-    { id: 'like', icon: Heart, label: isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris', color: isLiked ? 'text-red-500' : 'text-gray-700' },
-    { id: 'shelf', icon: BookmarkPlus, label: 'Ajouter à ma liste', color: 'text-gray-700' },
-    { id: 'share', icon: Share2, label: 'Partager', color: 'text-gray-700' },
-    { id: 'download', icon: Download, label: 'Télécharger', color: 'text-gray-700' },
-    { id: 'read', icon: CheckCircle, label: 'Marquer comme lu', color: 'text-gray-700' },
-  ];
+  const handleLikeClick = () => {
+    onLike();
+    // Ne ferme pas le bottom sheet ici
+  };
+
+  const handleShareClick = () => {
+    onShare();
+    // Ne ferme pas le bottom sheet ici, c'est le parent qui ferme après
+  };
 
   return (
     <>
@@ -27,28 +28,33 @@ export default function BottomSheet({ isOpen, onClose, onLike, isLiked }) {
           />
         </div>
         
-      
         <div className="px-6 pb-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Options</h3>
         </div>
         
         <div className="px-4 py-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === 'like') onLike();
-                  onClose();
-                }}
-                className="flex items-center gap-4 w-full px-4 py-4 hover:bg-gray-50 rounded-xl transition-colors"
-              >
-                <Icon className={`w-5 h-5 ${item.color}`} />
-                <span className="text-sm text-gray-700">{item.label}</span>
-              </button>
-            );
-          })}
+          <button
+            onClick={handleLikeClick}
+            disabled={isToggling}
+            className="flex items-center gap-4 w-full px-4 py-4 hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-50"
+          >
+            {isToggling ? (
+              <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
+            ) : (
+              <Heart className={`w-5 h-5 ${isLiked ? 'text-red-500 fill-red-500' : 'text-gray-700'}`} />
+            )}
+            <span className="text-sm text-gray-700">
+              {isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            </span>
+          </button>
+
+          <button
+            onClick={handleShareClick}
+            className="flex items-center gap-4 w-full px-4 py-4 hover:bg-gray-50 rounded-xl transition-colors"
+          >
+            <Share2 className="w-5 h-5 text-gray-700" />
+            <span className="text-sm text-gray-700">Partager dans un club</span>
+          </button>
         </div>
         
         <div className="px-6 pb-6 pt-2">

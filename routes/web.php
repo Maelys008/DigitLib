@@ -211,5 +211,11 @@ Route::get('/clubs/create', function () {
 Route::get('/clubs/{id}', function ($id) {
     return Inertia::render('Clubs/Show', ['id' => $id]);
 })->name('clubs.show');
+Route::get('/librarian/incidents', function () {
+    return Inertia::render('Librarian/Incidents');
+})->name('librarian.incidents');
+Route::get('/librarian/partner-libraries', function () {
+    return Inertia::render('Librarian/PartnerLibraries');
+})->name('librarian.partner-libraries');
 
 require __DIR__ . '/auth.php';

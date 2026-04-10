@@ -10,6 +10,7 @@ use App\Models\Role_assignment;
 use App\Models\Reservation;
 use App\Models\Loan;
 use App\Models\Book;
+use App\Models\Penalty; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -278,4 +279,163 @@ class LibraryController extends Controller
             'message' => 'Bibliothèque supprimée avec succès.',
         ]);
     }
+   // Dans app/Http/Controllers/Api/LibraryController.php
+
+public function reportsStats(Request $request, $libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+    
+    // Vérifier que l'utilisateur est admin
+    $user = $request->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+    
+    // Statistiques de base
+    $books = Book::where('library_id', $libraryId)->get();
+    $totalCopies = $books->sum('nb_copy');
+    $totalAvailable = $books->sum('nb_available');
+    $totalBooks = $books->count();
+    
+    // Emprunts actifs
+    $activeLoans = Loan::whereHas('copy.book', function($q) use ($libraryId) {
+        $q->where('library_id', $libraryId);
+    })->whereNull('actual_return_date')->count();
+    
+    // Membres
+    $membersCount = Inscription::where('library_id', $libraryId)->count();
+    
+    // Réservations
+    $reservationsCount = Reservation::whereHas('book', function($q) use ($libraryId) {
+        $q->where('library_id', $libraryId);
+    })->whereIn('status', ['active', 'notified'])->count();
+    
+    // Retards
+    $lateReturns = Loan::whereHas('copy.book', function($q) use ($libraryId) {
+        $q->where('library_id', $libraryId);
+    })->whereNull('actual_return_date')
+      ->where('expected_return_date', '<', now())
+      ->count();
+    
+    // Pénalités impayées total
+    $totalUnpaidPenalties = Penalty::whereHas('loan.copy.book', function($q) use ($libraryId) {
+        $q->where('library_id', $libraryId);
+    })->where('status', 'non payé')->sum('amount');
+    
+    return response()->json([
+        'totalBooks' => $totalBooks,
+        'totalCopies' => $totalCopies,
+        'available' => $totalAvailable,
+        'borrowed' => $activeLoans,
+        'users' => $membersCount,
+        'reservations' => $reservationsCount,
+        'lateReturns' => $lateReturns,
+        'totalPenalties' => $totalUnpaidPenalties,
+    ]);
+}
+
+public function topBooks(Request $request, $libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+    $limit = $request->get('limit', 5);
+    
+    $topBooks = Loan::select('books.id', 'books.title', 'books.author', DB::raw('count(*) as total'))
+        ->join('copies', 'loans.copy_id', '=', 'copies.id')
+        ->join('books', 'copies.book_id', '=', 'books.id')
+        ->where('books.library_id', $libraryId)
+        ->groupBy('books.id', 'books.title', 'books.author')
+        ->orderBy('total', 'desc')
+        ->limit($limit)
+        ->get();
+    
+    return response()->json($topBooks);
+}
+
+public function topUsers(Request $request, $libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+    $limit = $request->get('limit', 5);
+    
+    $topUsers = Loan::select('users.id', 'users.name', DB::raw('count(*) as total'))
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->whereHas('copy.book', function($q) use ($libraryId) {
+            $q->where('library_id', $libraryId);
+        })
+        ->groupBy('users.id', 'users.name')
+        ->orderBy('total', 'desc')
+        ->limit($limit)
+        ->get();
+    
+    return response()->json($topUsers);
+}
+
+public function genreDistribution($libraryId)
+{
+    $distribution = Book::where('library_id', $libraryId)
+        ->join('genres', 'books.genre_id', '=', 'genres.id')
+        ->select('genres.name', DB::raw('count(*) as total'))
+        ->groupBy('genres.name')
+        ->orderBy('total', 'desc')
+        ->get();
+    
+    return response()->json($distribution);
+}
+
+public function activePenalties($libraryId)
+{
+    $penalties = Penalty::whereHas('loan.copy.book', function($q) use ($libraryId) {
+        $q->where('library_id', $libraryId);
+    })
+    ->where('status', 'non payé')
+    ->with(['user:id,name', 'loan.copy.book:id,title'])
+    ->orderBy('created_at', 'desc')
+    ->get()
+    ->map(function($penalty) {
+        return [
+            'id' => $penalty->id,
+            'user_name' => $penalty->user->name,
+            'book_title' => $penalty->loan->copy->book->title,
+            'amount' => $penalty->amount,
+            'reason' => $penalty->reason,
+        ];
+    });
+    
+    return response()->json($penalties);
+}
+public function partnerLibraries()
+{
+    $user = auth('sanctum')->user();
+    
+    // Récupérer les bibliothèques qui ont un parent (bibliothèques filles)
+    $libraries = Library::whereNotNull('parent_id')
+        ->withCount(['books', 'inscriptions'])
+        ->get();
+    
+    foreach ($libraries as $library) {
+        $library->isjoined = $user 
+            ? $library->inscriptions()->where('user_id', $user->id)->exists()
+            : false;
+    }
+    
+    return response()->json($libraries);
+}
+public function childrenLibraries()
+{
+    $user = auth('sanctum')->user();
+    
+    // Récupérer UNIQUEMENT les bibliothèques filles (celles avec un parent_id)
+    $libraries = Library::whereNotNull('parent_id')
+        ->withCount(['books', 'inscriptions'])
+        ->get();
+    
+    foreach ($libraries as $library) {
+        $library->books_count = $library->books_count;
+        $library->members_count = $library->inscriptions_count;
+        $library->isjoined = $user 
+            ? $library->inscriptions()->where('user_id', $user->id)->exists()
+            : false;
+    }
+    
+    return response()->json($libraries);
+}
 }

@@ -14,6 +14,17 @@ export default function ShelfDetail() {
     const [showMenu, setShowMenu] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+        if (imagePath.startsWith('/storage/')) {
+            return `http://localhost:8000${imagePath}`;
+        }
+        return `http://localhost:8000/storage/${imagePath}`;
+    };
+
     useEffect(() => {
         if (isAuthenticated && id) {
             fetchShelf();
@@ -71,6 +82,8 @@ export default function ShelfDetail() {
 
     const books = shelf.books || [];
     const booksCount = books.length;
+    // CORRECTION : utiliser shelf_image
+    const imageUrl = getImageUrl(shelf.shelf_image);
 
     return (
         <MobileLayout>
@@ -101,9 +114,9 @@ export default function ShelfDetail() {
 
                 {/* Image de couverture */}
                 <div className="mb-6">
-                    {shelf.cover_image ? (
+                    {imageUrl ? (
                         <img
-                            src={shelf.cover_image}
+                            src={imageUrl}
                             alt={shelf.name}
                             className="w-full h-72 object-cover rounded-xl shadow-md"
                             onError={(e) => e.target.src = '/placeholder-book.jpg'}

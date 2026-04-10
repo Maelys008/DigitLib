@@ -21,6 +21,39 @@ export default function ClubsShow() {
     const [deletingMessageId, setDeletingMessageId] = useState(null);
     const messagesEndRef = useRef(null);
 
+    // Fonction pour rendre les liens cliquables
+    const renderMessageWithLinks = (text) => {
+        if (!text) return text;
+        
+        // Regex pour trouver les chemins /book/123
+        const linkRegex = /\/book\/\d+/g;
+        const parts = text.split(linkRegex);
+        const matches = text.match(linkRegex);
+        
+        if (!matches) return text;
+        
+        const result = [];
+        for (let i = 0; i < parts.length; i++) {
+            result.push(parts[i]);
+            if (matches[i]) {
+                result.push(
+                    <a
+                        key={i}
+                        href={matches[i]}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            router.visit(matches[i]);
+                        }}
+                        className="text-white-600 hover:text-white-700 underline cursor-pointer font-medium"
+                    >
+                        Voir le livre
+                    </a>
+                );
+            }
+        }
+        return result;
+    };
+
     useEffect(() => {
         loadClub();
     }, [id]);
@@ -194,7 +227,7 @@ export default function ClubsShow() {
                         <span className="font-medium">Retour aux clubs</span>
                     </button>
 
-                    {/* Hero Section - MODIFIÉ : orange clair */}
+                    {/* Hero Section */}
                     <div className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-6 text-orange-900 shadow-xl">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-4 flex-1">
@@ -248,7 +281,7 @@ export default function ClubsShow() {
                     </div>
                 </div>
 
-                {/* Contenu - inchangé */}
+                {/* Contenu */}
                 {isMember ? (
                     <>
                         <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto">
@@ -280,7 +313,9 @@ export default function ClubsShow() {
                                                                 : "bg-white border-2 border-gray-200 text-gray-900"
                                                         }`}
                                                     >
-                                                        <p className="text-sm leading-relaxed break-words">{msg.message}</p>
+                                                        <p className="text-sm leading-relaxed break-words">
+                                                            {renderMessageWithLinks(msg.message)}
+                                                        </p>
                                                         <p
                                                             className={`text-xs mt-2 ${
                                                                 isCurrentUser ? "text-orange-100" : "text-gray-500"

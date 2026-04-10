@@ -10,6 +10,18 @@ export default function Shelves() {
     const [shelves, setShelves] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Fonction pour obtenir l'URL complète de l'image
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+        if (imagePath.startsWith('/storage/')) {
+            return `http://localhost:8000${imagePath}`;
+        }
+        return `http://localhost:8000/storage/${imagePath}`;
+    };
+
     useEffect(() => {
         if (isAuthenticated) {
             fetchShelves();
@@ -20,6 +32,7 @@ export default function Shelves() {
         setIsLoading(true);
         try {
             const data = await api.getShelves();
+            console.log('Étagères reçues:', data);
             setShelves(data);
         } catch (error) {
             console.error('Erreur chargement étagères:', error);
@@ -69,36 +82,42 @@ export default function Shelves() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-4 mb-8">
-                        {shelves.map((shelf) => (
-                            <div
-                                key={shelf.id}
-                                onClick={() => handleShelfClick(shelf.id)}
-                                className="flex flex-col cursor-pointer active:opacity-70 transition-opacity"
-                            >
-                                <div className="aspect-square w-full max-w-[140px] mx-auto mb-1.5">
-                                    {shelf.cover_image ? (
-                                        <img
-                                            src={shelf.cover_image}
-                                            alt={shelf.name}
-                                            className="w-full h-full rounded-lg object-cover shadow-sm"
-                                            onError={(e) => e.target.src = '/placeholder-book.jpg'}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                                            <BookOpen className="w-8 h-8 text-orange-600" />
-                                        </div>
-                                    )}
+                        {shelves.map((shelf) => {
+                            // CORRECTION : utiliser shelf_image au lieu de cover_image
+                            const imageUrl = getImageUrl(shelf.shelf_image);
+                            return (
+                                <div
+                                    key={shelf.id}
+                                    onClick={() => handleShelfClick(shelf.id)}
+                                    className="flex flex-col cursor-pointer active:opacity-70 transition-opacity"
+                                >
+                                    <div className="aspect-square w-full max-w-[140px] mx-auto mb-1.5">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={shelf.name}
+                                                className="w-full h-full rounded-lg object-cover shadow-sm"
+                                                onError={(e) => {
+                                                    e.target.src = '/placeholder-book.jpg';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
+                                                <BookOpen className="w-8 h-8 text-orange-600" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-[14px] font-bold text-black leading-tight line-clamp-2">
+                                            {shelf.name}
+                                        </h3>
+                                        <p className="text-[12px] text-gray-400 mt-0.5">
+                                            {shelf.books_count} livre{shelf.books_count > 1 ? 's' : ''}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="text-left">
-                                    <h3 className="text-[14px] font-bold text-black leading-tight line-clamp-2">
-                                        {shelf.name}
-                                    </h3>
-                                    <p className="text-[12px] text-gray-400 mt-0.5">
-                                        {shelf.books_count} livre{shelf.books_count > 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

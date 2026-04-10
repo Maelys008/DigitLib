@@ -10,6 +10,7 @@ class Incident extends Model
         [
             'user_id',
             'library_id',
+             'loan_id', 
             'description',
             'date',
         ];

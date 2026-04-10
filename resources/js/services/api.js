@@ -1,4 +1,3 @@
-import { data } from "autoprefixer";
 import axios from "axios";
 
 class ApiService {
@@ -13,7 +12,6 @@ class ApiService {
             },
         });
 
-        // Intercepteur de Requête : Ajout du Token
         this.axios.interceptors.request.use(
             (config) => {
                 const token = localStorage.getItem("auth_token");
@@ -25,7 +23,6 @@ class ApiService {
             (error) => Promise.reject(error),
         );
 
-        // Intercepteur de Réponse : Gestion de l'expiration de session (401)
         this.axios.interceptors.response.use(
             (response) => response,
             (error) => {
@@ -39,41 +36,25 @@ class ApiService {
         );
     }
 
-    // --- AUTHENTIFICATION ---
-
+    // ==================== AUTHENTIFICATION ====================
     async register(email, password, passwordConfirmation) {
         try {
-            const response = await this.axios.post("/register", {
-                email,
-                password,
-                password_confirmation: passwordConfirmation,
-            });
+            const response = await this.axios.post("/register", { email, password, password_confirmation: passwordConfirmation });
             return { success: true, message: response.data.message };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur d'inscription",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur d'inscription" };
         }
     }
 
-    // Vérification OTP
     async verifyOtp(email, otp) {
         try {
-            const response = await this.axios.post("/verify-otp", {
-                email,
-                otp,
-            });
+            const response = await this.axios.post("/verify-otp", { email, otp });
             const { token, user } = response.data;
             localStorage.setItem("auth_token", token);
             localStorage.setItem("user", JSON.stringify(user));
             return { success: true, user };
         } catch (error) {
-            return {
-                success: false,
-                message: error.response?.data?.message || "Code incorrect",
-            };
+            return { success: false, message: error.response?.data?.message || "Code incorrect" };
         }
     }
 
@@ -82,33 +63,22 @@ class ApiService {
             const response = await this.axios.post("/resend-otp", { email });
             return { success: true, message: response.data.message };
         } catch (error) {
-            return {
-                success: false,
-                message: error.response?.data?.message || "Erreur d'envoi",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur d'envoi" };
         }
     }
 
     async login(email, password) {
         try {
-            const response = await this.axios.post("/login", {
-                email,
-                password,
-            });
+            const response = await this.axios.post("/login", { email, password });
             const { access_token, user } = response.data;
             localStorage.setItem("auth_token", access_token);
             localStorage.setItem("user", JSON.stringify(user));
             return { success: true, user };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Identifiants incorrects",
-            };
+            return { success: false, message: error.response?.data?.message || "Identifiants incorrects" };
         }
     }
 
-    // Déconnexion
     async logout() {
         try {
             await this.axios.post("/logout");
@@ -120,76 +90,45 @@ class ApiService {
         }
     }
 
-    // Compléter le profil (nom, téléphone, identité)
     async completeProfile(name, tel, identityHash) {
         try {
-            const response = await this.axios.post("/profil/complete", {
-                name,
-                tel,
-                identity_hash: identityHash,
-            });
+            const response = await this.axios.post("/profil/complete", { name, tel, identity_hash: identityHash });
             const user = response.data.user;
             localStorage.setItem("user", JSON.stringify(user));
             return { success: true, user };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur de mise à jour",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur de mise à jour" };
         }
     }
 
-    // Mot de passe oublié - Envoyer le lien de réinitialisation
     async forgotPassword(email) {
         try {
-            const response = await this.axios.post("/forgot-password", {
-                email,
-            });
+            const response = await this.axios.post("/forgot-password", { email });
             return { success: true, message: response.data.message };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de l'envoi du lien",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'envoi du lien" };
         }
     }
 
-    // Réinitialiser le mot de passe
     async resetPassword(email, password, passwordConfirmation, token) {
         try {
-            const response = await this.axios.post("/reset-password", {
-                email,
-                password,
-                password_confirmation: passwordConfirmation,
-                token,
-            });
+            const response = await this.axios.post("/reset-password", { email, password, password_confirmation: passwordConfirmation, token });
             return { success: true, message: response.data.message };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la réinitialisation",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la réinitialisation" };
         }
     }
 
-    // Récupérer l'utilisateur connecté
+    // ==================== PROFIL ====================
     async getUser() {
         try {
-            const response = await this.axios.get("/user");
+            const response = await this.axios.get("/profil");
             return response.data;
         } catch (error) {
             return null;
         }
     }
 
-    // --- PROFIL UTILISATEUR ---
-
-    // Récupérer les informations du profil
     async getProfile() {
         try {
             const response = await this.axios.get("/profil");
@@ -200,27 +139,16 @@ class ApiService {
         }
     }
 
-    // Mettre à jour le profil
     async updateProfile(data) {
         try {
             const response = await this.axios.put("/profil", data);
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la mise à jour",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la mise à jour" };
         }
     }
 
-    // Changer le mot de passe
-    async changePassword(
-        currentPassword,
-        newPassword,
-        newPasswordConfirmation,
-    ) {
+    async changePassword(currentPassword, newPassword, newPasswordConfirmation) {
         try {
             const response = await this.axios.put("/profil/password", {
                 current_password: currentPassword,
@@ -229,12 +157,7 @@ class ApiService {
             });
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors du changement de mot de passe",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors du changement de mot de passe" };
         }
     }
 
@@ -248,8 +171,7 @@ class ApiService {
         }
     }
 
-    // --- LIVRES ---
-
+    // ==================== LIVRES ====================
     async getBooks(params = {}) {
         try {
             const response = await this.axios.get("/books", { params });
@@ -272,8 +194,8 @@ class ApiService {
 
     async getGenres() {
         try {
-            const response = await this.axios.get("/genres"); // Appelle ton endpoint /genres
-            return { data: response.data || [] }; // Retourne les données
+            const response = await this.axios.get("/genres");
+            return { data: response.data || [] };
         } catch (error) {
             console.error("Erreur récupération genres:", error);
             return { data: [] };
@@ -282,36 +204,20 @@ class ApiService {
 
     async createBook(formData) {
         try {
-            const response = await this.axios.post("/books", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            const response = await this.axios.post("/books", formData, { headers: { "Content-Type": "multipart/form-data" } });
             return { success: true, data: response.data };
         } catch (error) {
-            console.error("Create book error:", error.response?.data);
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur lors de l'ajout",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout" };
         }
     }
 
     async updateBook(id, formData) {
         try {
             formData.append("_method", "PUT");
-            const response = await this.axios.post(`/books/${id}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const response = await this.axios.post(`/books/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la modification",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la modification" };
         }
     }
 
@@ -324,8 +230,7 @@ class ApiService {
         }
     }
 
-    // --- BIBLIOTHÈQUES ---
-
+    // ==================== BIBLIOTHÈQUES ====================
     async getLibraries() {
         try {
             const response = await this.axios.get("/libraries");
@@ -345,31 +250,32 @@ class ApiService {
             return null;
         }
     }
-async getLibraryInscriptions(libraryId) {
+    async getUserLibraries() {
     try {
-        const response = await this.axios.get(`/libraries/${libraryId}/inscriptions`);
+        const response = await this.axios.get('/libraries');
         return response.data;
     } catch (error) {
-        console.error('Error fetching library inscriptions:', error);
+        console.error('Error fetching user libraries:', error);
         return [];
     }
 }
 
+    async getUserJoinedLibraries() {
+        try {
+            const response = await this.axios.get("/user/libraries");
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching user libraries:", error);
+            return [];
+        }
+    }
+
     async createLibrary(formData) {
         try {
-            const response = await this.axios.post("/libraries", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const response = await this.axios.post("/libraries", formData, { headers: { "Content-Type": "multipart/form-data" } });
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la création",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la création" };
         }
     }
 
@@ -377,94 +283,74 @@ async getLibraryInscriptions(libraryId) {
         try {
             const response = await this.axios.put(`/libraries/${id}`, {
                 loan_duration: parseInt(formData.get("loan_duration")),
-                daily_penalty_amount: parseFloat(
-                    formData.get("daily_penalty_amount"),
-                ),
+                daily_penalty_amount: parseFloat(formData.get("daily_penalty_amount")),
             });
             return { success: true, data: response.data };
         } catch (error) {
-            console.error("Update library error:", error.response?.data);
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la modification",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la modification" };
         }
     }
 
-    // Récupérer les bibliothèques que l'utilisateur a rejointes
     async joinLibrary(libraryId) {
         try {
-            const response = await this.axios.post("/libraries/join", {
-                library_id: libraryId,
-            });
+            const response = await this.axios.post("/libraries/join", { library_id: libraryId });
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de l'inscription",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'inscription" };
         }
     }
 
-    // --- GESTION DES MEMBRES ---
-
-    async getLibraryMembers(libraryId) {
+    async getLibraryInscriptions(libraryId) {
         try {
-            // Essaie d'abord via les membres internes
-            const response = await this.axios.get(
-                `/libraries/${libraryId}/members`,
-            );
+            const response = await this.axios.get(`/libraries/${libraryId}/inscriptions`);
             return response.data;
         } catch (error) {
-            console.error("Error fetching library members:", error);
+            console.error("Error fetching library inscriptions:", error);
             return [];
         }
     }
 
-    // Ajouter un membre interne
-    async addInternalMember(data) {
+    async getLibraryLoans(libraryId) {
         try {
-            const response = await this.axios.post(
-                `/libraries/${data.library_id}/members`,
-                {
-                    email: data.email,
-                    library_id: data.library_id,
-                    role_id: data.role_id,
-                },
-            );
-            return { success: true, data: response.data };
+            const response = await this.axios.get(`/libraries/${libraryId}/loans`);
+            return response.data;
         } catch (error) {
-            console.error("Add member error:", error.response?.data);
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur lors de l'ajout",
-            };
+            console.error("Error fetching library loans:", error);
+            return [];
         }
     }
 
-    async removeInternalMember(memberId) {
+    async getLibraryReservations(libraryId) {
         try {
-            const response = await this.axios.delete(
-                `/internal-members/${memberId}`,
-            );
-            return { success: true };
+            const response = await this.axios.get(`/libraries/${libraryId}/reservations`);
+            return response.data;
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la suppression",
-            };
+            console.error("Error fetching library reservations:", error);
+            return { count: 0, reservations: [] };
         }
     }
+    async deleteLibrary(id) {
+    try {
+        const response = await this.axios.delete(`/libraries/${id}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error deleting library:', error);
+        return { success: false, message: error.response?.data?.message || 'Erreur lors de la suppression' };
+    }
+}
 
-    // --- PRÊTS & RÉSERVATIONS ---
+async getPartnerLibraries() {
+    try {
+        const response = await this.axios.get('/libraries/partners');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching partner libraries:', error);
+        return [];
+    }
+}
 
+
+    // ==================== EMPRUNTS ====================
     async getLoans() {
         try {
             const response = await this.axios.get("/loans");
@@ -475,113 +361,33 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // Emprunter un livre
     async borrowBook(bookId) {
         try {
-            const response = await this.axios.post("/loans", {
-                book_id: bookId,
-            });
-
-            // Vérifier si la réponse contient une réservation (status 202)
+            const response = await this.axios.post("/loans", { book_id: bookId });
             if (response.status === 202 || response.data.reservation) {
-                return {
-                    success: true,
-                    isReservation: true,
-                    data: response.data,
-                };
+                return { success: true, isReservation: true, data: response.data };
             }
-
-            // Emprunt réussi (status 201)
-            return {
-                success: true,
-                isReservation: false,
-                data: response.data,
-            };
+            return { success: true, isReservation: false, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur lors de l'emprunt",
-                status: error.response?.status,
-                data: error.response?.data,
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'emprunt", status: error.response?.status, data: error.response?.data };
         }
     }
 
-    // Retourner un livre
-    async returnBook(
-        loanId,
-        conditionOnReturn,
-        additionalPenaltyAmount = null,
-        penaltyReason = null,
-    ) {
+    async returnBook(loanId, conditionOnReturn, additionalPenaltyAmount = null, penaltyReason = null) {
         try {
             const data = { condition_on_return: conditionOnReturn };
             if (additionalPenaltyAmount) {
                 data.additional_penalty_amount = additionalPenaltyAmount;
                 data.penalty_reason = penaltyReason;
             }
-            const response = await this.axios.post(
-                `/loans/${loanId}/return`,
-                data,
-            );
+            const response = await this.axios.post(`/loans/${loanId}/return`, data);
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur lors du retour",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors du retour" };
         }
     }
 
-    // Mettre à jour un prêt (avec pénalité)
-    async updateLoan(loanId, amount, reason) {
-        try {
-            const response = await this.axios.put(`/loans/${loanId}`, {
-                amount,
-                reason,
-            });
-            return { success: true, data: response.data };
-        } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de la mise à jour",
-            };
-        }
-    }
-
-    // Récupérer tous les emprunts de la bibliothèque (pour admin)
-    async getLibraryLoans(libraryId) {
-        try {
-            const response = await this.axios.get(
-                `/libraries/${libraryId}/loans`,
-            );
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching library loans:", error);
-            return [];
-        }
-    }
-
-    // Récupérer toutes les réservations de la bibliothèque
-    async getLibraryReservations(libraryId) {
-        try {
-            const response = await this.axios.get(
-                `/libraries/${libraryId}/reservations`,
-            );
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching library reservations:", error);
-            return { count: 0, reservations: [] };
-        }
-    }
-
-    // --- PÉNALITÉS ---
-
-    // Récupérer toutes les pénalités
+    // ==================== PÉNALITÉS ====================
     async getPenalties() {
         try {
             const response = await this.axios.get("/penalties");
@@ -592,27 +398,18 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // Payer une pénalité
     async payPenalty(penaltyId) {
         try {
-            const response = await this.axios.patch(
-                `/penalties/${penaltyId}/pay`,
-            );
+            const response = await this.axios.patch(`/penalties/${penaltyId}/pay`);
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message || "Erreur lors du paiement",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors du paiement" };
         }
     }
-    // Récupérer le nombre de pénalités non payées pour les retards
+
     async getUnpaidPenaltiesCount(libraryId) {
         try {
-            const response = await this.axios.get(
-                `/libraries/${libraryId}/unpaid-penalties-count`,
-            );
+            const response = await this.axios.get(`/libraries/${libraryId}/unpaid-penalties-count`);
             return response.data;
         } catch (error) {
             console.error("Error fetching unpaid penalties count:", error);
@@ -620,9 +417,7 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // --- NOTIFICATIONS ---
-
-    // Récupérer toutes les notifications de l'utilisateur
+    // ==================== NOTIFICATIONS ====================
     async getNotifications() {
         try {
             const response = await this.axios.get("/notifications");
@@ -633,12 +428,9 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // Marquer une notification comme lue
     async markNotificationAsRead(notificationId) {
         try {
-            const response = await this.axios.patch(
-                `/notifications/${notificationId}/read`,
-            );
+            const response = await this.axios.patch(`/notifications/${notificationId}/read`);
             return { success: true, data: response.data };
         } catch (error) {
             console.error("Error marking notification as read:", error);
@@ -646,7 +438,6 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // Marquer toutes les notifications comme lues
     async markAllNotificationsAsRead() {
         try {
             const response = await this.axios.post("/notifications/read-all");
@@ -657,12 +448,10 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // --- AVIS (REVIEWS) ---
+    // ==================== AVIS ====================
     async getBookReviews(bookId, page = 1) {
         try {
-            const response = await this.axios.get(
-                `/books/${bookId}/reviews?page=${page}`,
-            );
+            const response = await this.axios.get(`/books/${bookId}/reviews?page=${page}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching reviews:", error);
@@ -670,25 +459,15 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // Ajouter / modifier un avis
     async addReview(bookId, data) {
         try {
-            const response = await this.axios.post(
-                `/books/${bookId}/reviews`,
-                data,
-            );
+            const response = await this.axios.post(`/books/${bookId}/reviews`, data);
             return { success: true, data: response.data };
         } catch (error) {
-            return {
-                success: false,
-                message:
-                    error.response?.data?.message ||
-                    "Erreur lors de l'ajout de l'avis",
-            };
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout de l'avis" };
         }
     }
 
-    // Liker un avis
     async likeReview(reviewId) {
         try {
             const response = await this.axios.post(`/reviews/${reviewId}/like`);
@@ -698,260 +477,261 @@ async getLibraryInscriptions(libraryId) {
         }
     }
 
-    // --- CLUBS ---
+    // ==================== FAVORIS ====================
+    async getFavorites() {
+        try {
+            const response = await this.axios.get("/favorites");
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching favorites:", error);
+            return [];
+        }
+    }
 
-// Récupérer tous les clubs
-async getClubs() {
+    async toggleFavorite(bookId) {
+        try {
+            const response = await this.axios.post(`/favorites/toggle/${bookId}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur" };
+        }
+    }
+
+    async isFavorite(bookId) {
+        try {
+            const response = await this.axios.get(`/favorites/check/${bookId}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error checking favorite:", error);
+            return { is_favorite: false };
+        }
+    }
+
+    // ==================== CLUBS ====================
+    async getClubs() {
+        try {
+            const response = await this.axios.get("/clubs");
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching clubs:", error);
+            return [];
+        }
+    }
+
+    async getClub(id) {
+        try {
+            const response = await this.axios.get(`/clubs/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching club:", error);
+            return null;
+        }
+    }
+
+    async createClub(name, description = "") {
+        try {
+            const response = await this.axios.post("/clubs", { name, description });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la création" };
+        }
+    }
+
+    async joinClub(clubId) {
+        try {
+            const response = await this.axios.post(`/clubs/${clubId}/join`);
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'adhésion" };
+        }
+    }
+
+    async leaveClub(clubId) {
+        try {
+            const response = await this.axios.delete(`/clubs/${clubId}/leave`);
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur" };
+        }
+    }
+
+    async getClubMessages(clubId) {
+        try {
+            const response = await this.axios.get(`/clubs/${clubId}/messages`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+            return [];
+        }
+    }
+
+    async sendClubMessage(clubId, message) {
+        try {
+            const response = await this.axios.post(`/clubs/${clubId}/messages`, { message });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur" };
+        }
+    }
+
+    async deleteClub(clubId) {
+        try {
+            const response = await this.axios.delete(`/clubs/${clubId}`);
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            return { success: false, message: "Erreur lors de la suppression" };
+        }
+    }
+
+    async deleteMessage(messageId) {
+        try {
+            const response = await this.axios.delete(`/messages/${messageId}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la suppression" };
+        }
+    }
+
+    // ==================== ÉTAGÈRES ====================
+    async getShelves() {
+        try {
+            const response = await this.axios.get("/shelves");
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching shelves:", error);
+            return [];
+        }
+    }
+
+    async getShelf(id) {
+        try {
+            const response = await this.axios.get(`/shelves/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching shelf:", error);
+            return null;
+        }
+    }
+
+    async createShelf(formData) {
+        try {
+            const response = await this.axios.post("/shelves", formData, { headers: { "Content-Type": "multipart/form-data" } });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la création" };
+        }
+    }
+
+    async updateShelf(id, formData) {
+        try {
+            const response = await this.axios.post(`/shelves/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la modification" };
+        }
+    }
+
+    async deleteShelf(id) {
+        try {
+            const response = await this.axios.delete(`/shelves/${id}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de la suppression" };
+        }
+    }
+
+    async addBookToShelf(shelfId, bookId) {
+        try {
+            const response = await this.axios.post(`/shelves/${shelfId}/books/${bookId}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout" };
+        }
+    }
+
+    async removeBookFromShelf(shelfId, bookId) {
+        try {
+            const response = await this.axios.delete(`/shelves/${shelfId}/books/${bookId}`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Erreur lors du retrait" };
+        }
+    }
+    // ==================== INCIDENTS ====================
+async getLibraryIncidents() {
     try {
-        const response = await this.axios.get("/clubs");
+        const response = await this.axios.get('/library-incidents');
         return response.data;
     } catch (error) {
-        console.error("Error fetching clubs:", error);
+        console.error('Error fetching incidents:', error);
         return [];
     }
 }
-
-// Récupérer un club spécifique
-async getClub(id) {
+// ==================== RAPPORTS ====================
+async getReportsStats(libraryId, period = 'month') {
     try {
-        const response = await this.axios.get(`/clubs/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching club:", error);
-        return null;
-    }
-}
-
-// Créer un club
-async createClub(name, description = '') {
-    try {
-        const response = await this.axios.post('/clubs', {
-            name: name,
-            description: description
+        const response = await this.axios.get(`/libraries/${libraryId}/reports/stats`, {
+            params: { period }
         });
-        return { success: true, data: response.data };
+        return response.data;
     } catch (error) {
-        console.error('Error creating club:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors de la création du club'
-        };
-    }
-}
-
-// Rejoindre un club
-async joinClub(clubId) {
-    try {
-        const response = await this.axios.post(`/clubs/${clubId}/join`);
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        console.error("Join error:", error.response?.data);
+        console.error('Error fetching reports stats:', error);
         return {
-            success: false,
-            message: error.response?.data?.message || "Erreur lors de l'adhésion",
+            totalBooks: 0,
+            totalCopies: 0,
+            available: 0,
+            borrowed: 0,
+            users: 0,
+            reservations: 0,
+            lateReturns: 0,
+            totalPenalties: 0
         };
     }
 }
 
-// Quitter un club
-async leaveClub(clubId) {
+async getTopBooks(libraryId, limit = 5) {
     try {
-        const response = await this.axios.delete(`/clubs/${clubId}/leave`);
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.response?.data?.message || "Erreur",
-        };
-    }
-}
-
-// Récupérer les messages d'un club
-async getClubMessages(clubId) {
-    try {
-        const response = await this.axios.get(`/clubs/${clubId}/messages`);
+        const response = await this.axios.get(`/libraries/${libraryId}/reports/top-books`, {
+            params: { limit }
+        });
         return response.data;
     } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error('Error fetching top books:', error);
         return [];
     }
 }
 
-// Envoyer un message dans un club
-async sendClubMessage(clubId, message) {
+async getTopUsers(libraryId, limit = 5) {
     try {
-        const response = await this.axios.post(`/clubs/${clubId}/messages`, { message });
-        return { success: true, data: response.data };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.response?.data?.message || "Erreur",
-        };
-    }
-}
-
-// Supprimer un club (admin uniquement)
-async deleteClub(clubId) {
-    try {
-        const response = await this.axios.delete(`/clubs/${clubId}`);
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        console.error("Erreur suppression club:", error);
-        return { success: false, message: "Erreur lors de la suppression" };
-    }
-}
-// Supprimer un message
-async deleteMessage(messageId) {
-    try {
-        const response = await this.axios.delete(`/messages/${messageId}`);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error deleting message:", error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || "Erreur lors de la suppression"
-        };
-    }
-}
-// Récupérer les bibliothèques que l'utilisateur a rejointes
-async getUserJoinedLibraries() {
-    try {
-        const response = await this.axios.get('/user/libraries');
+        const response = await this.axios.get(`/libraries/${libraryId}/reports/top-users`, {
+            params: { limit }
+        });
         return response.data;
     } catch (error) {
-        console.error('Error fetching user libraries:', error);
-        return [];
-    }
-}
-// --- FAVORIS ---
-
-// Récupérer tous les favoris de l'utilisateur
-async getFavorites() {
-    try {
-        const response = await this.axios.get('/favorites');
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching favorites:', error);
+        console.error('Error fetching top users:', error);
         return [];
     }
 }
 
-// Ajouter/Retirer un favori (toggle)
-async toggleFavorite(bookId) {
+async getGenreDistribution(libraryId) {
     try {
-        const response = await this.axios.post(`/favorites/toggle/${bookId}`);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error toggling favorite:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur'
-        };
-    }
-}
-
-// Vérifier si un livre est en favori
-async isFavorite(bookId) {
-    try {
-        const response = await this.axios.get(`/favorites/check/${bookId}`);
+        const response = await this.axios.get(`/libraries/${libraryId}/reports/genre-distribution`);
         return response.data;
     } catch (error) {
-        console.error('Error checking favorite:', error);
-        return { is_favorite: false };
-    }
-}
-// --- ÉTAGÈRES (SHELVES) ---
-
-// Récupérer toutes les étagères de l'utilisateur
-async getShelves() {
-    try {
-        const response = await this.axios.get('/shelves');
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching shelves:', error);
+        console.error('Error fetching genre distribution:', error);
         return [];
     }
 }
 
-// Récupérer une étagère spécifique avec ses livres
-async getShelf(id) {
+async getActivePenalties(libraryId) {
     try {
-        const response = await this.axios.get(`/shelves/${id}`);
+        const response = await this.axios.get(`/libraries/${libraryId}/reports/active-penalties`);
         return response.data;
     } catch (error) {
-        console.error('Error fetching shelf:', error);
-        return null;
+        console.error('Error fetching active penalties:', error);
+        return [];
     }
+}
 }
 
-// Créer une étagère
-async createShelf(data) {
-    try {
-        const response = await this.axios.post('/shelves', data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error creating shelf:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors de la création'
-        };
-    }
-}
-
-// Modifier une étagère
-async updateShelf(id, data) {
-    try {
-        const response = await this.axios.put(`/shelves/${id}`, data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error updating shelf:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors de la modification'
-        };
-    }
-}
-
-// Supprimer une étagère
-async deleteShelf(id) {
-    try {
-        const response = await this.axios.delete(`/shelves/${id}`);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error deleting shelf:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors de la suppression'
-        };
-    }
-}
-
-// Ajouter un livre à une étagère
-async addBookToShelf(shelfId, bookId) {
-    try {
-        const response = await this.axios.post(`/shelves/${shelfId}/books/${bookId}`);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error adding book to shelf:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors de l\'ajout'
-        };
-    }
-}
-
-// Retirer un livre d'une étagère
-async removeBookFromShelf(shelfId, bookId) {
-    try {
-        const response = await this.axios.delete(`/shelves/${shelfId}/books/${bookId}`);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error('Error removing book from shelf:', error);
-        return { 
-            success: false, 
-            message: error.response?.data?.message || 'Erreur lors du retrait'
-        };
-    }
-}
-}
 export default new ApiService();
