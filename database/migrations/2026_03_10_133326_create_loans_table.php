@@ -20,6 +20,9 @@ return new class extends Migration
             $table->date('expected_return_date');
             $table->date('actual_return_date')->nullable();
             $table->foreignId('returned_by')->nullable()->constrained('users');
+            $table->enum('status', ['pending_pickup', 'active', 'returned', 'cancelled'])
+                ->default('pending_pickup');
+            $table->timestamp('pickup_deadline')->nullable();
             $table->timestamps();
         });
     }
