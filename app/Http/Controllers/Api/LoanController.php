@@ -88,6 +88,15 @@ class LoanController extends Controller
                 ->whereIn('status', ['active', 'notified'])
                 ->first();
 
+            $hasNonLostCopy = $book->copies()
+                ->where('status', '!=', 'perdu')
+                ->exists();
+
+            if (! $hasNonLostCopy) {
+                return response()->json([
+                    'message' => 'Ce livre n\'est plus disponible (tous les exemplaires sont perdus ou indisponibles).',
+                ], 404);
+            }
             $copy = $book->copies()
                 ->where(function ($query) use ($user) {
                     $query->where('status', 'disponible')
@@ -213,58 +222,73 @@ class LoanController extends Controller
                 'returned_by' => $returnValidatedBy->id,
             ]);
             $copy->update(['condition' => $request->condition_on_return]);
-
-            // 3. Gestion du Score (bonus/malus)
-            $expectedDate = Carbon::parse($loan->expected_return_date)->startOfDay();
-            $returnDate = $now->copy()->startOfDay();
-
+            // 3. Gestion du Score (bonus/malus) - UNIQUEMENT si le livre a été récupéré
             $pointsDelta = 0;
             $isLate = false;
 
-            if ($returnDate->greaterThan($expectedDate)) {
-                // RETARD
-                $isLate = true;
-                $daysLate = $returnDate->diffInDays($expectedDate); // >= 1
-                $pointsLost = min($daysLate * 2, 30);
-                $pointsDelta = -$pointsLost;
-            } else {
-                // A L'HEURE OU EN AVANCE
-                $daysEarly = $expectedDate->diffInDays($returnDate); // 0 si jour même, >0 si en avance
-                $bonus = min($daysEarly * 2, 10); // max +10
-                $pointsDelta = 10 + $bonus;            // entre +10 et +20
-            }
+            // Vérifier si le livre a vraiment été récupéré (statut 'active')
+            if ($loan->status === 'active') {
+                $expectedDate = Carbon::parse($loan->expected_return_date);
+                $returnDate = $now->copy();
 
-            if ($pointsDelta !== 0) {
-                $user->increment('score', $pointsDelta);
-                $this->refreshUserGrade($user);
+                // Comparaison en heures/jours pour plus de précision
+                if ($returnDate->gt($expectedDate)) {
+                    // RETARD (en heures ou jours)
+                    $isLate = true;
 
-                if ($pointsDelta > 0) {
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'type' => 'score_gain',
-                        'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
-                        'object_type' => 'loan',
-                        'object' => $loan->id,
-                        'date_sent' => $now,
-                    ]);
+                    // Calcul du retard en jours (arrondi à l'entier supérieur pour être plus juste)
+                    $minutesLate = $expectedDate->diffInMinutes($returnDate);
+                    $daysLate = ceil($minutesLate / 1440); // 1440 minutes = 1 jour
+                    $daysLate = max(1, $daysLate);
+
+                    $pointsLost = min($daysLate * 2, 30);
+                    $pointsDelta = -$pointsLost;
+                } elseif ($returnDate->lt($expectedDate)) {
+                    // EN AVANCE
+                    // Calcul de l'avance en jours
+                    $minutesEarly = $returnDate->diffInMinutes($expectedDate);
+                    $daysEarly = floor($minutesEarly / 1440);
+
+                    // Bonus de base + bonus supplémentaire selon l'avance
+                    $bonus = min($daysEarly * 2, 10);
+                    $pointsDelta = 10 + $bonus;
                 } else {
-                    $lost = abs($pointsDelta);
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'type' => 'score_loss',
-                        'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
-                        'object_type' => 'loan',
-                        'object' => $loan->id,
-                        'date_sent' => $now,
-                    ]);
+                    // RETOUR EXACTEMENT À LA DATE PRÉVUE
+                    $pointsDelta = 10;
+                }
+
+                if ($pointsDelta !== 0) {
+                    $user->increment('score', $pointsDelta);
+                    $this->refreshUserGrade($user);
+
+                    if ($pointsDelta > 0) {
+                        Notification::create([
+                            'user_id' => $user->id,
+                            'type' => 'score_gain',
+                            'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
+                            'object_type' => 'loan',
+                            'object' => $loan->id,
+                            'date_sent' => $now,
+                        ]);
+                    } else {
+                        $lost = abs($pointsDelta);
+                        Notification::create([
+                            'user_id' => $user->id,
+                            'type' => 'score_loss',
+                            'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
+                            'object_type' => 'loan',
+                            'object' => $loan->id,
+                            'date_sent' => $now,
+                        ]);
+                    }
                 }
             }
 
-            // 4. Gestion des Pénalités
+            // 4. Gestion des Pénalités (uniquement en cas de retard APRÈS récupération)
             $totalPenalty = 0;
             $reasons = [];
 
-            if ($isLate) {
+            if ($isLate && $loan->status === 'active') {
                 $daysLateForPenalty = $returnDate->diffInDays($expectedDate);
                 if ($daysLateForPenalty > 0) {
                     $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
@@ -401,41 +425,41 @@ class LoanController extends Controller
         return response()->json($loans);
     }
 
-   public function libraryIncidents(Request $request)
-{
-    $user = $request->user();
+    public function libraryIncidents(Request $request)
+    {
+        $user = $request->user();
 
-    // On récupère les bibliothèques où l'utilisateur est membre interne
-    $myLibraryIds = Internal_member::where('user_id', $user->id)
-        ->pluck('library_id');
+        // On récupère les bibliothèques où l'utilisateur est membre interne
+        $myLibraryIds = Internal_member::where('user_id', $user->id)
+            ->pluck('library_id');
 
-    if ($myLibraryIds->isEmpty()) {
-        return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
-    }
-    
-    // On recupere les IDs des utilisateurs qui ont rejoint ces bibliotheques
-    $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
-        ->pluck('user_id')
-        ->toArray();
-
-    // Récupérer les incidents avec les relations
-    $incidents = Incident::with([
-        'user:id,name,email',
-        'loan' => function($query) {
-            $query->with(['copy' => function($q) {
-                $q->with(['book' => function($b) {
-                    $b->select('id', 'title');
-                }]);
-            }]);
+        if ($myLibraryIds->isEmpty()) {
+            return response()->json(['message' => 'Accès réservé au personnel de la bibliothèque.'], 403);
         }
-    ])
-    ->where(function ($query) use ($user, $memberUserIds) {
-        $query->where('user_id', $user->id)
-            ->orWhereIn('user_id', $memberUserIds);
-    })
-    ->orderBy('created_at', 'desc')
-    ->get();
 
-    return response()->json($incidents);
-}
+        // On recupere les IDs des utilisateurs qui ont rejoint ces bibliotheques
+        $memberUserIds = Inscription::whereIn('library_id', $myLibraryIds)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Récupérer les incidents avec les relations
+        $incidents = Incident::with([
+            'user:id,name,email',
+            'loan' => function ($query) {
+                $query->with(['copy' => function ($q) {
+                    $q->with(['book' => function ($b) {
+                        $b->select('id', 'title');
+                    }]);
+                }]);
+            },
+        ])
+            ->where(function ($query) use ($user, $memberUserIds) {
+                $query->where('user_id', $user->id)
+                    ->orWhereIn('user_id', $memberUserIds);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($incidents);
+    }
 }
