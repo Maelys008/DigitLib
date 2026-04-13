@@ -217,5 +217,12 @@ Route::get('/librarian/incidents', function () {
 Route::get('/librarian/partner-libraries', function () {
     return Inertia::render('Librarian/PartnerLibraries');
 })->name('librarian.partner-libraries');
+Route::get('/auth/{provider}/callback', function ($provider) {
+    // Le backend gère la redirection
+    return Inertia::location('/api/auth/' . $provider . '/callback');
+});
+Route::get('/auth/callback', function () {
+    return Inertia::render('Auth/Callback');
+})->name('auth.callback');
 
 require __DIR__ . '/auth.php';

@@ -1,18 +1,29 @@
-import { Calendar, User, BookOpen, Clock, AlertCircle } from "lucide-react";
+import { Calendar, User, BookOpen, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
 export default function LoanCard({ 
   loan, 
-  type = 'loan',
+  type = 'loan', // 'loan' ou 'reservation'
   onReturn,
+  onConfirmPickup, 
   className = '' 
 }) {
   const [isReturning, setIsReturning] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const handleReturn = (e) => {
     e.stopPropagation();
     if (onReturn) {
       onReturn(loan);
+    }
+  };
+
+  const handleConfirmPickup = async (e) => {
+    e.stopPropagation();
+    if (onConfirmPickup && loan.status === 'pending_pickup') {
+      setIsConfirming(true);
+      await onConfirmPickup(loan);
+      setIsConfirming(false);
     }
   };
 
@@ -37,9 +48,10 @@ export default function LoanCard({
   const loanDate = type === 'loan' ? loan.loan_date : loan.created_at;
   const expectedDate = type === 'loan' ? loan.expected_return_date : null;
   const status = type === 'reservation' ? loan.status : null;
+  const isPendingPickup = type === 'loan' && loan.status === 'pending_pickup';
 
   const daysInfo = expectedDate ? getDaysStatus(expectedDate) : null;
-e 
+
   return (
     <div 
       className={`
@@ -83,8 +95,23 @@ e
           </span>
         </div>
 
-        {/* Date de retour (pour les emprunts) */}
-        {type === 'loan' && expectedDate && daysInfo && (
+        {/* Statut "En attente de retrait" */}
+        {isPendingPickup && (
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-yellow-50 w-fit mb-3">
+            <Clock className="w-3.5 h-3.5 text-yellow-600" />
+            <span className="text-xs font-medium text-yellow-600">
+              En attente de retrait
+            </span>
+            {loan.pickup_deadline && (
+              <span className="text-xs text-gray-500 ml-1">
+                (avant le {new Date(loan.pickup_deadline).toLocaleString()})
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Date de retour (pour les emprunts actifs) */}
+        {type === 'loan' && expectedDate && !isPendingPickup && daysInfo && (
           <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg ${daysInfo.bg} w-fit mb-3`}>
             <Clock className={`w-3.5 h-3.5 ${daysInfo.color}`} />
             <span className={`text-xs font-medium ${daysInfo.color}`}>
@@ -112,16 +139,30 @@ e
           </div>
         )}
 
-        {/* Bouton Retour (pour les emprunts) */}
-        {type === 'loan' && onReturn && (
-          <button
-            onClick={handleReturn}
-            disabled={isReturning}
-            className="mt-2 self-start px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
-          >
-            {isReturning ? 'Traitement...' : 'Retourner'}
-          </button>
-        )}
+        {/* Boutons d'action */}
+        <div className="flex gap-2 mt-2">
+          {/* Bouton Confirmer le retrait (pour les emprunts en attente) */}
+          {type === 'loan' && isPendingPickup && onConfirmPickup && (
+            <button
+              onClick={handleConfirmPickup}
+              disabled={isConfirming}
+              className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {isConfirming ? 'Confirmation...' : 'Confirmer le retrait'}
+            </button>
+          )}
+          
+          {/* Bouton Retour (pour les emprunts actifs) */}
+          {type === 'loan' && !isPendingPickup && onReturn && (
+            <button
+              onClick={handleReturn}
+              disabled={isReturning}
+              className="px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {isReturning ? 'Traitement...' : 'Retourner'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

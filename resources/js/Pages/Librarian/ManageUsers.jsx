@@ -130,6 +130,22 @@ export default function ManageUsers() {
     res.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     res.book?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const handleConfirmPickup = async (loan) => {
+  try {
+    const result = await api.confirmPickup(loan.id);
+    if (result.success) {
+      setMessage({ type: 'success', text: 'Retrait confirmé avec succès !' });
+      // Recharger les emprunts
+      const loansData = await api.getLibraryLoans(library.id);
+      setLoans(loansData);
+    } else {
+      setMessage({ type: 'error', text: result.message });
+    }
+  } catch (error) {
+    setMessage({ type: 'error', text: 'Erreur lors de la confirmation du retrait' });
+  }
+  setTimeout(() => setMessage(null), 3000);
+};
 
   if (isLoading) {
     return (
@@ -253,6 +269,7 @@ export default function ManageUsers() {
                   loan={loan}
                   type="loan"
                   onReturn={openReturnModal}
+                  onConfirmPickup={handleConfirmPickup}
                 />
               ))
             )}

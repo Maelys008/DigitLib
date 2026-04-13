@@ -120,25 +120,43 @@ class ApiService {
     }
 
     // ==================== PROFIL ====================
-    async getUser() {
-        try {
-            const response = await this.axios.get("/profil");
-            return response.data;
-        } catch (error) {
+   // ==================== PROFIL ====================
+async getUser() {
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            console.log('❌ Aucun token trouvé');
             return null;
         }
-    }
-
-    async getProfile() {
-        try {
-            const response = await this.axios.get("/profil");
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-            return null;
+        
+        console.log('✅ Token trouvé, appel API /profil...');
+        console.log('Token:', token.substring(0, 30) + '...');
+        
+        const response = await this.axios.get('/profil', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('✅ Réponse reçue:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('❌ Erreur getUser:', error.response?.status, error.response?.data);
+        
+        if (error.response?.status === 401) {
+            console.log('Token invalide, suppression...');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
         }
+        return null;
     }
+}
 
+async getProfile() {
+    return this.getUser();  // Réutilise la méthode getUser
+}
     async updateProfile(data) {
         try {
             const response = await this.axios.put("/profil", data);
@@ -373,6 +391,18 @@ async getPartnerLibraries() {
         }
     }
 
+     async confirmPickup(loanId) {
+    try {
+        const response = await this.axios.post(`/loans/${loanId}/confirm-pickup`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error confirming pickup:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la confirmation du retrait'
+        };
+    }
+}
     async returnBook(loanId, conditionOnReturn, additionalPenaltyAmount = null, penaltyReason = null) {
         try {
             const data = { condition_on_return: conditionOnReturn };
@@ -732,6 +762,82 @@ async getActivePenalties(libraryId) {
         return [];
     }
 }
+// --- GESTION DES MEMBRES ---
+
+async getLibraryMembers(libraryId) {
+    try {
+        const response = await this.axios.get(`/libraries/${libraryId}/members`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching library members:", error);
+        return [];
+    }
+}
+
+// AJOUTE CETTE MÉTHODE ICI
+async getInternalMembers(libraryId) {
+    try {
+        const response = await this.axios.get(`/libraries/${libraryId}/members`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching internal members:', error);
+        return [];
+    }
+}
+
+// Ajouter un membre interne
+async addInternalMember(data) {
+    try {
+        const response = await this.axios.post(`/libraries/${data.library_id}/members`, {
+            email: data.email,
+            library_id: data.library_id,
+            role_id: data.role_id,
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error("Add member error:", error.response?.data);
+        return {
+            success: false,
+            message: error.response?.data?.message || "Erreur lors de l'ajout",
+        };
+    }
+}
+
+async removeInternalMember(memberId) {
+    try {
+        const response = await this.axios.delete(`/internal-members/${memberId}`);
+        return { success: true };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Erreur lors de la suppression",
+        };
+    }
+}
+// ==================== AUTHENTIFICATION SOCIALE ====================
+
+// Récupérer l'URL de redirection Google
+async getGoogleRedirectUrl() {
+    try {
+        const response = await this.axios.get('/auth/google/redirect');
+        return response.data.url;
+    } catch (error) {
+        console.error('Error getting Google redirect URL:', error);
+        return null;
+    }
+}
+
+// Récupérer l'URL de redirection Facebook
+async getFacebookRedirectUrl() {
+    try {
+        const response = await this.axios.get('/auth/facebook/redirect');
+        return response.data.url;
+    } catch (error) {
+        console.error('Error getting Facebook redirect URL:', error);
+        return null;
+    }
+}
+
 }
 
 export default new ApiService();
