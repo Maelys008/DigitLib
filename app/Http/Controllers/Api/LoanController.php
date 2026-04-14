@@ -258,14 +258,16 @@ class LoanController extends Controller
                 }
 
                 if ($pointsDelta !== 0) {
-                    $user->increment('score', $pointsDelta);
+                    $newScore = max(0, $user->score + $pointsDelta);
+                    $user->update(['score' => $newScore]);
+
                     $this->refreshUserGrade($user);
 
                     if ($pointsDelta > 0) {
                         Notification::create([
                             'user_id' => $user->id,
                             'type' => 'score_gain',
-                            'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
+                            'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points. Votre score actuel est donc de {$newScore} points",
                             'object_type' => 'loan',
                             'object' => $loan->id,
                             'date_sent' => $now,
@@ -275,7 +277,7 @@ class LoanController extends Controller
                         Notification::create([
                             'user_id' => $user->id,
                             'type' => 'score_loss',
-                            'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
+                            'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points. Votre score actuel est donc de {$newScore} points",
                             'object_type' => 'loan',
                             'object' => $loan->id,
                             'date_sent' => $now,
