@@ -837,6 +837,53 @@ async getFacebookRedirectUrl() {
         return null;
     }
 }
+// ==================== GESTION DES EXEMPLAIRES (QR CODE) ====================
+
+// Récupérer tous les exemplaires d'un livre
+async getBookCopies(bookId) {
+    try {
+        const response = await this.axios.get(`/books/${bookId}/copies`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching book copies:', error);
+        return { copies: [], book: null };
+    }
+}
+
+// Générer un QR code pour un exemplaire (image)
+async getCopyQRCode(copyId) {
+    try {
+        // Option 1: Si ton backend génère l'image QR
+        const response = await this.axios.get(`/copies/${copyId}/qrcode`, {
+            responseType: 'blob'  // Important pour télécharger l'image
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching QR code:', error);
+        return null;
+    }
+}
+
+// Télécharger le QR code
+downloadQRCode(qrCodeValue, fileName = 'qrcode') {
+    // Option 2: Générer côté frontend si tu as juste le texte
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeValue)}`;
+    
+    // Télécharger l'image
+    fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+            const link = document.createElement('a');
+            const objectUrl = URL.createObjectURL(blob);
+            link.href = objectUrl;
+            link.download = `${fileName}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(objectUrl);
+        })
+        .catch(console.error);
+}
 
 }
 

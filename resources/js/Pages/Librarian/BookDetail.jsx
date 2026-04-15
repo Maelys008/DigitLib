@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { usePage, router } from '@inertiajs/react';
-import { BookOpen, Calendar, User, Library, Info } from 'lucide-react';
+import { BookOpen, Calendar, User, Library, Info, QrCode, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
-import BookDetailHeader from '@/Components/liberian/BookDetailHeader';
 
 export default function BookDetail() {
   const { props } = usePage();
@@ -12,13 +11,16 @@ export default function BookDetail() {
   const [book, setBook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Charger le livre
   useEffect(() => {
     const fetchBook = async () => {
       try {
+        console.log('🔍 Chargement du livre ID:', id);
         const response = await api.getBook(id);
+        console.log('📚 Livre chargé:', response);
         setBook(response);
       } catch (error) {
-        console.error('Erreur chargement livre:', error);
+        console.error('❌ Erreur chargement livre:', error);
       } finally {
         setIsLoading(false);
       }
@@ -41,6 +43,14 @@ export default function BookDetail() {
     }
   };
 
+  const handleBack = () => {
+    router.visit('/librarian/books');
+  };
+
+  const handleManageCopies = () => {
+    router.visit(`/librarian/books/${book.id}/copies`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -59,74 +69,150 @@ export default function BookDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BookDetailHeader 
-        imageUrl={book.cover_url || book.cover_image ? `/storage/${book.cover_image}` : null}
-        titre={book.title}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-
-      <div className="p-6">
-        {/* Auteur */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <User className="w-5 h-5 text-purple-600" />
-            <span className="text-sm text-gray-500">Auteur</span>
+      {/* En-tête avec retour */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={handleBack}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-6 h-6 text-gray-600" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{book.title}</h1>
+                <p className="text-sm text-gray-500 mt-1">Détails du livre</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleEdit}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Modifier
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Supprimer
+              </button>
+            </div>
           </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.author || 'N/A'}</p>
         </div>
+      </div>
 
-        {/* Genre */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5 text-green-600" />
-            <span className="text-sm text-gray-500">Genre</span>
-          </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.genre?.name || 'N/A'}</p>
-        </div>
-
-        {/* ISBN */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Info className="w-5 h-5 text-blue-600" />
-            <span className="text-sm text-gray-500">ISBN</span>
-          </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">{book.isbn || 'N/A'}</p>
-        </div>
-
-        {/* Année de publication */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-orange-600" />
-            <span className="text-sm text-gray-500">Année de publication</span>
-          </div>
-          <p className="text-lg font-semibold text-gray-900 mt-1">
-            {book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : 'N/A'}
-          </p>
-        </div>
-
-        {/* Exemplaires */}
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Library className="w-5 h-5 text-purple-600" />
-            <span className="text-sm text-gray-500">Exemplaires</span>
-          </div>
-          <div className="flex justify-between items-center mt-1">
-            <p className="text-lg font-semibold text-gray-900">Total: {book.nb_copy ?? 0}</p>
-            <p className="text-lg font-semibold text-green-600">Disponibles: {book.nb_available ?? 0}</p>
+      {/* Contenu principal */}
+      <div className="p-6 max-w-4xl mx-auto">
+        {/* Image et infos principales */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="md:flex">
+            {/* Image */}
+            <div className="md:w-1/3 bg-gray-100 p-6 flex items-center justify-center">
+              {(book.cover_url || book.cover_image) ? (
+                <img 
+                  src={`/storage/${book.cover_image}`} 
+                  alt={book.title}
+                  className="w-full max-w-[200px] rounded-lg shadow-md"
+                />
+              ) : (
+                <div className="w-full max-w-[200px] h-[280px] bg-gray-200 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-16 h-16 text-gray-400" />
+                </div>
+              )}
+            </div>
+            
+            {/* Infos */}
+            <div className="md:w-2/3 p-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{book.title}</h2>
+                  <p className="text-gray-600">{book.author}</p>
+                </div>
+                
+                <div className="flex flex-wrap gap-4">
+                  <div className="bg-purple-100 px-3 py-1 rounded-full">
+                    <span className="text-purple-800 text-sm">{book.genre?.name || 'N/A'}</span>
+                  </div>
+                  <div className="bg-blue-100 px-3 py-1 rounded-full">
+                    <span className="text-blue-800 text-sm">ISBN: {book.isbn || 'N/A'}</span>
+                  </div>
+                  <div className="bg-orange-100 px-3 py-1 rounded-full">
+                    <span className="text-orange-800 text-sm">
+                      {book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm text-gray-500">Exemplaires</p>
+                      <p className="text-2xl font-bold text-gray-900">{book.nb_copy ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Disponibles</p>
+                      <p className="text-2xl font-bold text-green-600">{book.nb_available ?? 0}</p>
+                    </div>
+                    <button
+                      onClick={handleManageCopies}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl transition-colors"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      Gérer les QR codes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Description */}
         {book.description && (
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <Info className="w-5 h-5 text-gray-600" />
-              <span className="text-sm text-gray-500">Description</span>
-            </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">📖 Description</h3>
             <p className="text-gray-700 leading-relaxed">{book.description}</p>
           </div>
         )}
+
+        {/* Informations supplémentaires */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <User className="w-4 h-4" />
+              <span className="text-sm">Auteur</span>
+            </div>
+            <p className="font-medium text-gray-900">{book.author || 'N/A'}</p>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <Library className="w-4 h-4" />
+              <span className="text-sm">Bibliothèque</span>
+            </div>
+            <p className="font-medium text-gray-900">{book.library?.name || 'N/A'}</p>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <BookOpen className="w-4 h-4" />
+              <span className="text-sm">Genre</span>
+            </div>
+            <p className="font-medium text-gray-900">{book.genre?.name || 'N/A'}</p>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">Année de publication</span>
+            </div>
+            <p className="font-medium text-gray-900">
+              {book.year_of_publication ? new Date(book.year_of_publication).getFullYear() : 'N/A'}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

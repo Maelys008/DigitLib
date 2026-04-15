@@ -184,174 +184,188 @@ class LoanController extends Controller
     }
 
     public function returnBook(Request $request, $loanId)
-    {
-        $request->validate([
-            'condition_on_return' => 'required|in:neuf,bon,abimé,très abimé',
-            'additional_penalty_amount' => 'nullable|integer|min:1',
-            'reason' => 'nullable|string|max:255',
+{
+    $request->validate([
+        'condition_on_return' => 'required|in:neuf,bon,abimé,très abimé',
+        'additional_penalty_amount' => 'nullable|integer|min:1',
+        'reason' => 'nullable|string|max:255',
+    ]);
+
+    return DB::transaction(function () use ($loanId, $request) {
+        // 1. Récupération de l'emprunt avec ses relations
+        $loan = Loan::with(['copy.book.library', 'user'])->findOrFail($loanId);
+        $returnValidatedBy = auth('sanctum')->user();
+
+        if ($loan->actual_return_date) {
+            return response()->json(['message' => 'Ce retour a déjà été enregistré.'], 422);
+        }
+
+        $now = now();
+        $copy = $loan->copy;
+        $book = $copy->book;
+        $user = $loan->user;
+        $library = $book->library;
+
+        // 2. Mise à jour de l'emprunt et de l'état physique de la copie
+        $loan->update([
+            'actual_return_date' => $now,
+            'condition_on_return' => $request->condition_on_return,
+            'returned_by' => $returnValidatedBy->id,
         ]);
+        $copy->update(['condition' => $request->condition_on_return]);
+// 3. Gestion du Score (bonus/malus) - UNIQUEMENT si le livre a été récupéré
+$pointsDelta = 0;
+$isLate = false;
 
-        return DB::transaction(function () use ($loanId, $request) {
-            // 1. Récupération de l'emprunt avec ses relations
-            $loan = Loan::with(['copy.book.library', 'user'])->findOrFail($loanId);
-            $returnValidatedBy = auth('sanctum')->user();
-
-            if ($loan->actual_return_date) {
-                return response()->json(['message' => 'Ce retour a déjà été enregistré.'], 422);
-            }
-
-            $now = now();
-            $copy = $loan->copy;
-            $book = $copy->book;
-            $user = $loan->user;
-            $library = $book->library;
-
-            // 2. Mise à jour de l'emprunt et de l'état physique de la copie
-            $loan->update([
-                'actual_return_date' => $now,
-                'condition_on_return' => $request->condition_on_return,
-                'returned_by' => $returnValidatedBy->id,
-            ]);
-            $copy->update(['condition' => $request->condition_on_return]);
-
-            // 3. Gestion du Score (bonus/malus)
-            $expectedDate = Carbon::parse($loan->expected_return_date)->startOfDay();
-            $returnDate = $now->copy()->startOfDay();
-
-            $pointsDelta = 0;
-            $isLate = false;
-
-            if ($returnDate->greaterThan($expectedDate)) {
-                // RETARD
-                $isLate = true;
-                $daysLate = $returnDate->diffInDays($expectedDate); // >= 1
-                $pointsLost = min($daysLate * 2, 30);
-                $pointsDelta = -$pointsLost;
-            } else {
-                // A L'HEURE OU EN AVANCE
-                $daysEarly = $expectedDate->diffInDays($returnDate); // 0 si jour même, >0 si en avance
-                $bonus = min($daysEarly * 2, 10); // max +10
-                $pointsDelta = 10 + $bonus;            // entre +10 et +20
-            }
-
-            if ($pointsDelta !== 0) {
-                $user->increment('score', $pointsDelta);
-                $this->refreshUserGrade($user);
-
-                if ($pointsDelta > 0) {
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'type' => 'score_gain',
-                        'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
-                        'object_type' => 'loan',
-                        'object' => $loan->id,
-                        'date_sent' => $now,
-                    ]);
-                } else {
-                    $lost = abs($pointsDelta);
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'type' => 'score_loss',
-                        'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
-                        'object_type' => 'loan',
-                        'object' => $loan->id,
-                        'date_sent' => $now,
-                    ]);
-                }
-            }
-
-            // 4. Gestion des Pénalités
-            $totalPenalty = 0;
-            $reasons = [];
-
-            if ($isLate) {
-                $daysLateForPenalty = $returnDate->diffInDays($expectedDate);
-                if ($daysLateForPenalty > 0) {
-                    $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
-                    $reasons[] = "Retard de {$daysLateForPenalty} jour(s)";
-                }
-            }
-
-            if ($request->filled('additional_penalty_amount')) {
-                $totalPenalty += $request->additional_penalty_amount;
-                $reasons[] = $request->penalty_reason
-                    ?? "Frais de dégradation (État du livre : {$request->condition_on_return})";
-            }
-
-            $totalPenalty = (int) $totalPenalty;
-            $penalty = null;
-
-            if ($totalPenalty > 0) {
-                $penalty = Penalty::firstOrNew(['loan_id' => $loan->id]);
-                $penalty->user_id = $user->id;
-                $penalty->amount = $totalPenalty;
-                $penalty->reason = implode(' | ', $reasons);
-                $penalty->status = $penalty->status ?? 'non payé';
-                $penalty->save();
-
-                Notification::create([
-                    'user_id' => $user->id,
-                    'type' => 'penalty_final',
-                    'message' => "Livre rendu. Pénalité finale : {$totalPenalty} FCFA pour '{$book->title}'.",
-                    'object_type' => 'loan',
-                    'object' => $loan->id,
-                    'date_sent' => $now,
-                ]);
-
-                Notification::create([
-                    'user_id' => $returnValidatedBy->id,
-                    'type' => 'return_confirmation',
-                    'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
-                    'object_type' => 'loan',
-                    'object' => $loan->id,
-                    'date_sent' => $now,
-                ]);
-            }
-
-            // 5. Libération de l'exemplaire (réservation ou dispo)
-            $nextReservation = Reservation::where('book_id', $book->id)
-                ->where('status', 'active')
-                ->orderBy('created_at', 'asc')
-                ->first();
-
-            if ($nextReservation) {
-                $copy->update(['status' => 'réservé']);
-                $nextReservation->update([
-                    'status' => 'notified',
-                    'expires_at' => $now->copy()->addHours(24),
-                ]);
-
-                Notification::create([
-                    'user_id' => $nextReservation->user_id,
-                    'type' => 'book_available',
-                    'message' => "Le livre '{$book->title}' est disponible ! Vous avez 24h pour le récupérer.",
-                    'object_type' => 'reservation',
-                    'object' => $nextReservation->id,
-                    'date_sent' => $now,
-                ]);
-            } else {
-                $copy->update(['status' => 'disponible']);
-                $book->increment('nb_available');
-            }
-
-            $message = 'Livre retourné avec succès.';
-            if ($totalPenalty > 0) {
-                $message .= ' Une pénalité de '.number_format($totalPenalty, 0, ',', ' ').' FCFA a été enregistrée (Statut: Non payée).';
-            }
-
-            return response()->json([
-                'message' => $message,
-                'details' => [
-                    'is_late' => $isLate,
-                    'penalty_id' => $penalty ? $penalty->id : null,
-                    'penalty_amount' => $totalPenalty,
-                    'status' => 'Livre récupéré / Pénalité en attente de paiement',
-                    'valided_by' => $returnValidatedBy->name,
-                ],
-            ], 200);
-        });
+// Vérifier si le livre a vraiment été récupéré (statut 'active')
+if ($loan->status === 'active') {
+    $expectedDate = Carbon::parse($loan->expected_return_date);
+    $returnDate = $now->copy();
+    
+    // Comparaison en heures/jours pour plus de précision
+    if ($returnDate->gt($expectedDate)) {
+        // RETARD (en heures ou jours)
+        $isLate = true;
+        
+        // Calcul du retard en jours (arrondi à l'entier supérieur pour être plus juste)
+        $minutesLate = $expectedDate->diffInMinutes($returnDate);
+        $daysLate = ceil($minutesLate / 1440); // 1440 minutes = 1 jour
+        $daysLate = max(1, $daysLate);
+        
+        $pointsLost = min($daysLate * 2, 30);
+        $pointsDelta = -$pointsLost;
+    } elseif ($returnDate->lt($expectedDate)) {
+        // EN AVANCE
+        // Calcul de l'avance en jours
+        $minutesEarly = $returnDate->diffInMinutes($expectedDate);
+        $daysEarly = floor($minutesEarly / 1440);
+        
+        // Bonus de base + bonus supplémentaire selon l'avance
+        $bonus = min($daysEarly * 2, 10);
+        $pointsDelta = 10 + $bonus;
+    } else {
+        // RETOUR EXACTEMENT À LA DATE PRÉVUE
+        $pointsDelta = 10;
     }
 
+    if ($pointsDelta !== 0) {
+        $user->increment('score', $pointsDelta);
+        $this->refreshUserGrade($user);
+
+        if ($pointsDelta > 0) {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'score_gain',
+                'message' => "Retour à temps ! Vous avez gagné {$pointsDelta} points.",
+                'object_type' => 'loan',
+                'object' => $loan->id,
+                'date_sent' => $now,
+            ]);
+        } else {
+            $lost = abs($pointsDelta);
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'score_loss',
+                'message' => "Retard sur le retour du livre. Vous avez perdu {$lost} points.",
+                'object_type' => 'loan',
+                'object' => $loan->id,
+                'date_sent' => $now,
+            ]);
+        }
+    }
+}
+
+        // 4. Gestion des Pénalités (uniquement en cas de retard APRÈS récupération)
+        $totalPenalty = 0;
+        $reasons = [];
+
+        if ($isLate && $loan->status === 'active') {
+            $daysLateForPenalty = $returnDate->diffInDays($expectedDate);
+            if ($daysLateForPenalty > 0) {
+                $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
+                $reasons[] = "Retard de {$daysLateForPenalty} jour(s)";
+            }
+        }
+
+        if ($request->filled('additional_penalty_amount')) {
+            $totalPenalty += $request->additional_penalty_amount;
+            $reasons[] = $request->penalty_reason
+                ?? "Frais de dégradation (État du livre : {$request->condition_on_return})";
+        }
+
+        $totalPenalty = (int) $totalPenalty;
+        $penalty = null;
+
+        if ($totalPenalty > 0) {
+            $penalty = Penalty::firstOrNew(['loan_id' => $loan->id]);
+            $penalty->user_id = $user->id;
+            $penalty->amount = $totalPenalty;
+            $penalty->reason = implode(' | ', $reasons);
+            $penalty->status = $penalty->status ?? 'non payé';
+            $penalty->save();
+
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'penalty_final',
+                'message' => "Livre rendu. Pénalité finale : {$totalPenalty} FCFA pour '{$book->title}'.",
+                'object_type' => 'loan',
+                'object' => $loan->id,
+                'date_sent' => $now,
+            ]);
+
+            Notification::create([
+                'user_id' => $returnValidatedBy->id,
+                'type' => 'return_confirmation',
+                'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$totalPenalty} FCFA à percevoir.",
+                'object_type' => 'loan',
+                'object' => $loan->id,
+                'date_sent' => $now,
+            ]);
+        }
+
+        // 5. Libération de l'exemplaire (réservation ou dispo)
+        $nextReservation = Reservation::where('book_id', $book->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if ($nextReservation) {
+            $copy->update(['status' => 'réservé']);
+            $nextReservation->update([
+                'status' => 'notified',
+                'expires_at' => $now->copy()->addHours(24),
+            ]);
+
+            Notification::create([
+                'user_id' => $nextReservation->user_id,
+                'type' => 'book_available',
+                'message' => "Le livre '{$book->title}' est disponible ! Vous avez 24h pour le récupérer.",
+                'object_type' => 'reservation',
+                'object' => $nextReservation->id,
+                'date_sent' => $now,
+            ]);
+        } else {
+            $copy->update(['status' => 'disponible']);
+            $book->increment('nb_available');
+        }
+
+        $message = 'Livre retourné avec succès.';
+        if ($totalPenalty > 0) {
+            $message .= ' Une pénalité de '.number_format($totalPenalty, 0, ',', ' ').' FCFA a été enregistrée (Statut: Non payée).';
+        }
+
+        return response()->json([
+            'message' => $message,
+            'details' => [
+                'is_late' => $isLate,
+                'penalty_id' => $penalty ? $penalty->id : null,
+                'penalty_amount' => $totalPenalty,
+                'status' => 'Livre récupéré / Pénalité en attente de paiement',
+                'valided_by' => $returnValidatedBy->name,
+            ],
+        ], 200);
+    });
+}
     public function destroy(string $id)
     {
         //

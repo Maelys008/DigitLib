@@ -71,9 +71,9 @@ export default function CreateLibrary() {
     }
   };
 
-  const handleBack = () => {
-    router.visit('/settings');
-  };
+const handleBack = () => {
+  router.visit('/profile/settings');
+};
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

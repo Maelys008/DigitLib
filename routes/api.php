@@ -148,6 +148,8 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::post('/libraries/{library}/books', [BookController::class, 'store']);
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
+   
+    Route::get('/books/{book}/copies', [BookController::class, 'getCopies']);
 
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
