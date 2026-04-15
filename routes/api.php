@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Models\Badge;
@@ -59,13 +60,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
     Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
 
-        // ==================== RAPPORTS ====================
+    // ==================== RAPPORTS ====================
     Route::get('/libraries/{library}/reports/stats', [LibraryController::class, 'reportsStats']);
     Route::get('/libraries/{library}/reports/top-books', [LibraryController::class, 'topBooks']);
     Route::get('/libraries/{library}/reports/top-users', [LibraryController::class, 'topUsers']);
     Route::get('/libraries/{library}/reports/genre-distribution', [LibraryController::class, 'genreDistribution']);
     Route::get('/libraries/{library}/reports/active-penalties', [LibraryController::class, 'activePenalties']);
-
 
     // --- Emprunts (Loans) ---
     Route::get('/loans', [LoanController::class, 'index']);           // Mes emprunts
@@ -111,6 +111,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('books/{book}/reviews', [ReviewController::class, 'store']);   // Ajouter/Modifier son avis
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 
+    // Scan Book
+
+    Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);

@@ -17,9 +17,14 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $query = Book::with(['library', 'genre']);
-
+        if ($request->has('only_available') && $request->only_available == 'true') {
+            $query->where('nb_available', '>', 0)
+                ->whereHas('copies', function ($q) {
+                    $q->where('status', 'disponible');
+                });
+        }
         if ($request->has('search') && ! empty($request->search)) {
-            $searchTerm = '%' . $request->search . '%';
+            $searchTerm = '%'.$request->search.'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('author', 'like', $searchTerm)
@@ -58,7 +63,6 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(Request $request)
     {
         $request->validate([
@@ -67,13 +71,12 @@ class BookController extends Controller
             'genre_id' => 'required|exists:genres,id',
             'isbn' => 'required|string',
             'description' => 'required|string',
-            'year_of_publication' => 'required|integer|min:1000|max:' . now()->year,
+            'year_of_publication' => 'required|integer|min:1000|max:'.now()->year,
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
             'library_id' => 'required|exists:libraries,id',
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-
 
         $isbnExists = Book::where('isbn', $request->isbn)
             ->where('library_id', $request->library_id)
@@ -101,21 +104,34 @@ class BookController extends Controller
         ], 201);
     }
 
+    // private function generateCopies(Book $book, int $count)
+    // {
+    //     $newCopies = [];
+    //     for ($i = 0; $i < $count; $i++) {
+    //         $newCopies[] = [
+    //             'book_id' => $book->id,
+    //             'codeQR' => 'QR-'.strtoupper(Str::random(8)),
+    //             'condition' => 'neuf',
+    //             'status' => 'disponible',
+    //             'date_added' => now(),
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ];
+    //     }
+    //     Copy::insert($newCopies);
+    // }
+
     private function generateCopies(Book $book, int $count)
     {
-        $newCopies = [];
         for ($i = 0; $i < $count; $i++) {
-            $newCopies[] = [
+            Copy::create([
                 'book_id' => $book->id,
-                'codeQR' => 'QR-' . strtoupper(Str::random(8)),
                 'condition' => 'neuf',
                 'status' => 'disponible',
                 'date_added' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                // On ne met pas 'codeQR' ici, le boot du modèle s'en occupe !
+            ]);
         }
-        Copy::insert($newCopies);
     }
 
     /**
@@ -150,12 +166,11 @@ class BookController extends Controller
             'title' => 'sometimes|string|max:255',
             'author' => 'sometimes|string|max:255',
             'genre_id' => 'sometimes|exists:genres,id',
-            'year_of_publication' => 'sometimes|integer|min:1000|max:' . now()->year,
+            'year_of_publication' => 'sometimes|integer|min:1000|max:'.now()->year,
             'description' => 'sometimes|string',
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
 
         $data = $request->all();
 
@@ -170,7 +185,8 @@ class BookController extends Controller
                 $this->generateCopies($book, $difference);
             } elseif ($newTotal < $oldTotal) {
                 return response()->json([
-                    'message' => 'La réduction du nombre de copies doit être géré manuellement pour éviter de supprimer des livres empruntés.'
+                    'message' => 'La réduction du nombre de copies doit être géré manuellement pour éviter de supprimer des livres empruntés.',
+
                 ], 422);
             }
         }

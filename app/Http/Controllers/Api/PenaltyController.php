@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Penalty;
 use App\Models\Library;
+use App\Models\Penalty;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PenaltyController extends Controller
 {
@@ -21,15 +22,24 @@ class PenaltyController extends Controller
     }
 
     public function payPenalty($penaltyId)
-    {
-        $penalty = Penalty::findOrFail($penaltyId);
+{
+    $penalty = Penalty::findOrFail($penaltyId);
+    
+    DB::transaction(function () use ($penalty) {
+        $penalty->update(['status' => 'payé']);
         
-        $penalty->update([
-            'status' => 'payé',
-        ]);
-        
-        return response()->json(['message' => 'Pénalité réglée avec succès.']);
-    }
+        // Si c'est une pénalité pour perte, clôturer l'emprunt
+        $loan = $penalty->loan;
+        if ($loan && !$loan->actual_return_date) {
+            $loan->update([
+                'actual_return_date' => now(),
+                'status' => 'lost_settled' 
+            ]);
+        }
+    });
+    
+    return response()->json(['message' => 'Pénalité réglée avec succès.']);
+}
 
     // Nouvelle méthode pour compter les pénalités non payées
     public function getUnpaidPenaltiesCount($libraryId)
@@ -37,7 +47,7 @@ class PenaltyController extends Controller
         $library = Library::findOrFail($libraryId);
         
         // Vérifier que l'utilisateur est admin
-        $user = auth()->user();
+        $user = auth("sanctum")->user();
         if ($library->administrator_id !== $user->id) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
