@@ -104,21 +104,34 @@ class BookController extends Controller
         ], 201);
     }
 
+    // private function generateCopies(Book $book, int $count)
+    // {
+    //     $newCopies = [];
+    //     for ($i = 0; $i < $count; $i++) {
+    //         $newCopies[] = [
+    //             'book_id' => $book->id,
+    //             'codeQR' => 'QR-'.strtoupper(Str::random(8)),
+    //             'condition' => 'neuf',
+    //             'status' => 'disponible',
+    //             'date_added' => now(),
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ];
+    //     }
+    //     Copy::insert($newCopies);
+    // }
+
     private function generateCopies(Book $book, int $count)
     {
-        $newCopies = [];
         for ($i = 0; $i < $count; $i++) {
-            $newCopies[] = [
+            Copy::create([
                 'book_id' => $book->id,
-                'codeQR' => 'QR-'.strtoupper(Str::random(8)),
                 'condition' => 'neuf',
                 'status' => 'disponible',
                 'date_added' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                // On ne met pas 'codeQR' ici, le boot du modèle s'en occupe !
+            ]);
         }
-        Copy::insert($newCopies);
     }
 
     /**

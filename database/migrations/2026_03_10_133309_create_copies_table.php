@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('copies', function (Blueprint $table) {
             $table->id()->autoIncrement();
             $table->foreignId('book_id')->constrained('books');
-            $table->string('codeQR');
             $table->enum('condition', ['neuf', 'bon', 'abimé', 'très abimé'])->default('neuf');
             $table->string('status')->default('disponible');
+            $table->string('codeQR', 64)->unique()->nullable()->after('id');
             $table->date('date_added');
             $table->timestamps();
         });
