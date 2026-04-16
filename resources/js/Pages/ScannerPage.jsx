@@ -1,6 +1,6 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect, useRef } from 'react';
-import { ScanLine, QrCode, BookOpen, User, X, Camera, AlertCircle } from 'lucide-react';
+import { ScanLine, QrCode, BookOpen, User, X, Camera, AlertCircle, Loader2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../services/api';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -8,13 +8,11 @@ import { Html5Qrcode } from 'html5-qrcode';
 export default function ScannerPage() {
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
-  const [scannedData, setScannedData] = useState(null);
+  const [scannedBook, setScannedBook] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const scannerRef = useRef(null);
   const html5QrCodeRef = useRef(null);
 
-  // Nettoyer le scanner quand le composant est démonté
   useEffect(() => {
     return () => {
       if (html5QrCodeRef.current && scanning) {
@@ -25,15 +23,13 @@ export default function ScannerPage() {
 
   const startScanner = async () => {
     setError(null);
-    setScannedData(null);
+    setScannedBook(null);
     setScanning(true);
     setCameraActive(true);
 
-    // Attendre que le DOM soit prêt
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      // Vérifier que le conteneur existe
       const container = document.getElementById("qr-reader");
       if (!container) {
         throw new Error("Conteneur QR reader non trouvé");
@@ -49,15 +45,14 @@ export default function ScannerPage() {
       };
 
       await html5QrCode.start(
-        { facingMode: "environment" }, // Caméra arrière
+        { facingMode: "environment" },
         config,
-        (decodedText, decodedResult) => {
+        async (decodedText, decodedResult) => {
           console.log('QR Code détecté:', decodedText);
-          handleScannedCode(decodedText);
-          stopScanner();
+          await handleScannedCode(decodedText);
+          await stopScanner();
         },
         (errorMessage) => {
-          // Ignorer les erreurs temporaires
           if (errorMessage && !errorMessage.includes('No MultiFormat Readers')) {
             console.log('Scan error:', errorMessage);
           }
@@ -86,54 +81,29 @@ export default function ScannerPage() {
 
   const handleScannedCode = async (code) => {
     setLoading(true);
-    setScannedData(null);
+    setScannedBook(null);
     setError(null);
 
     try {
-      let bookId = null;
-      let copyId = null;
-
-      if (code.startsWith('COPY_')) {
-        copyId = code.replace('COPY_', '');
-        try {
-          const response = await api.axios.get(`/copies/${copyId}/book`);
-          bookId = response.data.book_id;
-        } catch (e) {
-          // Si l'API n'existe pas, essayer de trouver le livre autrement
-          const copiesResponse = await api.getBookCopies?.(copyId);
-          if (copiesResponse?.bookId) {
-            bookId = copiesResponse.bookId;
-          }
-        }
-      } else if (code.startsWith('BOOK_')) {
-        bookId = code.replace('BOOK_', '');
+      // Appeler la nouvelle API de scan
+      const result = await api.scanQRCode(code);
+      
+      if (result && result.book) {
+        setScannedBook({
+          id: result.book.id,
+          title: result.book.title,
+          author: result.book.author,
+          cover: result.book.cover_image,
+          nb_available: result.book.nb_available,
+          library: result.book.library_name,
+          status: result.status,
+          message: result.message
+        });
       } else {
-        bookId = code;
-      }
-
-      if (bookId) {
-        const book = await api.getBook(bookId);
-        
-        if (book) {
-          setScannedData({
-            bookId: book.id,
-            title: book.title,
-            author: book.author,
-            cover: book.cover_image,
-            nb_available: book.nb_available,
-            nb_copy: book.nb_copy,
-            library: book.library?.name || 'Bibliothèque',
-            copyId: copyId,
-            description: book.description
-          });
-        } else {
-          setError('Livre non trouvé dans la base de données');
-        }
-      } else {
-        setError('QR code non reconnu');
+        setError('QR code non reconnu ou livre non trouvé');
       }
     } catch (err) {
-      console.error('Erreur récupération livre:', err);
+      console.error('Erreur scan:', err);
       setError('Erreur lors de la récupération des informations');
     } finally {
       setLoading(false);
@@ -141,24 +111,24 @@ export default function ScannerPage() {
   };
 
   const goToBookDetail = () => {
-    if (scannedData) {
-      router.visit(`/book/${scannedData.bookId}`);
+    if (scannedBook) {
+      router.visit(`/book/${scannedBook.id}`);
     }
   };
 
   const borrowBook = async () => {
-    if (!scannedData) return;
+    if (!scannedBook) return;
     
     setLoading(true);
     try {
-      const result = await api.borrowBook(scannedData.bookId);
+      const result = await api.borrowBook(scannedBook.id);
       if (result.success) {
         if (result.isReservation) {
           alert('📖 Livre ajouté à la liste d\'attente ! Vous serez notifié quand il sera disponible.');
         } else {
           alert('✅ Livre emprunté avec succès !');
         }
-        router.visit(`/book/${scannedData.bookId}`);
+        router.visit(`/book/${scannedBook.id}`);
       } else {
         alert(result.message || 'Erreur lors de l\'emprunt');
       }
@@ -220,6 +190,14 @@ export default function ScannerPage() {
             </div>
           )}
 
+          {/* Loading */}
+          {loading && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center gap-3">
+              <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+              <p className="text-blue-800 text-sm">Récupération des informations...</p>
+            </div>
+          )}
+
           {/* Message d'erreur */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
@@ -233,7 +211,7 @@ export default function ScannerPage() {
           )}
 
           {/* Résultat du scan */}
-          {scannedData && (
+          {scannedBook && (
             <div className="mb-6 bg-white rounded-xl shadow-lg border border-green-200 overflow-hidden animate-fade-in">
               <div className="bg-green-50 px-4 py-3 border-b border-green-200">
                 <div className="flex items-center gap-2">
@@ -244,8 +222,8 @@ export default function ScannerPage() {
               <div className="p-4">
                 <div className="flex gap-4">
                   <div className="w-20 h-28 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                    {scannedData.cover ? (
-                      <img src={`/storage/${scannedData.cover}`} alt={scannedData.title} className="w-full h-full object-cover" />
+                    {scannedBook.cover ? (
+                      <img src={`/storage/${scannedBook.cover}`} alt={scannedBook.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                         <BookOpen className="w-8 h-8 text-gray-400" />
@@ -253,21 +231,19 @@ export default function ScannerPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">{scannedData.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{scannedData.author}</p>
+                    <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">{scannedBook.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{scannedBook.author}</p>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${scannedData.nb_available > 0 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                        {scannedData.nb_available > 0 ? '✅ Disponible' : '⏳ Indisponible'}
+                      <span className={`text-xs px-2 py-1 rounded-full ${scannedBook.nb_available > 0 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                        {scannedBook.nb_available > 0 ? '✅ Disponible' : '⏳ Indisponible'}
                       </span>
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        📚 {scannedData.library}
+                        📚 {scannedBook.library || 'Bibliothèque'}
                       </span>
-                      {scannedData.nb_copy && (
-                        <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full">
-                          {scannedData.nb_available}/{scannedData.nb_copy} exemplaires
-                        </span>
-                      )}
                     </div>
+                    {scannedBook.message && (
+                      <p className="text-xs text-gray-500 mb-3">{scannedBook.message}</p>
+                    )}
                     <div className="flex gap-2">
                       <button
                         onClick={goToBookDetail}
@@ -275,13 +251,12 @@ export default function ScannerPage() {
                       >
                         Voir détails
                       </button>
-                      {scannedData.nb_available > 0 && (
+                      {scannedBook.nb_available > 0 && (
                         <button
                           onClick={borrowBook}
-                          disabled={loading}
-                          className="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+                          className="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                         >
-                          {loading ? 'Chargement...' : 'Emprunter'}
+                          Emprunter
                         </button>
                       )}
                     </div>

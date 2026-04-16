@@ -884,6 +884,15 @@ downloadQRCode(qrCodeValue, fileName = 'qrcode') {
         })
         .catch(console.error);
 }
+async scanQRCode(token) {
+    try {
+        const response = await this.axios.get(`/scan/${token}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error scanning QR code:', error);
+        return null;
+    }
+}
 
 }
 
