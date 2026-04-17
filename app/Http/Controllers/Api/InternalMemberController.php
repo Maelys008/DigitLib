@@ -60,6 +60,6 @@ class InternalMemberController extends Controller
         return Internal_member::with(['user', 'role_assignments.role'])
             ->where('library_id', $libraryId)
             ->get();
-        
+
     }
 }

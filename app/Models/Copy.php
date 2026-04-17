@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Book;
+use App\Models\Loan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 

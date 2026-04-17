@@ -315,6 +315,14 @@ class LoanController extends Controller
                 $penalty->status = $penalty->status ?? 'non payé';
                 $penalty->save();
 
+                Incident::create([
+                    'user_id' => $user->id,
+                    'library_id' => $library->id,
+                    'loan_id' => $loan->id,
+                    'description' => 'Sanction générée : '.implode(' | ', $reasons),
+                    'date' => now(),
+                ]);
+                
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'penalty_final',

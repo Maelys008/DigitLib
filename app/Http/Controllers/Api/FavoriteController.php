@@ -58,11 +58,11 @@ class FavoriteController extends Controller
     public function check(Request $request, Book $book)
     {
         $user = $request->user();
-        
+
         $isFavorite = Favorite::where('user_id', $user->id)
             ->where('book_id', $book->id)
             ->exists();
-        
+
         return response()->json(['is_favorite' => $isFavorite]);
     }
 }

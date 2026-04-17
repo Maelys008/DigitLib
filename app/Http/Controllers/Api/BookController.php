@@ -128,8 +128,6 @@ class BookController extends Controller
                 'book_id' => $book->id,
                 'condition' => 'neuf',
                 'status' => 'disponible',
-                'date_added' => now(),
-                // On ne met pas 'codeQR' ici, le boot du modèle s'en occupe !
             ]);
         }
     }

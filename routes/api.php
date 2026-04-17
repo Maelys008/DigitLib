@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PenaltyController;
 use App\Http\Controllers\Api\ProfilController;
+use App\Http\Controllers\Api\RecordController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\ShelfController;
@@ -59,6 +60,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/profil', [ProfilController::class, 'update']);
     Route::put('/profil/password', [ProfilController::class, 'updatePassword']);
     Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
+
+    // casier bibliothécaire
+    Route::get('/profile/record/{user?}', [RecordController::class, 'getLibraryRecord']);
 
     // ==================== RAPPORTS ====================
     Route::get('/libraries/{library}/reports/stats', [LibraryController::class, 'reportsStats']);
@@ -112,8 +116,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews/{review}/like', [ReviewController::class, 'like']); // Liker un avis
 
     // Scan Book
-
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
+
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
