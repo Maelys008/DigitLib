@@ -22,12 +22,17 @@ export default function ManagePenalties() {
       setIsLoading(true);
       
       try {
+        // Récupérer toutes les bibliothèques de l'utilisateur
         const libraries = await api.getUserLibraries();
+        
+        // Trouver la bibliothèque où l'utilisateur est admin
         const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
         
         if (userLibrary) {
           setLibrary(userLibrary);
-          await loadPenalties();
+          await loadPenalties(userLibrary.id); // Passer l'ID de la bibliothèque
+        } else {
+          setMessage({ type: 'error', text: 'Vous n\'êtes administrateur d\'aucune bibliothèque' });
         }
       } catch (error) {
         console.error('Erreur chargement données:', error);
@@ -40,14 +45,13 @@ export default function ManagePenalties() {
     loadData();
   }, [user]);
 
-  const loadPenalties = async () => {
+  // Modifier loadPenalties pour accepter libraryId
+  const loadPenalties = async (libraryId) => {
     try {
-      // Récupérer TOUTES les pénalités depuis la base de données
-      const penalties = await api.getPenalties();
-      console.log('Toutes les pénalités de la base:', penalties);
-      
+      // Passer l'ID de la bibliothèque pour ne récupérer que ses pénalités
+      const penalties = await api.getPenalties(libraryId);
+      console.log(`Pénalités de la bibliothèque ${libraryId}:`, penalties);
       setAllPenalties(penalties);
-      
     } catch (error) {
       console.error('Erreur chargement pénalités:', error);
       setMessage({ type: 'error', text: 'Erreur lors du chargement des pénalités' });
@@ -62,8 +66,10 @@ export default function ManagePenalties() {
       
       if (result.success) {
         setMessage({ type: 'success', text: 'Pénalité réglée avec succès !' });
-        // Recharger la liste des pénalités
-        await loadPenalties();
+        // Recharger les pénalités avec l'ID de la bibliothèque
+        if (library) {
+          await loadPenalties(library.id);
+        }
       } else {
         setMessage({ type: 'error', text: result.message });
       }
@@ -75,18 +81,15 @@ export default function ManagePenalties() {
     }
   };
 
-  // Filtrer les pénalités selon le statut et la recherche
   const getFilteredPenalties = () => {
     let filtered = allPenalties;
     
-    // Filtre par statut
     if (filterStatus === 'paid') {
       filtered = filtered.filter(p => p.status === 'payé');
     } else if (filterStatus === 'unpaid') {
       filtered = filtered.filter(p => p.status === 'non payé');
     }
     
-    // Filtre par recherche
     if (searchTerm) {
       filtered = filtered.filter(penalty => 
         penalty.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,7 +111,7 @@ export default function ManagePenalties() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -118,7 +121,13 @@ export default function ManagePenalties() {
     return (
       <MobileLayout>
         <div className="p-6 text-center">
-          <p className="text-gray-500">Aucune bibliothèque trouvée</p>
+          <p className="text-gray-500 dark:text-gray-400">Vous n'êtes administrateur d'aucune bibliothèque</p>
+          <button
+            onClick={() => router.visit('/librarian/dashboard')}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            Retour au tableau de bord
+          </button>
         </div>
       </MobileLayout>
     );
@@ -126,19 +135,19 @@ export default function ManagePenalties() {
 
   return (
     <MobileLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.visit('/librarian/dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Gestion des pénalités</h1>
-              <p className="text-sm text-gray-500 mt-1">{library.name}</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Gestion des pénalités</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{library.name}</p>
             </div>
           </div>
         </div>
@@ -147,19 +156,19 @@ export default function ManagePenalties() {
         {message && (
           <div className={`mx-6 mt-4 p-4 rounded-xl flex items-center justify-between ${
             message.type === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
           }`}>
             <div className="flex items-center gap-3">
               <AlertCircle className={`w-5 h-5 ${
-                message.type === 'success' ? 'text-green-600' : 'text-red-600'
+                message.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               }`} />
-              <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+              <span className={message.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}>
                 {message.text}
               </span>
             </div>
-            <button onClick={() => setMessage(null)} className="p-1 hover:bg-gray-200 rounded-full">
-              <X className="w-4 h-4" />
+            <button onClick={() => setMessage(null)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full">
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
         )}
@@ -172,7 +181,7 @@ export default function ManagePenalties() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filterStatus === 'all' 
                   ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               Tous ({allPenalties.length})
@@ -182,7 +191,7 @@ export default function ManagePenalties() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filterStatus === 'unpaid' 
                   ? 'bg-red-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               Non payées ({unpaidCount})
@@ -192,7 +201,7 @@ export default function ManagePenalties() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filterStatus === 'paid' 
                   ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               Payées ({paidCount})
@@ -231,13 +240,13 @@ export default function ManagePenalties() {
         {/* Barre de recherche */}
         <div className="px-6 mt-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Rechercher par nom d'utilisateur, titre de livre ou raison..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
         </div>
@@ -245,19 +254,19 @@ export default function ManagePenalties() {
         {/* Liste des pénalités */}
         <div className="px-6 py-4 space-y-3">
           {filteredPenalties.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-xl">
-              <CheckCircle className="w-16 h-16 text-green-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">Aucune pénalité trouvée</p>
-              <p className="text-sm text-gray-400 mt-1">
-                {filterStatus === 'paid' ? 'Aucune pénalité payée pour le moment' :
-                 filterStatus === 'unpaid' ? 'Toutes les pénalités ont été réglées' :
-                 'Aucune pénalité dans la base de données'}
+            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl">
+              <CheckCircle className="w-16 h-16 text-green-300 dark:text-green-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Aucune pénalité trouvée</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                {filterStatus === 'paid' ? 'Aucune pénalité payée pour cette bibliothèque' :
+                 filterStatus === 'unpaid' ? 'Toutes les pénalités de cette bibliothèque ont été réglées' :
+                 'Aucune pénalité pour cette bibliothèque'}
               </p>
             </div>
           ) : (
             filteredPenalties.map((penalty) => (
-              <div key={penalty.id} className={`bg-white rounded-xl p-4 shadow-sm border ${
-                penalty.status === 'payé' ? 'border-green-200' : 'border-gray-100'
+              <div key={penalty.id} className={`bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border ${
+                penalty.status === 'payé' ? 'border-green-200 dark:border-green-800' : 'border-gray-100 dark:border-gray-700'
               }`}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -265,8 +274,8 @@ export default function ManagePenalties() {
                     <div className="mb-2">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                         penalty.status === 'payé' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                         {penalty.status === 'payé' ? '✓ Payée' : '⏳ Non payée'}
                       </span>
@@ -274,36 +283,36 @@ export default function ManagePenalties() {
                     
                     {/* Livre */}
                     <div className="flex items-center gap-2 mb-2">
-                      <BookOpen className="w-4 h-4 text-blue-500" />
-                      <h3 className="font-semibold text-gray-900">{penalty.loan?.copy?.book?.title || 'Livre inconnu'}</h3>
+                      <BookOpen className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{penalty.loan?.copy?.book?.title || 'Livre inconnu'}</h3>
                     </div>
                     
                     {/* Utilisateur */}
-                    <div className="flex items-center gap-2 mb-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
                       <User className="w-4 h-4" />
                       <span>{penalty.user?.name || 'Utilisateur inconnu'}</span>
                     </div>
                     
                     {/* Raison */}
-                    <div className="flex items-center gap-2 mb-2 text-sm text-gray-600">
-                      <AlertCircle className="w-4 h-4 text-red-500" />
+                    <div className="flex items-center gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
+                      <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400" />
                       <span className="line-clamp-2">{penalty.reason || 'Pénalité de retard'}</span>
                     </div>
                     
                     {/* Date */}
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
                       <Calendar className="w-3 h-3" />
                       <span>{penalty.created_at ? new Date(penalty.created_at).toLocaleDateString() : 'Date inconnue'}</span>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <p className="text-lg font-bold text-red-600">{penalty.amount?.toLocaleString()} FCFA</p>
+                    <p className="text-lg font-bold text-red-600 dark:text-red-400">{penalty.amount?.toLocaleString()} FCFA</p>
                     {penalty.status === 'non payé' && (
                       <button
                         onClick={() => handlePayPenalty(penalty.id)}
                         disabled={payingId === penalty.id}
-                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:bg-gray-400"
+                        className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium disabled:bg-gray-400 dark:disabled:bg-gray-600"
                       >
                         {payingId === penalty.id ? 'Traitement...' : 'Marquer payé ✓'}
                       </button>

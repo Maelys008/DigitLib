@@ -25,7 +25,6 @@ export default function ClubsShow() {
     const renderMessageWithLinks = (text) => {
         if (!text) return text;
         
-        // Regex pour trouver les chemins /book/123
         const linkRegex = /\/book\/\d+/g;
         const parts = text.split(linkRegex);
         const matches = text.match(linkRegex);
@@ -44,7 +43,7 @@ export default function ClubsShow() {
                             e.preventDefault();
                             router.visit(matches[i]);
                         }}
-                        className="text-white-600 hover:text-white-700 underline cursor-pointer font-medium"
+                        className="text-orange-300 hover:text-orange-200 underline cursor-pointer font-medium"
                     >
                         Voir le livre
                     </a>
@@ -189,7 +188,7 @@ export default function ClubsShow() {
         return (
             <MobileLayout>
                 <div className="flex justify-center items-center h-64">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
             </MobileLayout>
         );
@@ -199,10 +198,10 @@ export default function ClubsShow() {
         return (
             <MobileLayout>
                 <div className="text-center py-12 px-6">
-                    <p className="text-gray-500">Club non trouvé</p>
+                    <p className="text-gray-500 dark:text-gray-400">Club non trouvé</p>
                     <button
                         onClick={() => router.visit("/clubs")}
-                        className="mt-4 text-orange-600 font-medium"
+                        className="mt-4 text-orange-600 dark:text-orange-400 font-medium"
                     >
                         Retour aux clubs
                     </button>
@@ -216,28 +215,28 @@ export default function ClubsShow() {
 
     return (
         <MobileLayout>
-            <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+            <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
                 {/* Header avec retour */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
                     <button
                         onClick={() => router.visit("/clubs")}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
+                        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-4"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         <span className="font-medium">Retour aux clubs</span>
                     </button>
 
                     {/* Hero Section */}
-                    <div className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-6 text-orange-900 shadow-xl">
+                    <div className="bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/20 rounded-2xl p-6 text-orange-900 dark:text-orange-100 shadow-xl">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-4 flex-1">
-                                <div className="w-16 h-16 bg-orange-300/50 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <Users className="w-8 h-8 text-orange-700" />
+                                <div className="w-16 h-16 bg-orange-300/50 dark:bg-orange-700/50 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <Users className="w-8 h-8 text-orange-700 dark:text-orange-300" />
                                 </div>
                                 <div className="flex-1">
-                                    <h1 className="text-2xl font-bold mb-2 text-orange-900">{club.name}</h1>
-                                    <p className="text-sm text-orange-700 mb-3">{club.description || "Aucune description"}</p>
-                                    <div className="flex items-center gap-4 text-sm text-orange-800">
+                                    <h1 className="text-2xl font-bold mb-2 text-orange-900 dark:text-orange-100">{club.name}</h1>
+                                    <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">{club.description || "Aucune description"}</p>
+                                    <div className="flex items-center gap-4 text-sm text-orange-800 dark:text-orange-300">
                                         <div className="flex items-center gap-1">
                                             <Users className="w-4 h-4" />
                                             <span>{club.members_count || 0} membres</span>
@@ -286,7 +285,7 @@ export default function ClubsShow() {
                     <>
                         <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto">
                             {messages.length === 0 ? (
-                                <div className="text-center py-12 text-gray-400 text-sm">
+                                <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">
                                     Aucun message. Soyez le premier !
                                 </div>
                             ) : (
@@ -301,7 +300,7 @@ export default function ClubsShow() {
                                         >
                                             <div className={`max-w-[75%] ${isCurrentUser ? "order-2" : "order-1"}`}>
                                                 {!isCurrentUser && (
-                                                    <p className="text-xs font-semibold text-gray-700 mb-1 ml-1">
+                                                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 ml-1">
                                                         {msg.club_member?.user?.name || "Membre"}
                                                     </p>
                                                 )}
@@ -310,7 +309,7 @@ export default function ClubsShow() {
                                                         className={`rounded-2xl p-4 ${
                                                             isCurrentUser
                                                                 ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white"
-                                                                : "bg-white border-2 border-gray-200 text-gray-900"
+                                                                : "bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
                                                         }`}
                                                     >
                                                         <p className="text-sm leading-relaxed break-words">
@@ -318,7 +317,7 @@ export default function ClubsShow() {
                                                         </p>
                                                         <p
                                                             className={`text-xs mt-2 ${
-                                                                isCurrentUser ? "text-orange-100" : "text-gray-500"
+                                                                isCurrentUser ? "text-orange-100" : "text-gray-500 dark:text-gray-400"
                                                             }`}
                                                         >
                                                             {formatTime(msg.created_at)}
@@ -346,14 +345,14 @@ export default function ClubsShow() {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        <div className="bg-white border-t border-gray-100 px-6 py-4">
+                        <div className="bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-6 py-4">
                             <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-3">
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Écrivez votre message..."
-                                    className="flex-1 px-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                                 <button
                                     type="submit"
@@ -372,11 +371,11 @@ export default function ClubsShow() {
                 ) : (
                     <div className="flex-1 flex items-center justify-center px-6">
                         <div className="text-center max-w-md">
-                            <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                <Users className="w-12 h-12 text-orange-600" />
+                            <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <Users className="w-12 h-12 text-orange-600 dark:text-orange-400" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Rejoignez le club</h3>
-                            <p className="text-gray-600 mb-6">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Rejoignez le club</h3>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
                                 Vous devez être membre de ce club pour voir et participer aux discussions.
                             </p>
                             <button
@@ -396,11 +395,11 @@ export default function ClubsShow() {
                 )}
 
                 {isOwner && isMember && (
-                    <div className="px-6 py-3 border-t border-gray-100 bg-white">
+                    <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <button
                             onClick={handleDelete}
                             disabled={isDeleting}
-                            className="w-full py-3 text-red-600 font-medium hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                            className="w-full py-3 text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors disabled:opacity-50"
                         >
                             {isDeleting ? "Suppression..." : "Supprimer le club"}
                         </button>

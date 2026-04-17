@@ -15,7 +15,6 @@ export default function Books() {
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [genres, setGenres] = useState([]);
   
-  // États pour la pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBooks, setTotalBooks] = useState(0);
@@ -41,7 +40,6 @@ export default function Books() {
     }
   }, [user]);
 
-  // Recharger quand la page change
   useEffect(() => {
     if (library) {
       loadBooks(library, currentPage);
@@ -73,7 +71,6 @@ export default function Books() {
     try {
       const response = await api.createBook(formData);
       if (response.success) {
-        // Revenir à la première page après ajout
         setCurrentPage(1);
         await loadBooks(library, 1);
         return { success: true };
@@ -106,43 +103,43 @@ export default function Books() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!library) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <button onClick={() => router.visit('/librarian/dashboard')} className="p-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <button onClick={() => router.visit('/librarian/dashboard')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">Gestion des livres</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">Gestion des livres</h1>
         </div>
         <div className="p-6 text-center">
-          <p className="text-gray-500">Aucune bibliothèque trouvée</p>
+          <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* En-tête */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.visit('/librarian/dashboard')} 
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-6 h-6 text-gray-600" />
+              <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestion des livres</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestion des livres</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {totalBooks} livre{totalBooks > 1 ? 's' : ''} au total
               </p>
             </div>

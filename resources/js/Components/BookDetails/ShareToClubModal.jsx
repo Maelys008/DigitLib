@@ -48,7 +48,6 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
         
         setIsSending(true);
         try {
-            
             const bookLink = `/book/${bookId}`;
             const shareMessage = message || `Je vous recommande le livre "${bookTitle}" !`;
             const fullMessage = `${shareMessage}\n\n${bookLink}`;
@@ -68,7 +67,6 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
         }
     };
 
-    // Fonction pour rendre le lien cliquable dans le message
     const renderMessageWithLink = (text) => {
         const linkRegex = /\/book\/\d+/g;
         const parts = text.split(linkRegex);
@@ -88,7 +86,7 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                             e.preventDefault();
                             router.visit(matches[i]);
                         }}
-                        className="text-orange-600 hover:text-orange-700 underline cursor-pointer"
+                        className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline cursor-pointer"
                     >
                         Voir le livre
                     </a>
@@ -107,24 +105,24 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
 
     return (
         <>
-            <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50" onClick={onClose} />
             
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-xl">
-                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
-                        <h3 className="font-semibold text-gray-900 text-lg">Partager dans un club</h3>
-                        <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                            <X className="w-5 h-5 text-gray-500" />
+                <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-xl">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 rounded-t-2xl">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg">Partager dans un club</h3>
+                        <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
                     </div>
 
                     {success ? (
                         <div className="p-6 text-center">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Send className="w-8 h-8 text-green-600" />
+                            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Send className="w-8 h-8 text-green-600 dark:text-green-400" />
                             </div>
-                            <h4 className="text-lg font-semibold text-gray-900 mb-2">Partage reussi !</h4>
-                            <p className="text-gray-500 text-sm">Le livre a ete partage dans le club</p>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Partage réussi !</h4>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Le livre a été partagé dans le club</p>
                             <button
                                 onClick={onClose}
                                 className="mt-6 w-full py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors"
@@ -136,8 +134,8 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                         <div className="p-6">
                             {/* Aperçu du livre */}
                             {displayBookTitle && (
-                                <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Livre a partager</h4>
+                                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Livre à partager</h4>
                                     <div className="flex gap-3">
                                         {displayBookImage && (
                                             <img 
@@ -148,13 +146,13 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                                             />
                                         )}
                                         <div className="flex-1">
-                                            <p className="font-semibold text-gray-900 line-clamp-2">{displayBookTitle}</p>
+                                            <p className="font-semibold text-gray-900 dark:text-white line-clamp-2">{displayBookTitle}</p>
                                             {displayBookAuthor && (
-                                                <p className="text-sm text-gray-500 mt-1">par {displayBookAuthor}</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">par {displayBookAuthor}</p>
                                             )}
-                                            <div className="mt-2 p-2 bg-white rounded-lg border border-gray-200">
-                                                <p className="text-xs text-gray-500 mb-1">Aperçu du message :</p>
-                                                <p className="text-sm text-gray-700">{previewMessage}</p>
+                                            <div className="mt-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Aperçu du message :</p>
+                                                <p className="text-sm text-gray-700 dark:text-gray-300">{previewMessage}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -163,18 +161,18 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
 
                             {isLoading ? (
                                 <div className="flex justify-center py-8">
-                                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                                 </div>
                             ) : clubs.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500 text-sm">Vous n'etes membre d'aucun club</p>
+                                    <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm">Vous n'êtes membre d'aucun club</p>
                                     <button
                                         onClick={() => {
                                             onClose();
                                             router.visit('/clubs');
                                         }}
-                                        className="mt-4 text-orange-600 text-sm font-medium"
+                                        className="mt-4 text-orange-600 dark:text-orange-400 text-sm font-medium"
                                     >
                                         Rejoindre un club
                                     </button>
@@ -182,7 +180,7 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                             ) : (
                                 <>
                                     <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Choisir un club
                                         </label>
                                         <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -192,16 +190,16 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                                                     onClick={() => setSelectedClubId(club.id)}
                                                     className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                                                         selectedClubId === club.id
-                                                            ? 'border-orange-500 bg-orange-50'
-                                                            : 'border-gray-200 hover:border-orange-200'
+                                                            ? 'border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-900/20'
+                                                            : 'border-gray-200 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-800'
                                                     }`}
                                                 >
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center">
-                                                        <Users className="w-5 h-5 text-orange-600" />
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/20 rounded-full flex items-center justify-center">
+                                                        <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h4 className="font-medium text-gray-900">{club.name}</h4>
-                                                        <p className="text-xs text-gray-500">{club.members_count} membres</p>
+                                                        <h4 className="font-medium text-gray-900 dark:text-white">{club.name}</h4>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">{club.members_count} membres</p>
                                                     </div>
                                                     {selectedClubId === club.id && (
                                                         <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
@@ -216,28 +214,28 @@ export default function ShareToClubModal({ isOpen, onClose, bookId, bookTitle, b
                                     </div>
 
                                     <div className="mb-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Message (optionnel)
                                         </label>
                                         <textarea
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
-                                            placeholder="Ajoutez un message personnalise..."
+                                            placeholder="Ajoutez un message personnalisé..."
                                             rows={3}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                         />
                                     </div>
 
-                                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                                        <p className="text-xs text-blue-800">
-                                            Info: Un lien vers le livre sera automatiquement ajoute a votre message. Les membres du club pourront cliquer dessus pour acceder au livre.
+                                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                        <p className="text-xs text-blue-800 dark:text-blue-300">
+                                            Info: Un lien vers le livre sera automatiquement ajouté à votre message. Les membres du club pourront cliquer dessus pour accéder au livre.
                                         </p>
                                     </div>
 
                                     <button
                                         onClick={handleShare}
                                         disabled={!selectedClubId || isSending}
-                                        className="w-full py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-orange-600 dark:bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isSending ? (
                                             <>

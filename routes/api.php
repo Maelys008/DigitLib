@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookController;
 use App\Http\Controllers\Api\ClubController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\IncidentController;
 use App\Http\Controllers\Api\InternalMemberController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Models\Badge;
 use App\Models\Genre;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // -------------------------------------------------------------------------
@@ -90,8 +92,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
     // --- Pénalités ---
     Route::get('/penalties', [PenaltyController::class, 'index']);
-    Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
-    Route::get('/libraries/{library}/unpaid-penalties-count', [PenaltyController::class, 'getUnpaidPenaltiesCount']);
+    Route::get('/libraries/{libraryId}/penalties', [PenaltyController::class, 'getLibraryPenalties']);
+    Route::patch('/penalties/{penaltyId}/pay', [PenaltyController::class, 'payPenalty']);
+    Route::get('/libraries/{libraryId}/unpaid-penalties-count', [PenaltyController::class, 'getUnpaidPenaltiesCount']);
 
     // --- Clubs de lecture ---
     Route::get('/clubs', [ClubController::class, 'index']);
@@ -117,7 +120,35 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Scan Book
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
+    // Scan Book
+    Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
+    Route::get('/scan-user/{token}', function ($token) {
+        try {
+            $decoded = base64_decode($token);
+            $data = json_decode($decoded, true);
 
+            if ($data && isset($data['type']) && $data['type'] === 'user_profile') {
+                $user = User::with('badge')->find($data['id']);
+                if ($user) {
+                    return response()->json([
+                        'success' => true,
+                        'user' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'badge' => $user->badge?->name ?? 'Bronze',
+                            'score' => $user->score ?? 0,
+                            'borrowedBooks' => $user->loans()->whereNull('actual_return_date')->count(),
+                        ],
+                    ]);
+                }
+            }
+
+            return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
+        }
+    });
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
@@ -156,7 +187,15 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
 
+    Route::get('/books/{book}/copies', [BookController::class, 'getCopies']);
+
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
-    Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
+    // Dans la section protégée (middleware auth:sanctum)
+    // Dans la section protégée
+    // Route::prefix('incidents')->group(function () {
+    //     Route::get('/', [IncidentController::class, 'getLibraryIncidents']); // Récupérer incidents de SA bibliothèque
+    //     Route::post('/', [IncidentController::class, 'store']); // Créer un incident
+    //     Route::patch('/{id}/resolve', [IncidentController::class, 'resolve']); // Résoudre
+    // });
 });

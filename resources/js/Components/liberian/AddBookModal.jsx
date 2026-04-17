@@ -60,7 +60,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
     }
   };
 
-  // Démarrer la caméra
   const startScanner = async () => {
     setShowScanner(true);
     setIsScanning(true);
@@ -79,7 +78,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
     }
   };
 
-  // Arrêter la caméra
   const stopScanner = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
@@ -90,7 +88,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
     setIsScanning(false);
   };
 
-  // Capturer l'image et simuler la lecture du code-barres
   const captureAndScan = () => {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
@@ -98,8 +95,6 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
       canvasRef.current.height = videoRef.current.videoHeight;
       context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
       
-    
-    
       const mockISBN = '978-2070612758';
       const mockBookData = {
         isbn: mockISBN,
@@ -167,22 +162,22 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up max-h-[85vh] overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Ajouter un livre</h2>
+      <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl z-50 animate-slide-up max-h-[85vh] overflow-y-auto scrollbar-hide">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Ajouter un livre</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleScanISBN}
               disabled={isScanning}
-              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
+              className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors disabled:opacity-50"
               title="Scanner l'ISBN"
             >
-              <Scan className="w-5 h-5 text-gray-700" />
+              <Scan className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </button>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-              <X className="w-5 h-5" />
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
         </div>
@@ -219,17 +214,25 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
         )}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">{error}</div>}
-          {warning && <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">{warning}</div>}
+          {error && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+          {warning && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl text-yellow-700 dark:text-yellow-400 text-sm">
+              {warning}
+            </div>
+          )}
           
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800 flex items-center gap-2">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-sm text-blue-800 dark:text-blue-300 flex items-center gap-2">
             <Camera className="w-4 h-4" />
             <span>Scannez l'ISBN pour auto-remplir les informations du livre</span>
           </div>
 
           {/* ISBN */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ISBN *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ISBN *</label>
             <div className="relative">
               <input
                 type="text"
@@ -238,56 +241,56 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
                 value={formData.isbn}
                 onChange={handleChange}
                 placeholder="Ex: 978-2070612758"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
               <button
                 type="button"
                 onClick={handleScanISBN}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-orange-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 dark:text-gray-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
               >
                 <Camera className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-1">Scannez le code-barres ou saisissez-le manuellement</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Scannez le code-barres ou saisissez-le manuellement</p>
           </div>
 
           {/* Titre */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titre *</label>
             <input 
               type="text" 
               name="title" 
               value={formData.title} 
               onChange={handleChange} 
               placeholder="Titre du livre"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" 
               required 
             />
           </div>
 
           {/* Auteur */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Auteur *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Auteur *</label>
             <input 
               type="text" 
               name="author" 
               value={formData.author} 
               onChange={handleChange} 
               placeholder="Nom de l'auteur"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" 
               required 
             />
           </div>
 
           {/* Genre */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Genre *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Genre *</label>
             <select
               name="genre_id"
               value={formData.genre_id}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white"
               required
             >
               <option value="">Sélectionner un genre</option>
@@ -299,35 +302,35 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
 
           {/* Année publication */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Année de publication *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année de publication *</label>
             <input 
               type="number" 
               name="year_of_publication" 
               value={formData.year_of_publication} 
               onChange={handleChange} 
               placeholder="2024"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" 
               required 
             />
           </div>
 
           {/* Nombre d'exemplaires */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'exemplaires *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre d'exemplaires *</label>
             <input 
               type="number" 
               min="1" 
               name="nb_copy" 
               value={formData.nb_copy} 
               onChange={handleNumberChange} 
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white" 
               required 
             />
           </div>
 
           {/* Livres disponibles */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Livres disponibles *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Livres disponibles *</label>
             <input 
               type="number" 
               min="0" 
@@ -335,35 +338,35 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
               name="nb_available" 
               value={formData.nb_available} 
               onChange={handleAvailableChange} 
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white" 
               required 
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea 
               rows={3} 
               name="description" 
               value={formData.description} 
               onChange={handleChange} 
               placeholder="Description du livre..."
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent" 
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" 
             />
           </div>
 
           {/* Couverture */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Couverture</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Couverture</label>
             <div className="flex items-center gap-4">
               <div 
                 onClick={() => fileInputRef.current.click()} 
-                className="w-20 h-28 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 hover:border-orange-400 transition-colors"
+                className="w-20 h-28 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors"
               >
                 {coverPreview ? 
                   <img src={coverPreview} alt="Preview" className="w-full h-full object-cover" /> : 
-                  <Camera className="w-6 h-6 text-gray-400" />
+                  <Camera className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                 }
               </div>
               <input 
@@ -373,14 +376,14 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
                 accept="image/*" 
                 className="hidden" 
               />
-              <p className="text-xs text-gray-400">Format JPG, PNG (max 2MB)</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Format JPG, PNG (max 2MB)</p>
             </div>
           </div>
 
           <button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 disabled:bg-gray-400 transition-colors"
+            className="w-full bg-orange-600 dark:bg-orange-500 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 dark:hover:bg-orange-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 transition-colors"
           >
             {isSubmitting ? 'Ajout en cours...' : 'Ajouter le livre'}
           </button>

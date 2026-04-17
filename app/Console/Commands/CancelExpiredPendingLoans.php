@@ -21,7 +21,7 @@ class CancelExpiredPendingLoans extends Command
      *
      * @var string
      */
-    protected $description = 'Annuler les prêts en attente de retrait depuis plus de 48h';
+    protected $description = 'Annuler les prêts en attente de retrait depuis plus de 24h';
 
     /**
      * Execute the console command.
@@ -52,7 +52,7 @@ class CancelExpiredPendingLoans extends Command
                 Notification::create([
                     'user_id' => $loan->user_id,
                     'type' => 'loan_cancelled',
-                    'message' => "Votre emprunt pour le livre '{$book->title}' a été annulé faute de retrait dans les 48h.",
+                    'message' => "Votre emprunt pour le livre '{$book->title}' a été annulé faute de retrait dans les 24h.",
                     'object_type' => 'loan',
                     'object' => $loan->id,
                     'date_sent' => $now,

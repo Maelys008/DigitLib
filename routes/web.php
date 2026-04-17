@@ -224,5 +224,15 @@ Route::get('/auth/{provider}/callback', function ($provider) {
 Route::get('/auth/callback', function () {
     return Inertia::render('Auth/Callback');
 })->name('auth.callback');
+Route::get('/librarian/books/{book}/copies', function ($bookId) {
+    // Récupère le livre pour avoir son titre et auteur
+    $book = \App\Models\Book::findOrFail($bookId);
+    return Inertia::render('Librarian/ManageCopies', [
+        'bookId' => $bookId,
+        'bookTitle' => $book->title,
+        'bookAuthor' => $book->author,
+    ]);
+})->name('librarian.books.copies');
+
 
 require __DIR__ . '/auth.php';

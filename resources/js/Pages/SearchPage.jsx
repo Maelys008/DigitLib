@@ -30,10 +30,9 @@ export default function SearchPage() {
     setIsLoading(true);
 
     try {
-      // Appel API avec le paramètre 'search'
       const response = await api.getBooks({ 
         search: searchTerm.trim(),
-        per_page: 50 // Pour avoir plus de résultats
+        per_page: 50
       });
       
       let booksData = [];
@@ -55,7 +54,6 @@ export default function SearchPage() {
       let filteredResults = normalizedBooks;
       
       if (activeFilter === 'authors') {
-        // Pour les auteurs, on regroupe par auteur unique
         const uniqueAuthors = [...new Set(normalizedBooks.map(b => b.auteur))];
         filteredResults = normalizedBooks.filter(book => 
           uniqueAuthors.includes(book.auteur)
@@ -130,12 +128,12 @@ export default function SearchPage() {
 
   return (
     <MobileLayout>
-      <div className="px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           {hasSearched && (
             <button 
               onClick={handleBack} 
-              className="text-gray-600 hover:bg-gray-100 p-1 rounded-full transition-colors"
+              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full transition-colors"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -143,7 +141,7 @@ export default function SearchPage() {
 
           <form onSubmit={handleSearch} className="relative flex-1">
             <div className="absolute left-3 top-1/2 -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
             
             <input
@@ -151,7 +149,7 @@ export default function SearchPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher un livre, un auteur ou un genre"
-              className="w-full pl-10 pr-10 py-2.5 bg-gray-100 border-none rounded-xl text-[17px] focus:ring-0 focus:bg-gray-50 placeholder-gray-400"
+              className="w-full pl-10 pr-10 py-2.5 bg-gray-100 dark:bg-gray-800 border-none rounded-xl text-[17px] focus:ring-0 focus:bg-gray-50 dark:focus:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white"
               autoFocus
             />
             
@@ -159,7 +157,7 @@ export default function SearchPage() {
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-400 rounded-full p-0.5 hover:bg-gray-500 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-400 dark:bg-gray-600 rounded-full p-0.5 hover:bg-gray-500 dark:hover:bg-gray-500 transition-colors"
               >
                 <X className="w-3.5 h-3.5 text-white" strokeWidth={3} />
               </button>
@@ -169,7 +167,7 @@ export default function SearchPage() {
           {!hasSearched && (
             <button 
               onClick={handleCancel}
-              className="text-gray-600 text-[17px] font-normal whitespace-nowrap hover:text-gray-900 transition-colors"
+              className="text-gray-600 dark:text-gray-400 text-[17px] font-normal whitespace-nowrap hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Annuler
             </button>
@@ -184,7 +182,7 @@ export default function SearchPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeFilter === 'all' 
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Tous
@@ -194,7 +192,7 @@ export default function SearchPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeFilter === 'books' 
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Livres
@@ -204,7 +202,7 @@ export default function SearchPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeFilter === 'authors' 
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Auteurs
@@ -215,7 +213,7 @@ export default function SearchPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeFilter === 'genres' 
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Genres
@@ -229,23 +227,23 @@ export default function SearchPage() {
       <div className="px-4 py-4">
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
           </div>
         )}
 
         {!isLoading && hasSearched && (
           <>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {totalResults} résultat{totalResults > 1 ? 's' : ''}
             </p>
 
             {results.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-10 h-10 text-gray-400" />
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                 </div>
-                <p className="text-gray-500 font-medium">Aucun résultat trouvé</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-gray-500 dark:text-gray-400 font-medium">Aucun résultat trouvé</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                   Essayez avec d'autres mots-clés
                 </p>
               </div>
@@ -264,11 +262,11 @@ export default function SearchPage() {
 
         {!hasSearched && !isLoading && (
           <div className="text-center py-12">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-10 h-10 text-gray-400" />
+            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-gray-500 font-medium">Recherchez un livre, un auteur ou un genre</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Recherchez un livre, un auteur ou un genre</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
               Trouvez votre prochaine lecture
             </p>
           </div>

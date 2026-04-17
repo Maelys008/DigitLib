@@ -204,6 +204,34 @@ class BookController extends Controller
             'data' => $book->fresh(),
         ]);
     }
+                /**
+             * Get all copies of a specific book
+             */
+            public function getCopies($bookId)
+            {
+                $book = Book::findOrFail($bookId);
+                
+                $copies = $book->copies()->get()->map(function($copy) {
+                    return [
+                        'id' => $copy->id,
+                        'codeQR' => $copy->codeQR,
+                        'condition' => $copy->condition,
+                        'status' => $copy->status,
+                        'date_added' => $copy->date_added?->format('Y-m-d'),
+                    ];
+                });
+                
+                return response()->json([
+                    'book' => [
+                        'id' => $book->id,
+                        'title' => $book->title,
+                        'author' => $book->author,
+                        'cover_url' => $book->cover_image ? '/storage/' . $book->cover_image : null,
+                    ],
+                    'copies' => $copies,
+                    'total_copies' => $copies->count(),
+                ]);
+            }
 
     /**
      * Remove the specified resource from storage.

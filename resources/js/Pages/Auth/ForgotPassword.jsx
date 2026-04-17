@@ -43,20 +43,20 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <div className="flex items-center px-6 pt-6">
         <button onClick={handleBack} className="p-2 -ml-2">
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe oublié ?</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mot de passe oublié ?</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe
           </p>
         </div>
@@ -64,46 +64,46 @@ export default function ForgotPassword() {
         {!isSent ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Adresse email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemple@email.com"
-                  className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                  className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                     errors.email ? 'border border-red-500 ring-1 ring-red-500' : ''
                   }`}
                 />
               </div>
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>}
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+              className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
             >
               {isLoading ? 'Envoi...' : 'Envoyer le lien'}
             </button>
           </form>
         ) : (
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Email envoyé !</h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Email envoyé !</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               Un lien de réinitialisation a été envoyé à <strong>{email}</strong>
             </p>
             <button
               onClick={handleBack}
-              className="text-black font-medium"
+              className="text-black dark:text-orange-500 font-medium"
             >
               Retour à la connexion
             </button>

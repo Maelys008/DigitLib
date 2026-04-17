@@ -9,7 +9,7 @@ import BookHeader from '@/Components/BookDetails/BookHeader';
 import BorrowButton from '@/Components/BookDetails/BorrowButton';
 import ReviewSection from '@/Components/BookDetails/ReviewSection';
 import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function BookDetail() {
@@ -149,7 +149,7 @@ export default function BookDetail() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -159,8 +159,8 @@ export default function BookDetail() {
     return (
       <MobileLayout>
         <div className="px-6 py-20 text-center">
-          <h2 className="text-xl font-bold text-gray-900">Erreur</h2>
-          <p className="text-gray-500 mt-2">{error}</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Erreur</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">{error}</p>
         </div>
       </MobileLayout>
     );
@@ -170,8 +170,8 @@ export default function BookDetail() {
     return (
       <MobileLayout>
         <div className="px-6 py-20 text-center">
-          <h2 className="text-xl font-bold text-gray-900">Livre non trouvé</h2>
-          <p className="text-gray-500 mt-2">ID: {id}</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Livre non trouvé</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">ID: {id}</p>
         </div>
       </MobileLayout>
     );
@@ -191,47 +191,47 @@ export default function BookDetail() {
       {/* SECTION INFOS PRINCIPALES */}
       <div className="px-6 pt-4">
         <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
-            <User className="w-5 h-5 text-gray-600 mb-1" />
-            <span className="text-xs text-gray-500">Auteur</span>
-            <span className="text-sm font-semibold text-gray-900 text-center line-clamp-1">{livre.auteur}</span>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 flex flex-col items-center">
+            <User className="w-5 h-5 text-gray-600 dark:text-gray-400 mb-1" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">Auteur</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white text-center line-clamp-1">{livre.auteur}</span>
           </div>
           
-          <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
-            <BookOpen className="w-5 h-5 text-gray-600 mb-1" />
-            <span className="text-xs text-gray-500">Genre</span>
-            <p className="text-lg font-semibold text-gray-900 mt-1">{livre.genreName}</p>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 flex flex-col items-center">
+            <BookOpen className="w-5 h-5 text-gray-600 dark:text-gray-400 mb-1" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">Genre</span>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{livre.genreName}</p>
           </div>
           
-          <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
-            <Calendar className="w-5 h-5 text-gray-600 mb-1" />
-            <span className="text-xs text-gray-500">Année</span>
-            <span className="text-sm font-semibold text-gray-900 text-center">{livre.annee_publication}</span>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 flex flex-col items-center">
+            <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400 mb-1" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">Année</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white text-center">{livre.annee_publication}</span>
           </div>
           
-          <div className="bg-gray-100 rounded-xl p-3 flex flex-col items-center">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 flex flex-col items-center">
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 mb-1" />
-            <span className="text-xs text-gray-500">Note</span>
-            <span className="text-sm font-semibold text-gray-900 text-center">{livre.note}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Note</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white text-center">{livre.note}</span>
           </div>
         </div>
         
         {/* MESSAGE D'AVERTISSEMENT */}
         {showJoinWarning && (
-          <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl animate-fade-in">
+          <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl animate-fade-in">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-orange-800">
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
                   Vous devez rejoindre la bibliothèque
                 </p>
-                <p className="text-xs text-orange-600 mt-0.5">
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">
                   "{livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}" avant d'emprunter un livre
                 </p>
               </div>
               <button 
                 onClick={clearJoinWarning}
-                className="text-orange-600 hover:text-orange-800"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800"
               >
                 ×
               </button>
@@ -240,11 +240,11 @@ export default function BookDetail() {
         )}
         
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/20 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 rounded-lg">
             <p className="text-sm">{successMessage}</p>
             <button 
               onClick={clearSuccessMessage}
-              className="text-xs text-green-800 underline mt-1"
+              className="text-xs text-green-800 dark:text-green-400 underline mt-1"
             >
               Fermer
             </button>
@@ -252,11 +252,11 @@ export default function BookDetail() {
         )}
         
         {reservationSuccessMessage && (
-          <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
+          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-800 text-blue-700 dark:text-blue-400 rounded-lg">
             <p className="text-sm">{reservationSuccessMessage}</p>
             <button 
               onClick={clearReservationSuccessMessage}
-              className="text-xs text-blue-800 underline mt-1"
+              className="text-xs text-blue-800 dark:text-blue-400 underline mt-1"
             >
               Fermer
             </button>
@@ -282,8 +282,8 @@ export default function BookDetail() {
       
         {/* DESCRIPTION */}
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">À propos du livre</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">À propos du livre</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             {isDescriptionExpanded 
               ? livre.description 
               : `${livre.description?.substring(0, 120) || ''}...`}
@@ -291,7 +291,7 @@ export default function BookDetail() {
           {livre.description && livre.description.length > 120 && (
             <button 
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-              className="text-gray-900 text-sm font-medium mt-1"
+              className="text-gray-900 dark:text-gray-300 text-sm font-medium mt-1"
             >
               {isDescriptionExpanded ? 'Réduire' : 'Voir plus'}
             </button>
@@ -321,10 +321,10 @@ export default function BookDetail() {
         {livresRecommandes.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-gray-900">{livre.genreName}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{livre.genreName}</h2>
               <Link 
                 href={`/genres/${encodeURIComponent(livre.genreName.toLowerCase())}`} 
-                className="text-gray-400 text-sm hover:text-gray-600 transition-colors"
+                className="text-gray-400 dark:text-gray-500 text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 Tous
               </Link>

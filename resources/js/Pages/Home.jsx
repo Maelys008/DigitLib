@@ -8,7 +8,7 @@ import { genreIcons } from '@/Constants/genreIcons';
 import GenreCard from '@/Components/GenreCard';
 import NewBookCard from '@/Components/NewBookCard';
 import { getBookCountByGenre } from '../utils/getBookCountByGenre';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 import LibraryCard from '@/Components/HomeLibDetails/LibraryCard';
 import { Building2 } from 'lucide-react';
@@ -88,59 +88,50 @@ export default function Home() {
         setGenresList(first6Genres);
 
         // ========== 1. MEILLEURS DU MOIS ==========
-        // Trier par: emprunts du mois (simulé par total_loans), note, date
         const bestOfMonth = [...normalizedAllBooks]
           .sort((a, b) => {
-            // Priorité au nombre d'emprunts
             if (a.total_loans !== b.total_loans) {
               return b.total_loans - a.total_loans;
             }
-            // Puis par note
             if (a.note !== b.note) {
               return b.note - a.note;
             }
-            // Enfin par date
             return new Date(b.created_at) - new Date(a.created_at);
           })
-          .slice(0, 40); // Limite 40 livres
-        setLivresMembres(bestOfMonth.slice(0, 12)); // Affichage 12 sur l'accueil
+          .slice(0, 40);
+        setLivresMembres(bestOfMonth.slice(0, 12));
 
         // ========== 2. NOUVEAUTÉS ==========
-        // Trier par date d'ajout (le plus récent d'abord)
         const nouveautes = [...normalizedAllBooks]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          .slice(0, 20); // Limite 20 livres
-        setLivresNouveaux(nouveautes.slice(0, 3)); // 3 sur l'accueil
+          .slice(0, 20);
+        setLivresNouveaux(nouveautes.slice(0, 3));
 
         // ========== 3. POPULAIRES ==========
-        // Ne montrer que les livres disponibles + trier par emprunts et note
         const populaires = [...normalizedAllBooks]
-          .filter(book => book.nb_disponibles > 0) // Uniquement disponibles
+          .filter(book => book.nb_disponibles > 0)
           .sort((a, b) => {
             if (a.total_loans !== b.total_loans) {
               return b.total_loans - a.total_loans;
             }
             return b.note - a.note;
           })
-          .slice(0, 40); // Limite 40 livres
-        setLivresPopulaires(populaires.slice(0, 12)); // Affichage 12 sur l'accueil
+          .slice(0, 40);
+        setLivresPopulaires(populaires.slice(0, 12));
 
         // ========== 4. ROMANS ==========
-        // Filtrer par genre "Roman", trier par date et note
         const romans = [...normalizedAllBooks]
           .filter(book => {
             const genreName = typeof book.genre === 'string' ? book.genre : book.genre?.name;
             return genreName === 'Roman';
           })
           .sort((a, b) => {
-            // Par date d'abord
             const dateCompare = new Date(b.created_at) - new Date(a.created_at);
             if (dateCompare !== 0) return dateCompare;
-            // Puis par note
             return b.note - a.note;
           })
-          .slice(0, 20); // Limite 20 livres
-        setLivresRomans(romans.slice(0, 17)); // Affichage 17 sur l'accueil
+          .slice(0, 20);
+        setLivresRomans(romans.slice(0, 17));
 
         // Bibliothèques
         const librariesData = await api.getLibraries();
@@ -157,7 +148,6 @@ export default function Home() {
 
       } catch (error) {
         console.error('Erreur chargement livres ou genres:', error);
-        // Fallback vers mockData
         const { livres, genres: mockGenres } = await import('../data/mockData');
         setAllBooks(livres);
         setGenresList(mockGenres.slice(0, 6));
@@ -176,9 +166,9 @@ export default function Home() {
 
   if (authLoading || isLoadingBooks) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -253,7 +243,7 @@ export default function Home() {
           <SectionHeader titre="Bibliothèques disponibles" voirToutLien="/libraries" />
           {isLoadingLibraries ? (
             <div className="flex justify-center py-8">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
             </div>
           ) : libraries.length > 0 ? (
             <HorizontalScroll>
@@ -266,9 +256,9 @@ export default function Home() {
               ))}
             </HorizontalScroll>
           ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-xl">
-              <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">Aucune bibliothèque disponible</p>
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque disponible</p>
             </div>
           )}
         </div>

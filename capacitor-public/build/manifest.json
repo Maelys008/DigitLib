@@ -1,0 +1,18 @@
+{
+  "resources/images/logo .png": {
+    "file": "assets/logo -DTtlFVHu.png",
+    "src": "resources/images/logo .png"
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-5Fthg1b9.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "css": [
+      "assets/app-hjQP_viS.css"
+    ],
+    "assets": [
+      "assets/logo -DTtlFVHu.png"
+    ]
+  }
+}

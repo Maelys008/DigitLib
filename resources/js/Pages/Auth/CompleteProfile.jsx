@@ -117,11 +117,11 @@ export default function CompleteProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <div className="flex justify-end px-6 pt-6">
         <button 
           onClick={handleSkip}
-          className="text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors"
+          className="text-gray-400 dark:text-gray-500 text-sm font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           Passer
         </button>
@@ -129,17 +129,17 @@ export default function CompleteProfile() {
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <User className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Complétez votre profil</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Complétez votre profil</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Pour finaliser votre inscription, veuillez fournir vos informations
           </p>
         </div>
 
         {apiError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
             {apiError}
           </div>
         )}
@@ -147,71 +147,71 @@ export default function CompleteProfile() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Nom complet */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nom complet
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Jean Dupont"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.name ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
 
           {/* Téléphone avec formatage */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Numéro de téléphone
             </label>
             <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="tel"
                 value={formData.tel}
                 onChange={handlePhoneChange}
                 placeholder="+229 90 12 34 56 78"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black font-mono tracking-wide ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 font-mono tracking-wide placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.tel ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1 mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mt-2">
               Format: +229 90 12 34 56 78 (10 chiffres après l'indicatif)
             </p>
-            {errors.tel && <p className="text-red-500 text-xs mt-1">{errors.tel}</p>}
+            {errors.tel && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.tel}</p>}
           </div>
 
           {/* ANIP */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Numéro ANIP
             </label>
             <div className="relative">
-              <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={formData.identityHash}
                 onChange={(e) => setFormData(prev => ({ ...prev, identityHash: e.target.value }))}
                 placeholder="Numéro sur votre carte ANIP"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.identityHash ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            {errors.identityHash && <p className="text-red-500 text-xs mt-1">{errors.identityHash}</p>}
+            {errors.identityHash && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.identityHash}</p>}
           </div>
 
-          <div className="p-4 bg-blue-50 rounded-xl">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-800">
+              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-blue-800 dark:text-blue-300">
                 <p className="font-semibold mb-1">Pourquoi ces informations ?</p>
                 <p>La vérification garantit la sécurité de tous les utilisateurs et permet une identification fiable pour les emprunts.</p>
               </div>
@@ -221,7 +221,7 @@ export default function CompleteProfile() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isLoading ? 'Enregistrement...' : 'Terminer'}
           </button>

@@ -129,18 +129,18 @@ export default function BorrowButton({
   // Déterminer le style du bouton
   const getButtonStyle = () => {
     if (isBorrowed) {
-      return 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed';
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 cursor-not-allowed';
     }
     if (isReserved) {
-      return 'bg-blue-100 text-blue-700 border border-blue-200 cursor-not-allowed';
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 cursor-not-allowed';
     }
     if (!isBookAvailable && isLibraryJoined) {
       return 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95';
     }
     if (isLibraryJoined) {
-      return 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95';
+      return 'bg-gray-900 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 active:scale-95';
     }
-    return 'bg-gray-200 text-gray-500 hover:bg-gray-300 cursor-pointer';
+    return 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer';
   };
 
   // Déterminer si le bouton est désactivé
@@ -152,14 +152,14 @@ export default function BorrowButton({
     <div className="relative mb-6">
       {/* Message d'avertissement (bibliothèque non rejointe) */}
       {showWarning && (
-        <div className="mb-3 bg-orange-50 border border-orange-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-orange-800">
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
                 Vous devez rejoindre la bibliothèque
               </p>
-              <p className="text-xs text-orange-600 mt-0.5">
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">
                 "{bibliothequeNom}" avant d'emprunter un livre
               </p>
             </div>
@@ -169,14 +169,14 @@ export default function BorrowButton({
 
       {/* Message d'erreur */}
       {errorMessage && (
-        <div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-800">Emprunt impossible</p>
-              <p className="text-xs text-red-600 mt-0.5">{errorMessage}</p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">Emprunt impossible</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{errorMessage}</p>
               {maxAllowed && currentLoans && (
-                <p className="text-xs text-red-500 mt-1">
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                   Limite: {maxAllowed} livre(s) | Emprunts en cours: {currentLoans}
                 </p>
               )}
@@ -187,12 +187,12 @@ export default function BorrowButton({
 
       {/* Message de réservation */}
       {showReservation && (
-        <div className="mb-3 bg-blue-50 border border-blue-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
-            <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-blue-800">En liste d'attente</p>
-              <p className="text-xs text-blue-600 mt-0.5">{reservationMessage}</p>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">En liste d'attente</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">{reservationMessage}</p>
             </div>
           </div>
         </div>
@@ -200,10 +200,10 @@ export default function BorrowButton({
 
       {/* Message de succès */}
       {showSuccess && (
-        <div className="mb-3 bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <p className="text-sm font-medium text-green-800">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <p className="text-sm font-medium text-green-800 dark:text-green-300">
               Livre emprunté avec succès !
             </p>
           </div>

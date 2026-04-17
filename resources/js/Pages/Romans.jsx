@@ -61,11 +61,10 @@ export default function Romans() {
         const allBooksData = await fetchAllBooks();
         const normalizedBooks = allBooksData.map(normalizeBook);
         
-        // CORRECTION : Filtrer par genreName (qui est normalisé)
         const romans = normalizedBooks.filter(l => l.genreName === 'Roman');
         
-        console.log('Romans trouvés:', romans.length); // Pour debug
-        console.log('Premier livre:', romans[0]); // Pour debug
+        console.log('Romans trouvés:', romans.length);
+        console.log('Premier livre:', romans[0]);
         
         setLivres(romans);
         setTotalBooks(romans.length);
@@ -74,7 +73,6 @@ export default function Romans() {
         console.error('Erreur chargement livres:', error);
         setError('Impossible de charger les livres');
         
-        // Fallback vers mockData
         const { livres: mockLivres } = await import('../data/mockData');
         const romansMock = mockLivres.filter(l => l.genre === 'Roman');
         setLivres(romansMock);
@@ -92,7 +90,7 @@ export default function Romans() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -102,7 +100,7 @@ export default function Romans() {
     return (
       <MobileLayout>
         <div className="px-6 py-4 text-center">
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500 dark:text-red-400">{error}</p>
         </div>
       </MobileLayout>
     );
@@ -110,22 +108,22 @@ export default function Romans() {
 
   return (
     <MobileLayout>
-      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
+      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100 dark:border-gray-700">
         <button 
           onClick={() => router.visit('/')}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Romans</h1>
-          <p className="text-sm text-gray-500 mt-1">{totalBooks} livres</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Romans</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{totalBooks} livres</p>
         </div>
       </div>
       
       {livres.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Aucun roman trouvé</p>
+          <p className="text-gray-500 dark:text-gray-400">Aucun roman trouvé</p>
         </div>
       ) : (
         <div className="px-6 py-4 space-y-3">

@@ -46,21 +46,21 @@ export default function BorrowingRules() {
     setIsSaving(true);
     setError('');
     setSuccess(false);
-      console.log('Données à envoyer:', {
-    loan_duration: formData.loan_duration,
-    daily_penalty_amount: formData.daily_penalty_amount
-  });
+    console.log('Données à envoyer:', {
+      loan_duration: formData.loan_duration,
+      daily_penalty_amount: formData.daily_penalty_amount
+    });
+    
     const formDataToSend = new FormData();
     formDataToSend.append('loan_duration', formData.loan_duration);
     formDataToSend.append('daily_penalty_amount', formData.daily_penalty_amount);
     
     try {
       const result = await api.updateLibrary(library.id, formDataToSend);
-        console.log('Résultat API:', result);
+      console.log('Résultat API:', result);
       if (result.success) {
         setSuccess(true);
         
-        // Mettre à jour localStorage
         const key = `user_library_${user.id}`;
         const updatedLibrary = { ...library, ...formData };
         localStorage.setItem(key, JSON.stringify(updatedLibrary));
@@ -81,7 +81,7 @@ export default function BorrowingRules() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -93,12 +93,12 @@ export default function BorrowingRules() {
         <div className="px-6 py-4">
           <button 
             onClick={() => router.visit('/librarian/dashboard')}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
           <div className="text-center py-12">
-            <p className="text-gray-500">Aucune bibliothèque trouvée</p>
+            <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
           </div>
         </div>
       </MobileLayout>
@@ -112,19 +112,19 @@ export default function BorrowingRules() {
         <div className="flex items-center gap-4 mb-6">
           <button 
             onClick={() => router.visit('/librarian/dashboard')}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Règles d'emprunt</h1>
-            <p className="text-sm text-gray-500 mt-1">{library.name}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Règles d'emprunt</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{library.name}</p>
           </div>
         </div>
 
         {/* Message de succès */}
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2 animate-fade-in">
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm flex items-center gap-2 animate-fade-in">
             <Save className="w-4 h-4" />
             Règles d'emprunt mises à jour avec succès !
           </div>
@@ -132,18 +132,18 @@ export default function BorrowingRules() {
 
         {/* Message d'erreur */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-start gap-2 animate-fade-in">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-2 animate-fade-in">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             {error}
           </div>
         )}
 
         {/* Formulaire */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-600" />
+                <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <span>Durée d'emprunt</span>
               </div>
             </label>
@@ -154,19 +154,19 @@ export default function BorrowingRules() {
                 max="60"
                 value={formData.loan_duration}
                 onChange={(e) => setFormData({ ...formData, loan_duration: parseInt(e.target.value) || 14 })}
-                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
+                className="w-32 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
               />
-              <span className="text-gray-600">jours</span>
+              <span className="text-gray-600 dark:text-gray-400">jours</span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               Nombre de jours maximum pour un emprunt
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                 <span>Pénalité journalière</span>
               </div>
             </label>
@@ -177,21 +177,21 @@ export default function BorrowingRules() {
                 step=""
                 value={formData.daily_penalty_amount}
                 onChange={(e) => setFormData({ ...formData, daily_penalty_amount: parseInt(e.target.value) || 100 })}
-                className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
+                className="w-32 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent"
               />
-              <span className="text-gray-600">FCFA / jour</span>
+              <span className="text-gray-600 dark:text-gray-400">FCFA / jour</span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               Montant de la pénalité par jour de retard
             </p>
           </div>
 
-          <div className="bg-blue-50 rounded-xl p-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-800">Informations</p>
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Informations</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   Ces règles s'appliqueront à tous les emprunts de votre bibliothèque.
                   Les pénalités seront automatiquement calculées en cas de retard.
                 </p>
@@ -202,7 +202,7 @@ export default function BorrowingRules() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
+            className="w-full bg-orange-600 dark:bg-orange-500 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600 flex items-center justify-center gap-2"
           >
             {isSaving ? (
               <>

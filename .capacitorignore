@@ -1,0 +1,4 @@
+echo storage/ > .capacitorignore
+echo public/storage/ >> .capacitorignore
+echo public/hot >> .capacitorignore
+echo .git/ >> .capacitorignore

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import api from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import logo from '../../images/logo .png'
 
 export default function TopBar() {
@@ -26,7 +26,7 @@ export default function TopBar() {
   };
 
   return (
-    <header className="bg-gradient-to-b from-gray-300 to-gray-100 border-b border-gray-100 shadow-xl w-full">
+    <header className="bg-gradient-to-b from-gray-300 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700 shadow-xl w-full">
       <div className="py-4">
         <div className="flex items-center justify-between px-6">
           {/* LOGO ET TITRE */}
@@ -40,7 +40,7 @@ export default function TopBar() {
                   DigiLib
                 </span>
               </h1>
-              <p className="text-xs text-gray-800">Bibliothèque numérique</p>
+              <p className="text-xs text-gray-800 dark:text-gray-400">Bibliothèque numérique</p>
             </div>
           </Link>
 
@@ -49,9 +49,9 @@ export default function TopBar() {
             {isAuthenticated ? (
               <Link 
                 href="/notifications"
-                className="relative p-2 hover:bg-gray-600/50 rounded-xl transition-colors"
+                className="relative p-2 hover:bg-gray-600/50 dark:hover:bg-gray-700/50 rounded-xl transition-colors"
               >
-                <Bell className="w-5 h-5 text-gray-800" />
+                <Bell className="w-5 h-5 text-gray-800 dark:text-gray-200" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full font-bold">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -62,7 +62,7 @@ export default function TopBar() {
               <div className="flex items-center gap-2">
                 <Link 
                   href="/login"
-                  className="text-sm text-gray-800 hover:text-black transition-colors"
+                  className="text-sm text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white transition-colors"
                 >
                   Connexion
                 </Link>
@@ -80,8 +80,8 @@ export default function TopBar() {
         {/* MESSAGE DE BIENVENUE */}
         {isAuthenticated && (
           <div className="mt-4 pt-2 px-6">
-            <p className="text-sm text-gray-800">
-              Bienvenue, <span className="font-semibold text-black">{user?.name?.split(' ')[0] || 'Utilisateur'}</span>
+            <p className="text-sm text-gray-800 dark:text-gray-300">
+              Bienvenue, <span className="font-semibold text-black dark:text-white">{user?.name?.split(' ')[0] || 'Utilisateur'}</span>
             </p>
           </div>
         )}

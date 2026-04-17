@@ -45,10 +45,10 @@ export default function LibraryJoinButton({
   return (
     <div className="relative">
       {error && (
-        <div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <p className="text-sm text-red-600">{error}</p>
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         </div>
       )}
@@ -58,8 +58,8 @@ export default function LibraryJoinButton({
         disabled={isJoining}
         className={`
           w-full font-medium py-3 rounded-xl transition-all
-          bg-green-600 text-white hover:bg-green-700 active:scale-95 shadow-md
-          disabled:opacity-50 disabled:cursor-not-allowed
+          bg-green-600 hover:bg-green-700 active:scale-95 shadow-md
+          text-white disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `}
       >
@@ -74,14 +74,14 @@ export default function LibraryJoinButton({
       </button>
 
       {showSuccess && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-green-50 border border-green-200 rounded-xl p-4 shadow-lg animate-fade-in z-10">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 shadow-lg animate-fade-in z-10">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
             <div>
-              <p className="text-sm font-medium text-green-800">
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">
                 Vous avez rejoint la bibliothèque
               </p>
-              <p className="text-xs text-green-600 mt-0.5">
+              <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
                 "{bibliothequeNom}" avec succès !
               </p>
             </div>

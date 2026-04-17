@@ -65,30 +65,13 @@ export default function Login() {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    setIsSocialLoading(true);
-    try {
-      const result = await api.getFacebookRedirectUrl();
-      if (result) {
-        window.location.href = result;
-      } else {
-        setApiError('Erreur lors de la connexion avec Facebook');
-        setIsSocialLoading(false);
-      }
-    } catch (error) {
-      console.error('Erreur Facebook login:', error);
-      setApiError('Erreur lors de la connexion avec Facebook');
-      setIsSocialLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       {/* Bouton Passer */}
       <div className="flex justify-end px-6 pt-6">
         <button 
           onClick={handleSkip}
-          className="text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors"
+          className="text-gray-400 dark:text-gray-500 text-sm font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           Passer
         </button>
@@ -98,14 +81,14 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         {/* Titre */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenue !</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Bienvenue !</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Entrez votre email et mot de passe
           </p>
         </div>
 
         {apiError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
             {apiError}
           </div>
         )}
@@ -115,32 +98,32 @@ export default function Login() {
           {/* Champ Email */}
           <div>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-mail"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black transition-all ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 transition-all ${
                   errors.email ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>
             )}
           </div>
 
           {/* Champ Mot de passe */}
           <div>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mot de passe"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black transition-all ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 transition-all ${
                   errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -150,14 +133,14 @@ export default function Login() {
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
                 {showPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
+                  <EyeOff className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
+                  <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 )}
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password}</p>
             )}
           </div>
 
@@ -166,7 +149,7 @@ export default function Login() {
             <button 
               type="button" 
               onClick={() => router.visit('/forgot-password')}
-              className="text-gray-400 text-sm hover:text-gray-600 transition-colors"
+              className="text-gray-400 dark:text-gray-500 text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               Mot de passe oublié ?
             </button>
@@ -176,7 +159,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading || isSocialLoading}
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </button>
@@ -184,29 +167,17 @@ export default function Login() {
 
         {/* Séparateur */}
         <div className="flex items-center gap-4 my-8">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-gray-400 text-sm">Ou connectez-vous avec</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          <span className="text-gray-400 dark:text-gray-500 text-sm">Ou connectez-vous avec</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        {/* Boutons sociaux */}
-        <div className="flex justify-between gap-3 mb-8">
-          {/* Bouton Facebook */}
-          <button 
-            onClick={handleFacebookLogin}
-            disabled={isSocialLoading}
-            className="flex-1 h-14 bg-[#F5F5F5] rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
-          >
-            <svg className="w-6 h-6 fill-current text-blue-600" viewBox="0 0 320 512">
-              <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
-            </svg>
-          </button>
-          
-          {/* Bouton Google */}
+        {/* Bouton Google uniquement */}
+        <div className="flex justify-center mb-8">
           <button 
             onClick={handleGoogleLogin}
             disabled={isSocialLoading}
-            className="flex-1 h-14 bg-[#F5F5F5] rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="w-full max-w-xs h-14 bg-[#F5F5F5] dark:bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 gap-3"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -214,6 +185,9 @@ export default function Login() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
+            <span className="text-gray-700 dark:text-gray-300 font-medium">
+              {isSocialLoading ? 'Connexion...' : 'Continuer avec Google'}
+            </span>
           </button>
         </div>
 
@@ -221,7 +195,7 @@ export default function Login() {
         <div className="mt-8 text-center">
           <button 
             onClick={() => router.visit('/register')}
-            className="text-gray-900 font-medium"
+            className="text-gray-900 dark:text-white font-medium"
           >
             Pas de compte ? S'inscrire
           </button>

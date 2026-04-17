@@ -84,21 +84,21 @@ export default function ResetPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe réinitialisé !</h1>
-            <p className="text-gray-500 text-sm mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mot de passe réinitialisé !</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               Votre mot de passe a été modifié avec succès.
             </p>
             <button
               onClick={handleBack}
-              className="bg-black text-white px-6 py-3 rounded-xl font-medium"
+              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
             >
               Retour à la connexion
             </button>
@@ -110,19 +110,19 @@ export default function ResetPassword() {
 
   if (errors.general && !token) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Lien invalide</h1>
-            <p className="text-gray-500 text-sm mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Lien invalide</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               {errors.general}
             </p>
             <button
               onClick={() => router.visit('/forgot-password')}
-              className="bg-black text-white px-6 py-3 rounded-xl font-medium"
+              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
             >
               Nouvelle demande
             </button>
@@ -133,43 +133,43 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <div className="flex items-center px-6 pt-6">
         <button onClick={handleBack} className="p-2 -ml-2">
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Nouveau mot de passe</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nouveau mot de passe</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Créez un nouveau mot de passe pour votre compte
           </p>
         </div>
 
         {errors.general && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-600 text-sm">{errors.general}</p>
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-600 dark:text-red-400 text-sm">{errors.general}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nouveau mot de passe
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Au moins 8 caractères"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -178,24 +178,24 @@ export default function ResetPassword() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
-                {showPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+                {showPassword ? <EyeOff className="w-5 h-5 text-gray-400 dark:text-gray-500" /> : <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />}
               </button>
             </div>
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Confirmer le mot de passe
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
                 placeholder="Répétez le mot de passe"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.passwordConfirmation ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -204,16 +204,16 @@ export default function ResetPassword() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
-                {showConfirmPassword ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+                {showConfirmPassword ? <EyeOff className="w-5 h-5 text-gray-400 dark:text-gray-500" /> : <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />}
               </button>
             </div>
-            {errors.passwordConfirmation && <p className="text-red-500 text-xs mt-1">{errors.passwordConfirmation}</p>}
+            {errors.passwordConfirmation && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.passwordConfirmation}</p>}
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isLoading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
           </button>

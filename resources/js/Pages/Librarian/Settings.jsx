@@ -1,9 +1,10 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Moon, Globe, Bell, ChevronRight, LogOut, BookOpen, Users, Clock, AlertCircle, Home, Library } from 'lucide-react';
+import { ArrowLeft, Moon, Globe, Bell, ChevronRight, LogOut, BookOpen, Users, Clock, AlertCircle, Home, Library, AlertTriangle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import api from '../../services/api';
 
 export default function LibrarianSettings() {
   const { user, logout } = useAuth();
@@ -12,23 +13,46 @@ export default function LibrarianSettings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoReturnReminder, setAutoReturnReminder] = useState(true);
   const [lateFeeNotification, setLateFeeNotification] = useState(true);
+  const [incidentAlerts, setIncidentAlerts] = useState(true); // Nouveau toggle pour les incidents
   const [library, setLibrary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeIncidents, setActiveIncidents] = useState([]);
+  const [showIncidentsPanel, setShowIncidentsPanel] = useState(false);
 
   useEffect(() => {
     if (user) {
-      // ✅ Utiliser la clé avec l'ID utilisateur
       const key = `user_library_${user.id}`;
       const savedLibrary = localStorage.getItem(key);
       if (savedLibrary) {
         setLibrary(JSON.parse(savedLibrary));
       }
+      fetchActiveIncidents();
     }
     setIsLoading(false);
   }, [user]);
+useEffect(() => {
+  if (user && incidentAlerts) {
+    fetchActiveIncidents();
+    const interval = setInterval(fetchActiveIncidents, 60000); // Toutes les minutes
+    return () => clearInterval(interval);
+  }
+}, [user, incidentAlerts]);
+  const fetchActiveIncidents = async () => {
+    try {
+      const incidents = await api.getLibraryIncidents();
+      const pending = incidents.filter(inc => inc.status === 'pending' && inc.severity !== 'info');
+      setActiveIncidents(pending);
+    } catch (error) {
+      console.error('Erreur chargement incidents:', error);
+    }
+  };
 
   const handleNavigateToNotifications = () => {
     router.visit('/librarian/notifications');
+  };
+
+  const handleNavigateToIncidents = () => {
+    router.visit('/librarian/incidents');
   };
 
   const handleChangeLanguage = () => {
@@ -113,6 +137,58 @@ export default function LibrarianSettings() {
         </div>
       )}
 
+      {/* Bannière d'alertes incidents */}
+      {activeIncidents.length > 0 && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <span className="font-semibold text-red-800 dark:text-red-300">Alertes incidents</span>
+            </div>
+            <button
+              onClick={() => setShowIncidentsPanel(!showIncidentsPanel)}
+              className="text-xs text-red-600 dark:text-red-400 hover:underline"
+            >
+              {showIncidentsPanel ? 'Masquer' : 'Voir détails'}
+            </button>
+          </div>
+          <p className="text-sm text-red-700 dark:text-red-300">
+            {activeIncidents.length} incident{activeIncidents.length > 1 ? 's' : ''} actif{activeIncidents.length > 1 ? 's' : ''} nécessite{activeIncidents.length > 1 ? 'nt' : ''} votre attention
+          </p>
+          
+          {showIncidentsPanel && (
+            <div className="mt-3 space-y-2">
+              {activeIncidents.slice(0, 3).map((incident) => (
+                <div key={incident.id} className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">{incident.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {incident.description?.substring(0, 60)}...
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.visit(`/librarian/incidents/${incident.id}`)}
+                      className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700"
+                    >
+                      Voir
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {activeIncidents.length > 3 && (
+                <button
+                  onClick={handleNavigateToIncidents}
+                  className="text-xs text-red-600 dark:text-red-400 hover:underline mt-2 block text-center"
+                >
+                  Voir tous les incidents ({activeIncidents.length})
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="space-y-6">
         
         {/* Apparence */}
@@ -168,6 +244,13 @@ export default function LibrarianSettings() {
             description="Être informé des retards et pénalités"
             icon={AlertCircle}
           />
+          <Toggle 
+            checked={incidentAlerts}
+            onChange={() => setIncidentAlerts(!incidentAlerts)}
+            label="Alertes incidents"
+            description="Recevoir des notifications en cas d'incident signalé"
+            icon={AlertTriangle}
+          />
         </div>
 
         {/* Gestion */}
@@ -190,6 +273,16 @@ export default function LibrarianSettings() {
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <span className="text-gray-700 dark:text-gray-300">Équipe de la bibliothèque</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+          </button>
+          <button
+            onClick={handleNavigateToIncidents}
+            className="w-full flex items-center justify-between py-3 border-t border-gray-100 dark:border-gray-800"
+          >
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <span className="text-gray-700 dark:text-gray-300">Gestion des incidents</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </button>
