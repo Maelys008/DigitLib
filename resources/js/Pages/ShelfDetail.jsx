@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, MoreHorizontal, Edit2, Trash2, BookOpen, Loader2 } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import NewBookCard from '@/Components/NewBookCard';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function ShelfDetail() {

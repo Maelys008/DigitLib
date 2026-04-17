@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Heart, BookOpen, TrendingUp, Star, Calendar, AlertCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import Shelves from './Shelves';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function Library() {

@@ -87,8 +87,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
     // --- Pénalités ---
     Route::get('/penalties', [PenaltyController::class, 'index']);
-    Route::patch('/penalties/{id}/pay', [PenaltyController::class, 'payPenalty']);
-    Route::get('/libraries/{library}/unpaid-penalties-count', [PenaltyController::class, 'getUnpaidPenaltiesCount']);
+    Route::get('/libraries/{libraryId}/penalties', [PenaltyController::class, 'getLibraryPenalties']);
+    Route::patch('/penalties/{penaltyId}/pay', [PenaltyController::class, 'payPenalty']);
+    Route::get('/libraries/{libraryId}/unpaid-penalties-count', [PenaltyController::class, 'getUnpaidPenaltiesCount']);
 
     // --- Clubs de lecture ---
     Route::get('/clubs', [ClubController::class, 'index']);

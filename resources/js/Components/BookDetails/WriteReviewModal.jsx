@@ -30,13 +30,21 @@ export default function WriteReviewModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validation de la note
     if (rating === 0) {
       setError('Veuillez donner une note');
       return;
     }
     
+    // Validation du commentaire vide
     if (!comment.trim()) {
       setError('Veuillez écrire un commentaire');
+      return;
+    }
+    
+    // Validation de la longueur minimale (10 caractères)
+    if (comment.trim().length < 10) {
+      setError(`Le commentaire doit contenir au moins 10 caractères (${comment.trim().length}/10)`);
       return;
     }
 
@@ -50,16 +58,23 @@ export default function WriteReviewModal({
       });
 
       if (res.success) {
-        const newReview = res.data.review;
+        // Récupération correcte des données de l'avis
+        let reviewData = res.data;
+        
+        // Si le backend retourne { review: {...} }
+        if (res.data && res.data.review) {
+          reviewData = res.data.review;
+        }
+        
         const formattedReview = {
-          id: newReview.id,
+          id: reviewData.id || Date.now(),
           nom: user?.name || 'Utilisateur',
-          note: rating,  
+          note: rating,
           date: new Date().toLocaleDateString('fr-FR'),
           commentaire: comment.trim(),
-          likes_count: 0,
+          likes_count: reviewData.likes_count || 0,
           is_liked: false,
-          created_at: new Date().toISOString(),
+          created_at: reviewData.created_at || new Date().toISOString(),
           user: { name: user?.name || 'Utilisateur' }
         };
 
@@ -68,15 +83,17 @@ export default function WriteReviewModal({
         }
 
         setIsSubmitted(true);
+        
+        // Fermer automatiquement après 2 secondes
         setTimeout(() => {
           onClose();
         }, 2000);
       } else {
-        setError(res.message);
+        setError(res.message || 'Erreur lors de l\'ajout de l\'avis');
       }
     } catch (error) {
-      console.error(error);
-      setError('Une erreur est survenue');
+      console.error('Submit error:', error);
+      setError(error.response?.data?.message || 'Une erreur est survenue');
     } finally {
       setIsSubmitting(false);
     }
@@ -174,10 +191,52 @@ export default function WriteReviewModal({
                   rows={4}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="L'auteur parle simplement et directement des relations complexes..."
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  placeholder="L'auteur parle simplement et directement des relations complexes... (minimum 10 caractères)"
+                  className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
+                    comment.length > 0 && comment.length < 10 
+                      ? 'border-orange-400 dark:border-orange-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  } rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent`}
                   required
                 />
+                
+                {/* Indicateur de progression des caractères */}
+                {comment.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Minimum 10 caractères
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        comment.length >= 10 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-orange-500 dark:text-orange-400'
+                      }`}>
+                        {comment.length}/10
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+                      <div 
+                        className={`h-1 rounded-full transition-all duration-300 ${
+                          comment.length >= 10 
+                            ? 'bg-green-500' 
+                            : 'bg-orange-500'
+                        }`}
+                        style={{ width: `${Math.min((comment.length / 10) * 100, 100)}%` }}
+                      />
+                    </div>
+                    {comment.length < 10 && (
+                      <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">
+                        Encore {10 - comment.length} caractère{10 - comment.length > 1 ? 's' : ''} minimum
+                      </p>
+                    )}
+                    {comment.length >= 10 && (
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        ✓ Longueur valide
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -190,7 +249,7 @@ export default function WriteReviewModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={rating === 0 || comment.trim() === '' || isSubmitting}
+                  disabled={rating === 0 || comment.trim().length < 10 || isSubmitting}
                   className="flex-1 bg-gray-900 dark:bg-gray-700 text-white font-semibold py-3 rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed shadow-md"
                 >
                   {isSubmitting ? 'Publication...' : 'Publier'}
@@ -205,5 +264,5 @@ export default function WriteReviewModal({
         </div>
       </div>
     </>
-  );
+  ); 
 }

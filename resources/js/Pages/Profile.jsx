@@ -3,8 +3,9 @@ import { Edit2, Award, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, T
 import { router } from '@inertiajs/react';
 import { useState, useEffect } from 'react'; 
 import BadgeModal from '@/Components/ProfilDetails/BadgeModal'; 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
+
 
 export default function Profile() {
   const { user: authUser, logout } = useAuth();

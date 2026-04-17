@@ -418,34 +418,38 @@ async getPartnerLibraries() {
     }
 
     // ==================== PÉNALITÉS ====================
-    async getPenalties() {
-        try {
-            const response = await this.axios.get("/penalties");
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching penalties:", error);
-            return [];
+async getPenalties(libraryId = null) {
+    try {
+        let url = '/penalties';
+        if (libraryId) {
+            url = `/libraries/${libraryId}/penalties`;
         }
+        const response = await this.axios.get(url);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching penalties:", error);
+        return [];
     }
+}
 
-    async payPenalty(penaltyId) {
-        try {
-            const response = await this.axios.patch(`/penalties/${penaltyId}/pay`);
-            return { success: true, data: response.data };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors du paiement" };
-        }
+async payPenalty(penaltyId) {
+    try {
+        const response = await this.axios.patch(`/penalties/${penaltyId}/pay`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || "Erreur lors du paiement" };
     }
+}
 
-    async getUnpaidPenaltiesCount(libraryId) {
-        try {
-            const response = await this.axios.get(`/libraries/${libraryId}/unpaid-penalties-count`);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching unpaid penalties count:", error);
-            return { count: 0 };
-        }
+async getUnpaidPenaltiesCount(libraryId) {
+    try {
+        const response = await this.axios.get(`/libraries/${libraryId}/unpaid-penalties-count`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching unpaid penalties count:", error);
+        return { count: 0 };
     }
+}
 
     // ==================== NOTIFICATIONS ====================
     async getNotifications() {
@@ -489,14 +493,14 @@ async getPartnerLibraries() {
         }
     }
 
-    async addReview(bookId, data) {
-        try {
-            const response = await this.axios.post(`/books/${bookId}/reviews`, data);
-            return { success: true, data: response.data };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout de l'avis" };
-        }
+   async addReview(bookId, data) {
+    try {
+        const response = await this.axios.post(`/books/${bookId}/reviews`, data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout de l'avis" };
     }
+}
 
     async likeReview(reviewId) {
         try {

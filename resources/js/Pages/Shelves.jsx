@@ -2,7 +2,7 @@ import MobileLayout from '@/Layouts/MobileLayout';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Plus, BookOpen, Loader2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function Shelves() {

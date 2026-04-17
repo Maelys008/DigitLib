@@ -9,7 +9,7 @@ import BookHeader from '@/Components/BookDetails/BookHeader';
 import BorrowButton from '@/Components/BookDetails/BorrowButton';
 import ReviewSection from '@/Components/BookDetails/ReviewSection';
 import LibraryJoinButton from '@/Components/BookDetails/LibraryJoinButton';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function BookDetail() {

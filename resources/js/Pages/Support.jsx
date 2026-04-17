@@ -6,7 +6,7 @@ import {
   HelpCircle, Star, Zap, Shield, Gift, Sparkles, ArrowLeft
 } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function Support() {

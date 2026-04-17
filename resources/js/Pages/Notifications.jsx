@@ -2,7 +2,7 @@ import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
 import { Bell, BookOpen, Clock, AlertCircle, CheckCircle2, Mail, MailOpen, Info, AlertTriangle } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 
 export default function Notifications() {

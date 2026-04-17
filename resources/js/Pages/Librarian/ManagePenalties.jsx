@@ -22,12 +22,17 @@ export default function ManagePenalties() {
       setIsLoading(true);
       
       try {
+        // Récupérer toutes les bibliothèques de l'utilisateur
         const libraries = await api.getUserLibraries();
+        
+        // Trouver la bibliothèque où l'utilisateur est admin
         const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
         
         if (userLibrary) {
           setLibrary(userLibrary);
-          await loadPenalties();
+          await loadPenalties(userLibrary.id); // Passer l'ID de la bibliothèque
+        } else {
+          setMessage({ type: 'error', text: 'Vous n\'êtes administrateur d\'aucune bibliothèque' });
         }
       } catch (error) {
         console.error('Erreur chargement données:', error);
@@ -40,10 +45,12 @@ export default function ManagePenalties() {
     loadData();
   }, [user]);
 
-  const loadPenalties = async () => {
+  // Modifier loadPenalties pour accepter libraryId
+  const loadPenalties = async (libraryId) => {
     try {
-      const penalties = await api.getPenalties();
-      console.log('Toutes les pénalités de la base:', penalties);
+      // Passer l'ID de la bibliothèque pour ne récupérer que ses pénalités
+      const penalties = await api.getPenalties(libraryId);
+      console.log(`Pénalités de la bibliothèque ${libraryId}:`, penalties);
       setAllPenalties(penalties);
     } catch (error) {
       console.error('Erreur chargement pénalités:', error);
@@ -59,7 +66,10 @@ export default function ManagePenalties() {
       
       if (result.success) {
         setMessage({ type: 'success', text: 'Pénalité réglée avec succès !' });
-        await loadPenalties();
+        // Recharger les pénalités avec l'ID de la bibliothèque
+        if (library) {
+          await loadPenalties(library.id);
+        }
       } else {
         setMessage({ type: 'error', text: result.message });
       }
@@ -111,7 +121,13 @@ export default function ManagePenalties() {
     return (
       <MobileLayout>
         <div className="p-6 text-center">
-          <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
+          <p className="text-gray-500 dark:text-gray-400">Vous n'êtes administrateur d'aucune bibliothèque</p>
+          <button
+            onClick={() => router.visit('/librarian/dashboard')}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            Retour au tableau de bord
+          </button>
         </div>
       </MobileLayout>
     );
@@ -242,9 +258,9 @@ export default function ManagePenalties() {
               <CheckCircle className="w-16 h-16 text-green-300 dark:text-green-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 font-medium">Aucune pénalité trouvée</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                {filterStatus === 'paid' ? 'Aucune pénalité payée pour le moment' :
-                 filterStatus === 'unpaid' ? 'Toutes les pénalités ont été réglées' :
-                 'Aucune pénalité dans la base de données'}
+                {filterStatus === 'paid' ? 'Aucune pénalité payée pour cette bibliothèque' :
+                 filterStatus === 'unpaid' ? 'Toutes les pénalités de cette bibliothèque ont été réglées' :
+                 'Aucune pénalité pour cette bibliothèque'}
               </p>
             </div>
           ) : (

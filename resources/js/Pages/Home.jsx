@@ -8,7 +8,7 @@ import { genreIcons } from '@/Constants/genreIcons';
 import GenreCard from '@/Components/GenreCard';
 import NewBookCard from '@/Components/NewBookCard';
 import { getBookCountByGenre } from '../utils/getBookCountByGenre';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 import LibraryCard from '@/Components/HomeLibDetails/LibraryCard';
 import { Building2 } from 'lucide-react';

@@ -6,7 +6,7 @@ import MobileLayout from '@/Layouts/MobileLayout';
 import HorizontalScroll from '@/Components/HorizontalScroll';
 import NewBookCard from '@/Components/NewBookCard';
 import Pagination from '@/Components/Pagination';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const normalizeBook = (book) => ({
   ...book,

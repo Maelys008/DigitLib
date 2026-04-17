@@ -2,7 +2,7 @@ import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Heart, Star, Loader2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 import NewBookCard from '@/Components/NewBookCard'
 

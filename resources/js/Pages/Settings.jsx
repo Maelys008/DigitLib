@@ -2,7 +2,7 @@ import MobileLayout from '@/Layouts/MobileLayout';
 import { useState } from 'react';
 import { ArrowLeft, Moon, Globe, Bell, ChevronRight, Building, LogOut } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function Settings() {

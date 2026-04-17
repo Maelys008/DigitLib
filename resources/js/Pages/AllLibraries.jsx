@@ -4,7 +4,7 @@ import { router } from '@inertiajs/react';
 import MobileLayout from '@/Layouts/MobileLayout';
 import api from '../services/api';
 import LibraryCard from '@/Components/HomeLibDetails/LibraryCard';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AllLibraries() {
   const { isAuthenticated } = useAuth();
