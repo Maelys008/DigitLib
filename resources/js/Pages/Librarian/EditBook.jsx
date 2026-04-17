@@ -15,7 +15,7 @@ const genresList = [
 export default function EditBook() {
   const { props } = usePage();
   const { id } = props;
-  const { user } = useAuth(); // ← Ajout de useAuth pour cohérence
+  const { user } = useAuth();
   const [book, setBook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +28,7 @@ export default function EditBook() {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    genre: '',
+    genre_id: '',
     isbn: '',
     description: '',
     year_of_publication: '',
@@ -40,28 +40,54 @@ export default function EditBook() {
   useEffect(() => {
     const fetchBook = async () => {
       try {
+        console.log('🔍 Chargement du livre ID:', id);
         const response = await api.getBook(id);
+        console.log('📚 Réponse API:', response);
         setBook(response);
         
-        // Remplir le formulaire avec les données du livre
-        const year = response.year_of_publication ? response.year_of_publication.split('T')[0] : '';
+        // CORRECTION: Gérer year_of_publication correctement
+        let yearValue = '';
+        if (response.year_of_publication) {
+          // Si c'est un nombre
+          if (typeof response.year_of_publication === 'number') {
+            yearValue = response.year_of_publication.toString();
+          }
+          // Si c'est une chaîne
+          else if (typeof response.year_of_publication === 'string') {
+            yearValue = response.year_of_publication.split('T')[0];
+          }
+          // Si c'est un objet Date
+          else if (response.year_of_publication instanceof Date) {
+            yearValue = response.year_of_publication.getFullYear().toString();
+          }
+          // Fallback
+          else {
+            yearValue = String(response.year_of_publication);
+          }
+        }
+        
+        // Récupérer l'ID du genre
+        const genreId = response.genre_id || response.genre?.id || '';
+        
+        const coverImagePath = response.cover_image || response.cover_url;
+        
         setFormData({
           title: response.title || '',
           author: response.author || '',
-          genre: response.genre || '',
+          genre_id: genreId,
           isbn: response.isbn || '',
           description: response.description || '',
-          year_of_publication: year,
+          year_of_publication: yearValue,
           nb_copy: response.nb_copy || 1,
           nb_available: response.nb_available || 1,
           cover_image: null
         });
         
-        if (response.cover_url) {
-          setCoverPreview(response.cover_url);
+        if (coverImagePath) {
+          setCoverPreview(`/storage/${coverImagePath}`);
         }
       } catch (error) {
-        console.error('Erreur chargement livre:', error);
+        console.error('❌ Erreur chargement livre:', error);
         setError('Livre non trouvé');
       } finally {
         setIsLoading(false);
@@ -134,14 +160,14 @@ export default function EditBook() {
     setError('');
 
     const data = new FormData();
+    data.append('_method', 'PUT');
     data.append('title', formData.title);
     data.append('author', formData.author);
-    data.append('genre', formData.genre);
+    data.append('genre_id', formData.genre_id);
     data.append('isbn', formData.isbn);
     data.append('description', formData.description);
     data.append('year_of_publication', formData.year_of_publication);
     data.append('nb_copy', formData.nb_copy);
-    data.append('nb_available', formData.nb_available);
     
     if (newCoverFile) {
       data.append('cover_image', newCoverFile);
@@ -152,10 +178,11 @@ export default function EditBook() {
       if (response.success) {
         router.visit('/librarian/books');
       } else {
-        setError(response.message);
+        setError(response.message || 'Erreur lors de la modification');
       }
     } catch (err) {
-      setError('Erreur lors de la modification');
+      console.error('Erreur:', err);
+      setError(err.response?.data?.message || 'Erreur lors de la modification');
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +238,7 @@ export default function EditBook() {
       </div>
 
       <div className="p-6 max-w-2xl mx-auto">
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
               {error}
@@ -282,8 +309,8 @@ export default function EditBook() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Genre *</label>
             <select
-              name="genre"
-              value={formData.genre}
+              name="genre_id"
+              value={formData.genre_id}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
               required
@@ -312,10 +339,12 @@ export default function EditBook() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Année de publication *</label>
             <input 
-              type="date" 
+              type="number" 
               name="year_of_publication" 
               value={formData.year_of_publication} 
               onChange={handleChange} 
+              min="1000"
+              max={new Date().getFullYear()}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600" 
               required 
             />

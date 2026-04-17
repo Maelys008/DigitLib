@@ -88,7 +88,7 @@ export default function NewBookCard({ livre, onClick, className = "" }) {
         <div
             onClick={handleClick}
             className={`
-                flex gap-4 bg-[#F6F6F6] rounded-xl p-3
+                flex gap-4 bg-[#F6F6F6] dark:bg-gray-800 rounded-xl p-3
                 shadow-sm hover:shadow-md transition-all cursor-pointer
                 ${className}
             `}
@@ -106,32 +106,32 @@ export default function NewBookCard({ livre, onClick, className = "" }) {
 
             <div className="flex-1 flex flex-col justify-between">
                 <div className="flex items-start justify-between mb-1">
-                    <h3 className="font-bold text-gray-900 text-base line-clamp-2 pr-2">
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-2 pr-2">
                         {livre.titre}
                     </h3>
 
                     <button
                         onClick={handleLikeClick}
                         disabled={isToggling}
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
                     >
                         <Heart
                             className={`w-5 h-5 transition-colors ${
                                 isLiked
-                                    ? "fill-[#1C1C1C]  text-[#1C1C1C] "
-                                    : "text-gray-400 hover:text-[#1C1C1C] "
+                                    ? "fill-[#1C1C1C] dark:fill-white text-[#1C1C1C] dark:text-white"
+                                    : "text-gray-400 dark:text-gray-500 hover:text-[#1C1C1C] dark:hover:text-white"
                             }`}
                         />
                     </button>
                 </div>
 
-                <p className="text-sm text-gray-500 line-clamp-1 mb-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
                     {livre.auteur}
                 </p>
 
                 <div className="flex justify-end mt-2">
                     {livre.note !== undefined && livre.note !== null && (
-                        <div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
+                        <div className="flex items-center gap-1 bg-[#1C1C1C] dark:bg-gray-700 text-white px-2 py-1 rounded-md">
                             <span className="text-xs font-medium">{livre.note}</span>
                         </div>
                     )}

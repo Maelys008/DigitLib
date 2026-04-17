@@ -28,7 +28,6 @@ export default function EditShelf() {
     const loadShelfAndFavorites = async () => {
         setIsLoading(true);
         try {
-            // Charger l'étagère
             const shelfData = await api.getShelf(id);
             setShelfName(shelfData.name);
             setShelfDescription(shelfData.description || '');
@@ -36,7 +35,6 @@ export default function EditShelf() {
             setCurrentBooks(shelfData.books || []);
             setSelectedBooks(shelfData.books || []);
 
-            // Charger les favoris
             const favoritesData = await api.getFavorites();
             const books = favoritesData.map(fav => fav.book);
             setFavoris(books);
@@ -79,24 +77,20 @@ export default function EditShelf() {
         setIsSubmitting(true);
         
         try {
-            // 1. Mettre à jour l'étagère
             await api.updateShelf(id, {
                 name: shelfName,
                 description: shelfDescription,
                 cover_image: shelfImage
             });
             
-            // 2. Gérer les livres (supprimer les livres retirés)
             const currentBookIds = currentBooks.map(b => b.id);
             const selectedBookIds = selectedBooks.map(b => b.id);
             
-            // Livres à retirer
             const toRemove = currentBookIds.filter(id => !selectedBookIds.includes(id));
             for (const bookId of toRemove) {
                 await api.removeBookFromShelf(id, bookId);
             }
             
-            // Livres à ajouter
             const toAdd = selectedBookIds.filter(id => !currentBookIds.includes(id));
             for (const bookId of toAdd) {
                 await api.addBookToShelf(id, bookId);
@@ -114,7 +108,7 @@ export default function EditShelf() {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
             </MobileLayout>
         );
@@ -126,20 +120,20 @@ export default function EditShelf() {
                 <div className="flex items-center gap-4 mb-6">
                     <button 
                         onClick={() => router.visit(`/shelves/${id}`)}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
-                        <ArrowLeft className="w-6 h-6 text-gray-600" />
+                        <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Modifier l'étagère</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Modifier l'étagère</h1>
                 </div>
 
                 {/* Image */}
                 <div className="mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Image de couverture</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image de couverture</p>
                     <div className="flex items-center gap-4">
                         <div 
                             onClick={handleImageClick}
-                            className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border border-gray-200"
+                            className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border border-gray-200 dark:border-gray-700"
                         >
                             {shelfImage ? (
                                 <img 
@@ -148,12 +142,12 @@ export default function EditShelf() {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <Camera className="w-6 h-6 text-gray-400" />
+                                <Camera className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                             )}
                         </div>
                         <button
                             onClick={handleImageClick}
-                            className="text-sm text-purple-600 font-medium"
+                            className="text-sm text-purple-600 dark:text-purple-400 font-medium"
                         >
                             Changer l'image
                         </button>
@@ -169,33 +163,33 @@ export default function EditShelf() {
 
                 {/* Nom */}
                 <div className="mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Nom de l'étagère *</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom de l'étagère *</p>
                     <input
                         type="text"
                         value={shelfName}
                         onChange={(e) => setShelfName(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900 dark:text-white"
                     />
                 </div>
 
                 {/* Description */}
                 <div className="mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Description</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</p>
                     <textarea
                         value={shelfDescription}
                         onChange={(e) => setShelfDescription(e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none text-gray-900 dark:text-white"
                     />
                 </div>
 
                 {/* Livres favoris */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold text-gray-900">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                             Livres dans cette étagère
                         </h2>
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm text-gray-400 dark:text-gray-500">
                             {selectedBooks.length} livre{selectedBooks.length > 1 ? 's' : ''}
                         </span>
                     </div>
@@ -207,8 +201,8 @@ export default function EditShelf() {
                                 onClick={() => handleCheckboxChange(livre)}
                                 className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${
                                     selectedBooks.some(book => book.id === livre.id)
-                                        ? 'bg-purple-50 border-purple-300'
-                                        : 'bg-white border-gray-100 hover:border-purple-200'
+                                        ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700'
+                                        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700'
                                 }`}
                             >
                                 <div className="flex items-center gap-3 flex-1">
@@ -219,10 +213,10 @@ export default function EditShelf() {
                                         onError={(e) => e.target.src = '/placeholder-book.jpg'}
                                     />
                                     <div className="flex-1">
-                                        <h3 className="font-medium text-gray-900 text-sm line-clamp-1">
+                                        <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-1">
                                             {livre.title}
                                         </h3>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                             {livre.author}
                                         </p>
                                     </div>
@@ -230,7 +224,7 @@ export default function EditShelf() {
                                 <div className={`w-5 h-5 rounded border-2 transition-colors ${
                                     selectedBooks.some(book => book.id === livre.id)
                                         ? 'bg-purple-600 border-purple-600'
-                                        : 'border-gray-300'
+                                        : 'border-gray-300 dark:border-gray-600'
                                 }`}>
                                     {selectedBooks.some(book => book.id === livre.id) && (
                                         <svg className="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -246,7 +240,7 @@ export default function EditShelf() {
                 <button
                     onClick={handleSave}
                     disabled={!shelfName || isSubmitting}
-                    className="w-full bg-purple-600 text-white font-semibold py-4 rounded-xl hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-purple-600 dark:bg-purple-500 text-white font-semibold py-4 rounded-xl hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {isSubmitting ? (
                         <>

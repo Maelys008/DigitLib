@@ -26,7 +26,6 @@ export default function Favorites() {
     if (isAuthenticated) {
       fetchFavorites();
     } else {
-      // Pour les utilisateurs non connectés, utiliser localStorage
       const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       setFavorites(savedFavorites);
       setIsLoading(false);
@@ -37,7 +36,6 @@ export default function Favorites() {
     setIsLoading(true);
     try {
       const data = await api.getFavorites();
-      // Transformer les données
       const books = data.map(fav => normalizeBook(fav.book));
       setFavorites(books);
     } catch (error) {
@@ -54,7 +52,6 @@ export default function Favorites() {
     try {
       const result = await api.toggleFavorite(bookId);
       if (result.success) {
-        // Retirer de la liste
         setFavorites(prev => prev.filter(book => book.id !== bookId));
       }
     } catch (error) {
@@ -68,7 +65,7 @@ export default function Favorites() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
         </div>
       </MobileLayout>
     );
@@ -80,17 +77,17 @@ export default function Favorites() {
         <div className="flex items-center gap-4 mb-6">
           <button 
             onClick={() => router.visit('/library')}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-pink-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Mes favoris</h1>
+            <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mes favoris</h1>
           </div>
         </div>
 
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {favorites.length} livre{favorites.length > 1 ? 's' : ''} dans vos favoris
         </p>
         
@@ -105,12 +102,12 @@ export default function Favorites() {
                 <button
                   onClick={(e) => handleRemoveFavorite(livre.id, e)}
                   disabled={removingId === livre.id}
-                  className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   {removingId === livre.id ? (
-                    <Loader2 className="w-4 h-4 text-bg-[#1C1C1C] animate-spin" />
+                    <Loader2 className="w-4 h-4 text-gray-900 dark:text-white animate-spin" />
                   ) : (
-                    <Heart className="w-4 h-4 text-bg-[#1C1C1C] fill-gray-900" />
+                    <Heart className="w-4 h-4 text-gray-900 dark:text-white fill-gray-900 dark:fill-white" />
                   )}
                 </button>
               </div>
@@ -118,9 +115,9 @@ export default function Favorites() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">Aucun favori pour le moment</p>
-            <p className="text-xs text-gray-400 mt-2">
+            <Heart className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Aucun favori pour le moment</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               Ajoutez des livres en cliquant sur le cœur
             </p>
             <button

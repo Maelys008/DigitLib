@@ -53,7 +53,7 @@ export default function Shelves() {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
             </MobileLayout>
         );
@@ -65,25 +65,24 @@ export default function Shelves() {
                 <div className="flex items-center gap-4 mb-6">
                     <button 
                         onClick={() => router.visit('/library')}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
-                        <ArrowLeft className="w-6 h-6 text-gray-600" />
+                        <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Étagères</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Étagères</h1>
                 </div>
 
                 {shelves.length === 0 ? (
                     <div className="text-center py-12">
-                        <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 text-sm">Aucune étagère pour le moment</p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune étagère pour le moment</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                             Créez votre première étagère pour organiser vos livres
                         </p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-4 mb-8">
                         {shelves.map((shelf) => {
-                            // CORRECTION : utiliser shelf_image au lieu de cover_image
                             const imageUrl = getImageUrl(shelf.shelf_image);
                             return (
                                 <div
@@ -102,16 +101,16 @@ export default function Shelves() {
                                                 }}
                                             />
                                         ) : (
-                                            <div className="w-full h-full rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                                                <BookOpen className="w-8 h-8 text-orange-600" />
+                                            <div className="w-full h-full rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/20 flex items-center justify-center">
+                                                <BookOpen className="w-8 h-8 text-orange-600 dark:text-orange-400" />
                                             </div>
                                         )}
                                     </div>
                                     <div className="text-left">
-                                        <h3 className="text-[14px] font-bold text-black leading-tight line-clamp-2">
+                                        <h3 className="text-[14px] font-bold text-black dark:text-white leading-tight line-clamp-2">
                                             {shelf.name}
                                         </h3>
-                                        <p className="text-[12px] text-gray-400 mt-0.5">
+                                        <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
                                             {shelf.books_count} livre{shelf.books_count > 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -124,7 +123,7 @@ export default function Shelves() {
                 <div className="px-4 pb-10">
                     <button
                         onClick={handleCreateShelf}
-                        className="w-full bg-[#1C1C1E] text-white font-medium py-4 rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                        className="w-full bg-[#1C1C1E] dark:bg-orange-500 text-white font-medium py-4 rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
                         Créer une étagère

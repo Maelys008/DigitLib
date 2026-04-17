@@ -88,7 +88,7 @@ export default function Library() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -97,14 +97,14 @@ export default function Library() {
   return (
     <MobileLayout>
       <div className="px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Bibliothèque</h1>
-        <div className="flex gap-4 mb-6 border-b border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Bibliothèque</h1>
+        <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('books')}
             className={`pb-2 px-1 font-medium text-sm transition-colors ${
               activeTab === 'books'
-                ? 'text-orange-600 border-b-2 border-orange-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600 dark:border-orange-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Tous les livres
@@ -113,8 +113,8 @@ export default function Library() {
             onClick={() => setActiveTab('shelves')}
             className={`pb-2 px-1 font-medium text-sm transition-colors ${
               activeTab === 'shelves'
-                ? 'text-orange-600 border-b-2 border-orange-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600 dark:border-orange-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Étagères
@@ -126,19 +126,19 @@ export default function Library() {
             {/* SECTION EMPRUNTS EN COURS */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Mes emprunts en cours
                 </h2>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
                   {activeLoans.length} livre{activeLoans.length > 1 ? 's' : ''}
                 </span>
               </div>
               
               {activeLoans.length === 0 ? (
-                <div className="text-center py-12 bg-[#F6F6F6] rounded-xl">
-                  <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">Aucun emprunt en cours</p>
-                  <p className="text-xs text-gray-400 mt-2">
+                <div className="text-center py-12 bg-[#F6F6F6] dark:bg-gray-800 rounded-xl">
+                  <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Aucun emprunt en cours</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                     Les livres que vous emprunterez apparaîtront ici
                   </p>
                 </div>
@@ -152,7 +152,7 @@ export default function Library() {
                     return (
                       <div
                         key={book.id}
-                        className="bg-[#F6F6F6] rounded-xl p-4 shadow-sm border border-gray-100"
+                        className="bg-[#F6F6F6] dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
                       >
                         <div className="flex gap-3">
                           <img
@@ -163,20 +163,20 @@ export default function Library() {
                           />
                           
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 text-base line-clamp-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-base line-clamp-1">
                               {book.titre}
                             </h3>
-                            <p className="text-sm text-gray-500 mb-2">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                               {book.auteur}
                             </p>
                             
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
                               <Calendar className="w-3 h-3" />
                               <span>Emprunté le {new Date(book.loan_date).toLocaleDateString('fr-FR')}</span>
                             </div>
                             
                             <div className={`flex items-center gap-2 text-xs mb-2 ${
-                              isOverdue ? 'text-red-600' : isDueSoon ? 'text-orange-600' : 'text-gray-500'
+                              isOverdue ? 'text-red-600 dark:text-red-400' : isDueSoon ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'
                             }`}>
                               <AlertCircle className="w-3 h-3" />
                               <span>
@@ -189,15 +189,15 @@ export default function Library() {
                             
                             <div className="mt-2">
                               <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                   <TrendingUp className="w-3 h-3" />
                                   <span>Progression</span>
                                 </div>
-                                <span className="text-xs font-semibold text-purple-600">
+                                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
                                   {book.progress}%
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                 <div
                                   className="bg-gradient-to-r from-purple-500 to-blue-500 h-1.5 rounded-full transition-all"
                                   style={{ width: `${book.progress}%` }}
@@ -218,17 +218,17 @@ export default function Library() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => router.visit('/favorites')}
-                  className="flex items-center px-4 py-3 bg-[#F6F6F6] rounded-xl w-full transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
+                  className="flex items-center px-4 py-3 bg-[#F6F6F6] dark:bg-gray-800 rounded-xl w-full transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
                 >
-                  <Heart className="w-5 h-5 text-gray-700 mr-3" />
-                  <span className="text-gray-900 font-medium">Favoris</span>
+                  <Heart className="w-5 h-5 text-gray-700 dark:text-gray-300 mr-3" />
+                  <span className="text-gray-900 dark:text-white font-medium">Favoris</span>
                 </button>
                 <button
                   onClick={() => router.visit('/read-books')}
-                  className="flex items-center px-4 py-3 bg-[#F6F6F6] rounded-xl w-full transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
+                  className="flex items-center px-4 py-3 bg-[#F6F6F6] dark:bg-gray-800 rounded-xl w-full transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
                 >
-                  <BookOpen className="w-5 h-5 text-gray-700 mr-3" />
-                  <span className="text-gray-900 font-medium">Déjà lus</span>
+                  <BookOpen className="w-5 h-5 text-gray-700 dark:text-gray-300 mr-3" />
+                  <span className="text-gray-900 dark:text-white font-medium">Déjà lus</span>
                 </button>
               </div>
             </div>

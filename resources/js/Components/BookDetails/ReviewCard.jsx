@@ -74,8 +74,8 @@ export default function ReviewCard({
     : `${commentText.substring(0, 120)}${shouldTruncate ? '...' : ''}`;
 
   return (
-    <div className={`${variant === 'list' ? 'border-b border-gray-100 last:border-0' : ''}`}>
-      <div className={`${variant === 'list' ? 'py-4' : 'bg-gray-50 rounded-xl p-4'} ${className}`}>
+    <div className={`${variant === 'list' ? 'border-b border-gray-100 dark:border-gray-700 last:border-0' : ''}`}>
+      <div className={`${variant === 'list' ? 'py-4' : 'bg-gray-50 dark:bg-gray-800 rounded-xl p-4'} ${className}`}>
         <div className="flex items-start gap-3 mb-2">
           <div className={`w-10 h-10 rounded-full ${getAvatarColor(userName)} flex items-center justify-center text-white font-medium text-sm flex-shrink-0`}>
             {getInitials(userName)}
@@ -84,32 +84,32 @@ export default function ReviewCard({
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium text-gray-900">{userName}</span>
-                <p className="text-xs text-gray-400 mt-0.5">{reviewDate}</p>
+                <span className="font-medium text-gray-900 dark:text-white">{userName}</span>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{reviewDate}</p>
               </div>
               
               <div className="flex items-center gap-3">
                 {rating > 0 && (
-                  <div className="flex items-center gap-1 bg-[#1C1C1C] text-white px-2 py-1 rounded-md">
+                  <div className="flex items-center gap-1 bg-[#1C1C1C] dark:bg-gray-700 text-white px-2 py-1 rounded-md">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs font-medium">{rating.toFixed(1)}</span>
+                    <span className="text-xs font-medium text-white">{rating.toFixed(1)}</span>
                   </div>
                 )}
                 
                 <button
                   onClick={handleLike}
                   disabled={isLiking}
-                  className="flex items-center gap-1 hover:bg-gray-100 rounded-full px-2 py-1 transition-colors"
+                  className="flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full px-2 py-1 transition-colors"
                 >
                   <Heart 
                     className={`w-4 h-4 transition-colors ${
                       isLiked 
                         ? 'fill-red-500 text-red-500' 
-                        : 'text-gray-400 hover:text-red-500'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400'
                     }`} 
                   />
                   {likesCount > 0 && (
-                    <span className="text-xs text-gray-500">{likesCount}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{likesCount}</span>
                   )}
                 </button>
               </div>
@@ -118,12 +118,12 @@ export default function ReviewCard({
         </div>
         
         <div className="pl-13"> 
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             {displayedComment}
             {shouldTruncate && (
               <button 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="text-purple-600 text-xs ml-1 hover:text-purple-700 transition-colors"
+                className="text-purple-600 dark:text-purple-400 text-xs ml-1 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
               >
                 {isExpanded ? 'Réduire' : 'Lire la suite'}
               </button>

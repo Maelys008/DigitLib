@@ -35,11 +35,11 @@ export default function LoanCard({
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) {
-      return { text: `Retard de ${Math.abs(diffDays)}j`, color: 'text-red-600', bg: 'bg-red-50' };
+      return { text: `Retard de ${Math.abs(diffDays)}j`, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' };
     } else if (diffDays <= 3) {
-      return { text: `${diffDays}j restants`, color: 'text-orange-600', bg: 'bg-orange-50' };
+      return { text: `${diffDays}j restants`, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' };
     } else {
-      return { text: `${diffDays}j restants`, color: 'text-green-600', bg: 'bg-green-50' };
+      return { text: `${diffDays}j restants`, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' };
     }
   };
 
@@ -55,14 +55,14 @@ export default function LoanCard({
   return (
     <div 
       className={`
-        flex gap-4 bg-white rounded-xl p-4
+        flex gap-4 bg-white dark:bg-gray-800 rounded-xl p-4
         shadow-sm hover:shadow-md transition-all
-        border border-gray-100
+        border border-gray-100 dark:border-gray-700
         ${className}
       `}
     >
       {/* Image du livre */}
-      <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+      <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
         <img 
           src={book?.cover_url || book?.cover_image || '/placeholder-book.jpg'} 
           alt={book?.title}
@@ -75,20 +75,20 @@ export default function LoanCard({
 
       <div className="flex-1 flex flex-col">
         {/* Titre du livre */}
-        <h3 className="font-bold text-gray-900 text-base line-clamp-2 mb-1">
+        <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-2 mb-1">
           {book?.title}
         </h3>
 
         {/* Auteur */}
-        <p className="text-sm text-gray-500 mb-2">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
           {book?.author || 'Auteur inconnu'}
         </p>
 
         {/* Informations utilisateur */}
-        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
           <User className="w-3 h-3" />
           <span>{user?.name || 'Utilisateur'}</span>
-          <span className="text-gray-300">•</span>
+          <span className="text-gray-300 dark:text-gray-600">•</span>
           <Calendar className="w-3 h-3" />
           <span>
             {type === 'loan' ? 'Emprunté le' : 'Réservé le'} : {new Date(loanDate).toLocaleDateString()}
@@ -97,13 +97,13 @@ export default function LoanCard({
 
         {/* Statut "En attente de retrait" */}
         {isPendingPickup && (
-          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-yellow-50 w-fit mb-3">
-            <Clock className="w-3.5 h-3.5 text-yellow-600" />
-            <span className="text-xs font-medium text-yellow-600">
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 w-fit mb-3">
+            <Clock className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+            <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
               En attente de retrait
             </span>
             {loan.pickup_deadline && (
-              <span className="text-xs text-gray-500 ml-1">
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                 (avant le {new Date(loan.pickup_deadline).toLocaleString()})
               </span>
             )}
@@ -117,7 +117,7 @@ export default function LoanCard({
             <span className={`text-xs font-medium ${daysInfo.color}`}>
               {daysInfo.text}
             </span>
-            <span className="text-xs text-gray-500 ml-1">
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
               (jusqu'au {new Date(expectedDate).toLocaleDateString()})
             </span>
           </div>
@@ -126,13 +126,13 @@ export default function LoanCard({
         {/* Statut de réservation */}
         {type === 'reservation' && status && (
           <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg w-fit mb-3 ${
-            status === 'notified' ? 'bg-orange-50' : 'bg-blue-50'
+            status === 'notified' ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'
           }`}>
             <AlertCircle className={`w-3.5 h-3.5 ${
-              status === 'notified' ? 'text-orange-600' : 'text-blue-600'
+              status === 'notified' ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'
             }`} />
             <span className={`text-xs font-medium ${
-              status === 'notified' ? 'text-orange-600' : 'text-blue-600'
+              status === 'notified' ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'
             }`}>
               {status === 'notified' ? 'À récupérer' : 'En attente'}
             </span>
@@ -146,7 +146,7 @@ export default function LoanCard({
             <button
               onClick={handleConfirmPickup}
               disabled={isConfirming}
-              className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+              className="px-4 py-1.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50"
             >
               {isConfirming ? 'Confirmation...' : 'Confirmer le retrait'}
             </button>
@@ -157,7 +157,7 @@ export default function LoanCard({
             <button
               onClick={handleReturn}
               disabled={isReturning}
-              className="px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+              className="px-4 py-1.5 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50"
             >
               {isReturning ? 'Traitement...' : 'Retourner'}
             </button>

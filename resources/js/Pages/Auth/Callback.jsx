@@ -58,25 +58,25 @@ export default function Callback() {
 
   if (status === 'error') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center p-6">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-500 text-3xl">⚠️</span>
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-500 dark:text-red-400 text-3xl">⚠️</span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur de connexion</h2>
-          <p className="text-gray-600">{error}</p>
-          <p className="text-gray-400 text-sm mt-4">Redirection...</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Erreur de connexion</h2>
+          <p className="text-gray-600 dark:text-gray-400">{error}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-4">Redirection...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center p-6">
       <div className="text-center">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Connexion en cours...</h2>
-        <p className="text-gray-500">Veuillez patienter</p>
+        <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-black dark:border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Connexion en cours...</h2>
+        <p className="text-gray-500 dark:text-gray-400">Veuillez patienter</p>
       </div>
     </div>
   );

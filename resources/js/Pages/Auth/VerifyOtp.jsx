@@ -108,28 +108,28 @@ export default function VerifyOtp() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <div className="flex items-center px-6 pt-6">
         <button onClick={handleBack} className="p-2 -ml-2">
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Code de vérification</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Code de vérification</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Nous avons envoyé un code à 6 chiffres à
           </p>
-          <p className="text-black font-semibold mt-1">{email}</p>
+          <p className="text-black dark:text-orange-400 font-semibold mt-1">{email}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-start gap-2">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-2">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -146,22 +146,22 @@ export default function VerifyOtp() {
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50"
+                className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             ))}
           </div>
 
           <div className="text-center">
             {timer > 0 ? (
-              <p className="text-sm text-gray-500">
-                Code expire dans <span className="font-semibold text-black">{formatTime(timer)}</span>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Code expire dans <span className="font-semibold text-black dark:text-orange-400">{formatTime(timer)}</span>
               </p>
             ) : (
               <button
                 type="button"
                 onClick={handleResend}
                 disabled={isLoading}
-                className="text-sm text-black font-semibold hover:underline"
+                className="text-sm text-black dark:text-orange-400 font-semibold hover:underline"
               >
                 Renvoyer le code
               </button>
@@ -171,7 +171,7 @@ export default function VerifyOtp() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isLoading ? 'Vérification...' : 'Vérifier'}
           </button>

@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 export default function EditProfile() {
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
   const [profileImage, setProfileImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,7 +24,7 @@ export default function EditProfile() {
   const fetchProfileData = async () => {
     try {
       const profileData = await api.getProfile();
-      if (profileData) {
+      if (profileData && profileData.user) {
         setFormData({
           name: profileData.user.name || '',
           tel: profileData.user.tel || '',
@@ -76,45 +76,46 @@ export default function EditProfile() {
     }
   };
 
-const handleSave = async () => {
-    if (!shelfName.trim()) return;
-    
-    setIsSubmitting(true);
+  const handleSave = async () => {
+    setIsLoading(true);
+    setErrors({});
     
     try {
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        formData.append('name', shelfName);
-        if (shelfDescription) formData.append('description', shelfDescription);
-        
-        // CORRECTION : envoyer 'shelf_image'
-        if (fileInputRef.current.files[0]) {
-            formData.append('shelf_image', fileInputRef.current.files[0]);
+      // Validation
+      if (!formData.name.trim()) {
+        setErrors(prev => ({ ...prev, name: 'Le nom est requis' }));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Formatage du téléphone
+      let telValue = formData.tel;
+      if (telValue && !telValue.startsWith('+229')) {
+        telValue = '+229 ' + telValue.replace(/\D/g, '');
+      }
+      
+      const result = await api.updateProfile({
+        name: formData.name,
+        tel: telValue,
+      });
+      
+      if (result.success) {
+        // Mettre à jour l'utilisateur dans le contexte
+        if (updateUser) {
+          updateUser({ ...authUser, name: formData.name, tel: telValue });
         }
-        
-        await api.updateShelf(id, formData);
-        
-        // Gestion des livres...
-        const currentBookIds = currentBooks.map(b => b.id);
-        const selectedBookIds = selectedBooks.map(b => b.id);
-        
-        const toRemove = currentBookIds.filter(id => !selectedBookIds.includes(id));
-        for (const bookId of toRemove) {
-            await api.removeBookFromShelf(id, bookId);
-        }
-        
-        const toAdd = selectedBookIds.filter(id => !currentBookIds.includes(id));
-        for (const bookId of toAdd) {
-            await api.addBookToShelf(id, bookId);
-        }
-        
-        router.visit(`/shelves/${id}`);
+        router.visit('/profile');
+      } else {
+        setErrors({ general: result.message || 'Erreur lors de la mise à jour' });
+      }
     } catch (error) {
-        console.error('Erreur sauvegarde:', error);
+      console.error('Erreur sauvegarde:', error);
+      setErrors({ general: 'Erreur lors de la sauvegarde' });
     } finally {
-        setIsSubmitting(false);
+      setIsLoading(false);
     }
-};
+  };
+
   const handleChangePassword = () => {
     router.visit('/profile/change-password');
   };

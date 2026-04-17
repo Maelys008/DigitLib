@@ -12,7 +12,7 @@ export default function MobileLayout({ children, title, noPadding = false }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <main className={noPadding ? "pb-20" : "p-4 pb-20"}>
         {children}
       </main>

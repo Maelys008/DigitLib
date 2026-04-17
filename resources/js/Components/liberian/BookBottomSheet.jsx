@@ -5,32 +5,31 @@ export default function BookBottomSheet({ isOpen, onClose, onEdit, onDelete }) {
   if (!isOpen) return null;
 
   const menuItems = [
-    { id: 'edit', icon: Edit2, label: 'Modifier le livre', color: 'text-blue-600', onClick: onEdit },
-    { id: 'delete', icon: Trash2, label: 'Supprimer le livre', color: 'text-red-600', onClick: onDelete },
+    { id: 'edit', icon: Edit2, label: 'Modifier le livre', color: 'text-blue-600 dark:text-blue-400', onClick: onEdit },
+    { id: 'delete', icon: Trash2, label: 'Supprimer le livre', color: 'text-red-600 dark:text-red-400', onClick: onDelete },
   ];
 
   return (
     <>
-    
+      {/* Overlay */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 transition-opacity"
         onClick={onClose}
       />
       
-      
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up">
+      {/* Bottom Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl z-50 animate-slide-up">
         <div className="flex justify-center pt-4 pb-2">
           <div 
-            className="w-12 h-1 bg-gray-300 rounded-full cursor-pointer"
+            className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
             onClick={onClose}
           />
         </div>
         
-        <div className="px-6 pb-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Options du livre</h3>
+        <div className="px-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Options du livre</h3>
         </div>
         
-      
         <div className="px-4 py-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -41,20 +40,19 @@ export default function BookBottomSheet({ isOpen, onClose, onEdit, onDelete }) {
                   if (item.onClick) item.onClick();
                   onClose();
                 }}
-                className="flex items-center gap-4 w-full px-4 py-4 hover:bg-gray-50 rounded-xl transition-colors"
+                className="flex items-center gap-4 w-full px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
               >
                 <Icon className={`w-5 h-5 ${item.color}`} />
-                <span className="text-sm text-gray-700">{item.label}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
               </button>
             );
           })}
         </div>
         
-        
         <div className="px-6 pb-6 pt-2">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Annuler
           </button>

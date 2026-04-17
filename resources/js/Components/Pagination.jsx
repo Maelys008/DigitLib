@@ -28,12 +28,12 @@ export default function Pagination({
 
   return (
     <div className={`flex justify-center items-center py-8 ${className}`}>
-      <div className="flex items-center gap-1 bg-[#F5F5F7] backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
+      <div className="flex items-center gap-1 bg-[#F5F5F7] dark:bg-gray-800 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
         {/* Première page */}
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-[#F5F5F7] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronsLeft className="w-4 h-4" />
         </button>
@@ -42,7 +42,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-[#F5F5F7] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -56,8 +56,8 @@ export default function Pagination({
               className={`
                 min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-all
                 ${currentPage === page 
-                  ? 'bg-white text-gray-900 shadow-md' 
-                  : 'text-gray-400 hover:text-gray hover:bg-[#F5F5F7]'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }
               `}
             >
@@ -70,7 +70,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -79,7 +79,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronsRight className="w-4 h-4" />
         </button>

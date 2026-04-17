@@ -41,7 +41,6 @@ export default function LibraryDetail() {
           setImagePreview(`/storage/${data.library_image}`);
         }
         
-        // Récupérer le nombre de livres
         const booksResponse = await api.getBooks({ library_id: id, per_page: 1 });
         setBooksCount(booksResponse.data?.total || 0);
         
@@ -83,7 +82,6 @@ export default function LibraryDetail() {
     
     if (result.success) {
       setIsEditing(false);
-      // Rafraîchir les données
       const updatedLibrary = await api.getLibrary(id);
       setLibrary(updatedLibrary);
       setFormData({
@@ -105,38 +103,38 @@ export default function LibraryDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!library) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Bibliothèque non trouvée</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-500 dark:text-gray-400">Bibliothèque non trouvée</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* En-tête */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={handleBack}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-6 h-6 text-gray-600" />
+              <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">Détails de la bibliothèque</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Détails de la bibliothèque</h1>
           </div>
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 dark:bg-orange-500 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
             >
               <Edit2 className="w-4 h-4" /> Modifier
             </button>
@@ -149,20 +147,20 @@ export default function LibraryDetail() {
           /* Formulaire d'édition */
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
 
             {/* Image */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Image de la bibliothèque</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image de la bibliothèque</label>
               <div className="flex items-center gap-4">
-                <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                   {imagePreview ? (
                     <img src={imagePreview} alt="Bibliothèque" className="w-full h-full object-cover" />
                   ) : (
-                    <Camera className="w-8 h-8 text-gray-400" />
+                    <Camera className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   )}
                 </div>
                 <div>
@@ -170,74 +168,74 @@ export default function LibraryDetail() {
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="text-sm text-gray-500"
+                    className="text-sm text-gray-500 dark:text-gray-400"
                   />
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG (max 2MB)</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">JPG, PNG (max 2MB)</p>
                 </div>
               </div>
             </div>
 
             {/* Nom */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la bibliothèque *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom de la bibliothèque *</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-600 text-gray-900 dark:text-white"
                 required
               />
             </div>
 
             {/* Adresse */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse *</label>
               <input
                 type="text"
                 value={formData.adress}
                 onChange={(e) => setFormData({ ...formData, adress: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-600 text-gray-900 dark:text-white"
                 required
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl resize-none"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl resize-none text-gray-900 dark:text-white"
               />
             </div>
 
             {/* Durée d'emprunt */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Durée d'emprunt (en jours)
               </label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="number"
                   min="1"
                   max="90"
                   value={formData.loan_duration}
                   onChange={(e) => setFormData({ ...formData, loan_duration: parseInt(e.target.value) || 14 })}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-600"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-600 text-gray-900 dark:text-white"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Nombre de jours maximum pour emprunter un livre</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Nombre de jours maximum pour emprunter un livre</p>
             </div>
 
             {/* Pénalité par jour */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Pénalité par jour de retard (FCFA)
               </label>
               <div className="relative">
-                <AlertCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <AlertCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="number"
                   min="0"
@@ -245,10 +243,10 @@ export default function LibraryDetail() {
                   step="100"
                   value={formData.daily_penalty_amount}
                   onChange={(e) => setFormData({ ...formData, daily_penalty_amount: parseInt(e.target.value) || 0 })}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-600 text-gray-900 dark:text-white"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Montant à payer par jour de retard (en FCFA)</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Montant à payer par jour de retard (en FCFA)</p>
             </div>
 
             {/* Boutons */}
@@ -256,14 +254,14 @@ export default function LibraryDetail() {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:bg-gray-400 transition-colors"
+                className="flex-1 px-4 py-3 bg-orange-600 dark:bg-orange-500 text-white rounded-xl hover:bg-orange-700 dark:hover:bg-orange-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 transition-colors"
               >
                 {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
               </button>
@@ -273,8 +271,8 @@ export default function LibraryDetail() {
           /* Affichage des détails */
           <div className="space-y-6">
             {/* Image */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <div className="w-full h-48 bg-orange-100 flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="w-full h-48 bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                 {library.library_image ? (
                   <img 
                     src={`/storage/${library.library_image}`} 
@@ -282,20 +280,20 @@ export default function LibraryDetail() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <LibraryIcon className="w-16 h-16 text-orange-300" />
+                  <LibraryIcon className="w-16 h-16 text-orange-300 dark:text-orange-500" />
                 )}
               </div>
             </div>
 
             {/* Informations générales */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <LibraryIcon className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <LibraryIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{library.name}</h2>
-                  <div className="flex items-center gap-2 mt-1 text-gray-500">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{library.name}</h2>
+                  <div className="flex items-center gap-2 mt-1 text-gray-500 dark:text-gray-400">
                     <MapPin className="w-4 h-4" />
                     <span>{library.adress}</span>
                   </div>
@@ -303,63 +301,59 @@ export default function LibraryDetail() {
               </div>
 
               {library.description && (
-                <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
-                  <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-gray-600 leading-relaxed">{library.description}</p>
+                <div className="flex items-start gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{library.description}</p>
                 </div>
               )}
             </div>
 
             {/* Statistiques */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Nombre de livres */}
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Livres disponibles</p>
-                    <p className="text-xl font-bold text-gray-900">{booksCount}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Livres disponibles</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{booksCount}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Membres */}
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Membres inscrits</p>
-                    <p className="text-xl font-bold text-gray-900">{library.members_count || 0}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Membres inscrits</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{library.members_count || 0}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Durée d'emprunt */}
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Durée d'emprunt</p>
-                    <p className="text-xl font-bold text-gray-900">{library.loan_duration || 14} jours</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Durée d'emprunt</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{library.loan_duration || 14} jours</p>
                   </div>
                 </div>
               </div>
 
-              {/* Pénalité */}
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Pénalité / jour</p>
-                    <p className="text-xl font-bold text-gray-900">{library.daily_penalty_amount || 0} FCFA</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Pénalité / jour</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{library.daily_penalty_amount || 0} FCFA</p>
                   </div>
                 </div>
               </div>

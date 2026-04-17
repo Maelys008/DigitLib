@@ -71,20 +71,20 @@ export default function CreateLibrary() {
     }
   };
 
-const handleBack = () => {
-  router.visit('/profile/settings');
-};
+  const handleBack = () => {
+    router.visit('/profile/settings');
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="flex items-center px-6 pt-6 pb-4 border-b border-gray-100">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+      <div className="flex items-center px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-700">
         <button 
           onClick={handleBack}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 ml-2">Créer une bibliothèque</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">Créer une bibliothèque</h1>
       </div>
 
       <div className="flex-1 px-6 py-8">
@@ -98,28 +98,27 @@ const handleBack = () => {
             </div>
 
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Créez votre bibliothèque
               </h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Devenez bibliothécaire et gérez votre propre espace de lecture
               </p>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
 
-          
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Image de la bibliothèque
               </label>
               <div 
                 onClick={handleImageClick}
-                className="relative w-32 h-32 mx-auto bg-gray-100 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 hover:border-purple-400 transition-colors"
+                className="relative w-32 h-32 mx-auto bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
               >
                 {imagePreview ? (
                   <img 
@@ -128,7 +127,7 @@ const handleBack = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Camera className="w-8 h-8 text-gray-400" />
+                  <Camera className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 )}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                   <Camera className="w-6 h-6 text-white" />
@@ -141,14 +140,14 @@ const handleBack = () => {
                 accept="image/*"
                 className="hidden"
               />
-              <p className="text-xs text-gray-400 text-center mt-2">
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
                 JPG, PNG ou GIF (max 2MB)
               </p>
             </div>
 
             {/* Nom de la bibliothèque */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nom de la bibliothèque
               </label>
               <input
@@ -156,14 +155,14 @@ const handleBack = () => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Bibliothèque municipale de..."
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
             </div>
 
             {/* Adresse */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Adresse
               </label>
               <input
@@ -171,14 +170,14 @@ const handleBack = () => {
                 value={formData.adress}
                 onChange={(e) => setFormData({ ...formData, adress: e.target.value })}
                 placeholder="123 rue de la bibliothèque, ville"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Description
               </label>
               <textarea
@@ -186,7 +185,7 @@ const handleBack = () => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
                 placeholder="Décrivez votre bibliothèque..."
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
 
@@ -201,13 +200,13 @@ const handleBack = () => {
           </form>
         ) : (
           <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Bibliothèque créée !
             </h2>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
               Félicitations ! Vous êtes maintenant bibliothécaire.
             </p>
             <button

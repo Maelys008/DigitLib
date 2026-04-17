@@ -22,7 +22,6 @@ export default function ManageUsers() {
   const [message, setMessage] = useState(null);
   const [penaltyError, setPenaltyError] = useState('');
 
-  // Vérifier si l'état du livre nécessite une pénalité
   const requiresPenalty = returnCondition === 'abimé' || returnCondition === 'très abimé';
 
   useEffect(() => {
@@ -55,7 +54,6 @@ export default function ManageUsers() {
     loadData();
   }, [user]);
 
-  // Réinitialiser les champs de pénalité quand l'état du livre change
   useEffect(() => {
     if (!requiresPenalty) {
       setPenaltyAmount('');
@@ -67,7 +65,6 @@ export default function ManageUsers() {
   const handleReturnBook = async () => {
     if (!returningLoan) return;
     
-    // Validation de la pénalité si nécessaire
     if (requiresPenalty) {
       const amount = parseFloat(penaltyAmount);
       if (!penaltyAmount || isNaN(amount) || amount <= 0) {
@@ -130,28 +127,28 @@ export default function ManageUsers() {
     res.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     res.book?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
   const handleConfirmPickup = async (loan) => {
-  try {
-    const result = await api.confirmPickup(loan.id);
-    if (result.success) {
-      setMessage({ type: 'success', text: 'Retrait confirmé avec succès !' });
-      // Recharger les emprunts
-      const loansData = await api.getLibraryLoans(library.id);
-      setLoans(loansData);
-    } else {
-      setMessage({ type: 'error', text: result.message });
+    try {
+      const result = await api.confirmPickup(loan.id);
+      if (result.success) {
+        setMessage({ type: 'success', text: 'Retrait confirmé avec succès !' });
+        const loansData = await api.getLibraryLoans(library.id);
+        setLoans(loansData);
+      } else {
+        setMessage({ type: 'error', text: result.message });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur lors de la confirmation du retrait' });
     }
-  } catch (error) {
-    setMessage({ type: 'error', text: 'Erreur lors de la confirmation du retrait' });
-  }
-  setTimeout(() => setMessage(null), 3000);
-};
+    setTimeout(() => setMessage(null), 3000);
+  };
 
   if (isLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -161,7 +158,7 @@ export default function ManageUsers() {
     return (
       <MobileLayout>
         <div className="p-6 text-center">
-          <p className="text-gray-500">Aucune bibliothèque trouvée</p>
+          <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
         </div>
       </MobileLayout>
     );
@@ -169,19 +166,19 @@ export default function ManageUsers() {
 
   return (
     <MobileLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.visit('/librarian/dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Gestion des utilisateurs</h1>
-              <p className="text-sm text-gray-500 mt-1">{library.name}</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Gestion des utilisateurs</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{library.name}</p>
             </div>
           </div>
         </div>
@@ -190,32 +187,32 @@ export default function ManageUsers() {
         {message && (
           <div className={`mx-6 mt-4 p-4 rounded-xl flex items-center justify-between ${
             message.type === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
           }`}>
             <div className="flex items-center gap-3">
               <AlertCircle className={`w-5 h-5 ${
-                message.type === 'success' ? 'text-green-600' : 'text-red-600'
+                message.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               }`} />
-              <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+              <span className={message.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}>
                 {message.text}
               </span>
             </div>
-            <button onClick={() => setMessage(null)} className="p-1 hover:bg-gray-200 rounded-full">
-              <X className="w-4 h-4" />
+            <button onClick={() => setMessage(null)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full">
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
         )}
 
         {/* Onglets */}
-        <div className="px-6 mt-4 border-b border-gray-200 bg-white">
+        <div className="px-6 mt-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex gap-6">
             <button
               onClick={() => setActiveTab('loans')}
               className={`pb-3 px-2 font-medium transition-colors ${
                 activeTab === 'loans'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -227,8 +224,8 @@ export default function ManageUsers() {
               onClick={() => setActiveTab('reservations')}
               className={`pb-3 px-2 font-medium transition-colors ${
                 activeTab === 'reservations'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -242,13 +239,13 @@ export default function ManageUsers() {
         {/* Barre de recherche */}
         <div className="px-6 mt-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Rechercher par nom d'utilisateur ou titre de livre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
         </div>
@@ -257,10 +254,10 @@ export default function ManageUsers() {
         {activeTab === 'loans' && (
           <div className="px-6 py-4 space-y-3">
             {filteredLoans.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl">
-                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">Aucun emprunt en cours</p>
-                <p className="text-sm text-gray-400 mt-1">Tous les livres sont disponibles</p>
+              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl">
+                <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">Aucun emprunt en cours</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Tous les livres sont disponibles</p>
               </div>
             ) : (
               filteredLoans.map((loan) => (
@@ -280,10 +277,10 @@ export default function ManageUsers() {
         {activeTab === 'reservations' && (
           <div className="px-6 py-4 space-y-3">
             {filteredReservations.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl">
-                <Clock className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">Aucune réservation en attente</p>
-                <p className="text-sm text-gray-400 mt-1">La liste d'attente est vide</p>
+              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl">
+                <Clock className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">Aucune réservation en attente</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">La liste d'attente est vide</p>
               </div>
             ) : (
               filteredReservations.map((res) => (
@@ -299,44 +296,43 @@ export default function ManageUsers() {
 
         {/* Modal de retour de livre */}
         {showReturnModal && returningLoan && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Retour du livre</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Retour du livre</h2>
                 <button
                   onClick={() => setShowReturnModal(false)}
-                  className="p-1 hover:bg-gray-100 rounded-full"
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
               
-              <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                <p className="font-semibold text-gray-900">{returningLoan.copy?.book?.title}</p>
-                <p className="text-sm text-gray-500 mt-1">Emprunté par: {returningLoan.user?.name}</p>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
+                <p className="font-semibold text-gray-900 dark:text-white">{returningLoan.copy?.book?.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Emprunté par: {returningLoan.user?.name}</p>
               </div>
               
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   État du livre
                 </label>
                 <select
                   value={returnCondition}
                   onChange={(e) => setReturnCondition(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
-                  <option value="neuf">Neuf </option>
-                  <option value="bon">Bon </option>
-                  <option value="abimé">Abîmé </option>
-                  <option value="très abimé">Très abîmé </option>
+                  <option value="neuf">Neuf</option>
+                  <option value="bon">Bon</option>
+                  <option value="abimé">Abîmé</option>
+                  <option value="très abimé">Très abîmé</option>
                 </select>
               </div>
               
-              {/* Champs de pénalité - affichés uniquement si le livre est abîmé ou très abîmé */}
               {requiresPenalty && (
                 <>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Pénalité supplémentaire (FCFA) *
                     </label>
                     <input
@@ -347,15 +343,15 @@ export default function ManageUsers() {
                         setPenaltyError('');
                       }}
                       placeholder="Montant de la pénalité"
-                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white ${
-                        penaltyError && !penaltyAmount ? 'border-red-500' : 'border-gray-200'
+                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                        penaltyError && !penaltyAmount ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'
                       }`}
                     />
-                    <p className="text-xs text-gray-400 mt-1">Le montant doit être supérieur à 0 FCFA</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Le montant doit être supérieur à 0 FCFA</p>
                   </div>
                   
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Raison de la pénalité *
                     </label>
                     <input
@@ -366,16 +362,15 @@ export default function ManageUsers() {
                         setPenaltyError('');
                       }}
                       placeholder="Ex: Page déchirée, couverture abîmée, etc."
-                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white ${
-                        penaltyError && !penaltyReason ? 'border-red-500' : 'border-gray-200'
+                      className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                        penaltyError && !penaltyReason ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'
                       }`}
                     />
                   </div>
                   
-                  {/* Message d'erreur de pénalité */}
                   {penaltyError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                      <p className="text-red-600 text-sm">{penaltyError}</p>
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                      <p className="text-red-600 dark:text-red-400 text-sm">{penaltyError}</p>
                     </div>
                   )}
                 </>
@@ -384,13 +379,13 @@ export default function ManageUsers() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowReturnModal(false)}
-                  className="flex-1 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 py-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-700 dark:text-gray-300"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={handleReturnBook}
-                  className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium"
                 >
                   Confirmer le retour
                 </button>

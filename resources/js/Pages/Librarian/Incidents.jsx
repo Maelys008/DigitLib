@@ -16,17 +16,19 @@ export default function Incidents() {
         fetchIncidents();
     }, []);
 
-    const fetchIncidents = async () => {
-        setIsLoading(true);
-        try {
-            const data = await api.getLibraryIncidents();
-            setIncidents(data);
-        } catch (error) {
-            console.error('Erreur chargement incidents:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+   const fetchIncidents = async () => {
+    setIsLoading(true);
+    try {
+        const data = await api.getLibraryIncidents();
+        console.log('📋 Incidents récupérés:', data);
+        console.log('🔍 Premier incident:', data[0]);
+        setIncidents(data);
+    } catch (error) {
+        console.error('Erreur chargement incidents:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     const getIncidentIcon = (description) => {
         if (description?.toLowerCase().includes('perdu')) {
@@ -37,9 +39,9 @@ export default function Incidents() {
 
     const getIncidentColor = (description) => {
         if (description?.toLowerCase().includes('perdu')) {
-            return 'bg-red-100 text-red-800 border-red-200';
+            return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 border-red-200 dark:border-red-800';
         }
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-800';
     };
 
     const getIncidentLabel = (description) => {
@@ -65,7 +67,7 @@ export default function Incidents() {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-screen">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
             </MobileLayout>
         );
@@ -73,21 +75,24 @@ export default function Incidents() {
 
     return (
         <MobileLayout>
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
-                    <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => router.visit('/librarian/dashboard')}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5 text-gray-600" />
-                        </button>
-                        <div>
-                            <h1 className="text-xl font-bold text-gray-900">Incidents</h1>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {incidents.length} incident{incidents.length > 1 ? 's' : ''} enregistré{incidents.length > 1 ? 's' : ''}
-                            </p>
+               
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={() => router.visit('/librarian/dashboard')}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                            </button>
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Incidents</h1>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    {incidents.length} incident{incidents.length > 1 ? 's' : ''} enregistré{incidents.length > 1 ? 's' : ''}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -95,20 +100,20 @@ export default function Incidents() {
                 {/* Barre de recherche */}
                 <div className="px-6 mt-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
                             placeholder="Rechercher par utilisateur ou titre de livre..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         />
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
                                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
                             >
-                                <X className="w-5 h-5 text-gray-400" />
+                                <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                             </button>
                         )}
                     </div>
@@ -122,7 +127,7 @@ export default function Incidents() {
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                 filter === 'all'
                                     ? 'bg-orange-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
                         >
                             Tous ({incidents.length})
@@ -132,7 +137,7 @@ export default function Incidents() {
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                 filter === 'lost'
                                     ? 'bg-red-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
                         >
                             Livres perdus ({incidents.filter(i => i.description?.toLowerCase().includes('perdu')).length})
@@ -142,7 +147,7 @@ export default function Incidents() {
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                 filter === 'damaged'
                                     ? 'bg-orange-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
                         >
                             Retards prolongés ({incidents.filter(i => !i.description?.toLowerCase().includes('perdu')).length})
@@ -153,10 +158,10 @@ export default function Incidents() {
                 {/* Liste des incidents */}
                 <div className="px-6 py-4 space-y-4">
                     {filteredIncidents.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-xl">
-                            <AlertTriangle className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500 font-medium">Aucun incident trouvé</p>
-                            <p className="text-sm text-gray-400 mt-1">
+                        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl">
+                            <AlertTriangle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                            <p className="text-gray-500 dark:text-gray-400 font-medium">Aucun incident trouvé</p>
+                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                                 {searchTerm ? 'Aucun résultat pour votre recherche' : 'Aucun incident à signaler'}
                             </p>
                         </div>
@@ -164,7 +169,7 @@ export default function Incidents() {
                         filteredIncidents.map((incident) => (
                             <div
                                 key={incident.id}
-                                className={`bg-white rounded-xl p-5 shadow-sm border-2 ${getIncidentColor(incident.description)}`}
+                                className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-2 ${getIncidentColor(incident.description)}`}
                             >
                                 <div className="flex items-start gap-4">
                                     {/* Icône */}
@@ -179,11 +184,11 @@ export default function Incidents() {
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getIncidentColor(incident.description)}`}>
                                                     {getIncidentLabel(incident.description)}
                                                 </span>
-                                                <span className="text-xs text-gray-400">
+                                                <span className="text-xs text-gray-400 dark:text-gray-500">
                                                     #{incident.id}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                                            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                                                 <Calendar className="w-3 h-3" />
                                                 <span>{new Date(incident.date).toLocaleDateString('fr-FR')}</span>
                                             </div>
@@ -191,38 +196,38 @@ export default function Incidents() {
 
                                         {/* Livre */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <BookOpen className="w-4 h-4 text-gray-500" />
-                                            <h3 className="font-semibold text-gray-900">
+                                            <BookOpen className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">
                                                 {incident.loan?.copy?.book?.title || 'Livre inconnu'}
                                             </h3>
                                         </div>
 
                                         {/* Utilisateur */}
                                         <div className="flex items-center gap-2 mb-3">
-                                            <User className="w-4 h-4 text-gray-500" />
-                                            <span className="text-sm text-gray-600">
+                                            <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {incident.user?.name || 'Utilisateur inconnu'}
                                             </span>
                                         </div>
 
                                         {/* Description */}
-                                        <div className="bg-gray-50 rounded-lg p-3 mt-2">
-                                            <p className="text-sm text-gray-700">
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mt-2">
+                                            <p className="text-sm text-gray-700 dark:text-gray-300">
                                                 {incident.description}
                                             </p>
                                         </div>
 
                                         {/* Actions */}
                                         <div className="flex gap-3 mt-4">
-                                            <button
+                                           <button
                                                 onClick={() => router.visit(`/librarian/incidents/${incident.id}`)}
-                                                className="text-sm text-orange-600 font-medium hover:underline"
+                                                className="text-sm text-orange-600 dark:text-orange-400 font-medium hover:underline"
                                             >
                                                 Voir les détails
                                             </button>
                                             {incident.description?.toLowerCase().includes('perdu') && (
                                                 <button
-                                                    className="text-sm text-red-600 font-medium hover:underline"
+                                                    className="text-sm text-red-600 dark:text-red-400 font-medium hover:underline"
                                                     onClick={() => {
                                                         if (confirm('Confirmer la perte définitive du livre ?')) {
                                                             // Action à implémenter

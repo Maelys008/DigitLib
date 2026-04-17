@@ -32,12 +32,10 @@ export default function LibraryDetails() {
   const [message, setMessage] = useState(null);
   const [showAllBooks, setShowAllBooks] = useState(false); 
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 10;
   const [totalPages, setTotalPages] = useState(1);
 
-  // Fonction pour obtenir l'URL complète de l'image
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
@@ -152,7 +150,7 @@ export default function LibraryDetails() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -162,7 +160,7 @@ export default function LibraryDetails() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <p className="text-gray-500">Bibliothèque non trouvée</p>
+          <p className="text-gray-500 dark:text-gray-400">Bibliothèque non trouvée</p>
         </div>
       </MobileLayout>
     );
@@ -170,43 +168,39 @@ export default function LibraryDetails() {
 
   const imageUrl = getImageUrl(library.library_image);
 
-  // Vue "Tous les livres" avec NewBookCard et pagination
   if (showAllBooks) {
     return (
       <MobileLayout>
-        {/* En-tête avec bouton retour */}
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
           <div className="px-6 py-4">
             <div className="flex items-center gap-4">
               <button 
                 onClick={handleBack}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
+                <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Tous les livres</h1>
-                <p className="text-sm text-gray-500">{library.name}</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tous les livres</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{library.name}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="px-6 py-4">
-          {/* Nombre de livres */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {allBooks.length} livre{allBooks.length > 1 ? 's' : ''} disponible{allBooks.length > 1 ? 's' : ''}
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
               Page {currentPage} / {totalPages}
             </p>
           </div>
 
-          {/* Liste des livres avec NewBookCard */}
           {isLoadingBooks ? (
             <div className="flex justify-center py-8">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
             </div>
           ) : currentPageBooks.length > 0 ? (
             <div className="space-y-3">
@@ -215,13 +209,12 @@ export default function LibraryDetails() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-gray-50 rounded-xl">
-              <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">Aucun livre disponible</p>
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400">Aucun livre disponible</p>
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Pagination 
               currentPage={currentPage}
@@ -234,10 +227,8 @@ export default function LibraryDetails() {
     );
   }
 
-  // Vue normale de la bibliothèque
   return (
     <MobileLayout>
-      {/* Image d'en-tête */}
       <div className="relative h-56 bg-gradient-to-r from-orange-500 to-orange-600 overflow-hidden">
         <button 
           onClick={handleBack}
@@ -291,63 +282,61 @@ export default function LibraryDetails() {
         </div>
       </div>
 
-      {/* Contenu de la page */}
       <div className="px-6 py-6">
         {message && (
           <div className={`mb-4 p-3 rounded-xl ${
-            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            message.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
+              : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400'
           }`}>
             {message.text}
           </div>
         )}
 
-        {/* Statistiques */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <Clock className="w-5 h-5 text-orange-500" />
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <Clock className="w-5 h-5 text-orange-500 dark:text-orange-400" />
             <div>
-              <p className="text-xs text-gray-500">Durée d'emprunt</p>
-              <p className="font-semibold text-gray-900">{library.loan_duration || 14} jours</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Durée d'emprunt</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{library.loan_duration || 14} jours</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <BookOpen className="w-5 h-5 text-blue-500" />
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <BookOpen className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             <div>
-              <p className="text-xs text-gray-500">Livres disponibles</p>
-              <p className="font-semibold text-gray-900">{allBooks.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Livres disponibles</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{allBooks.length}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <Users className="w-5 h-5 text-green-500" />
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <Users className="w-5 h-5 text-green-500 dark:text-green-400" />
             <div>
-              <p className="text-xs text-gray-500">Membres</p>
-              <p className="font-semibold text-gray-900">{library.members_count || 0}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Membres</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{library.members_count || 0}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <Calendar className="w-5 h-5 text-purple-500" />
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <Calendar className="w-5 h-5 text-purple-500 dark:text-purple-400" />
             <div>
-              <p className="text-xs text-gray-500">Pénalité/jour</p>
-              <p className="font-semibold text-gray-900">{library.daily_penalty_amount || 0} FCFA</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Pénalité/jour</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{library.daily_penalty_amount || 0} FCFA</p>
             </div>
           </div>
         </div>
 
-        {/* Description */}
         {library.description && (
           <div className="mb-6">
-            <h2 className="font-semibold text-gray-900 mb-2">À propos de la bibliothèque</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">{library.description}</p>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-2">À propos de la bibliothèque</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{library.description}</p>
           </div>
         )}
 
-        {/* Livres disponibles - Aperçu avec bouton "Voir tous" */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-900">Livres disponibles</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Livres disponibles</h2>
             <button 
               onClick={handleViewAllBooks}
-              className="flex items-center gap-1 text-sm text-orange-600 font-medium "
+              className="flex items-center gap-1 text-sm text-orange-600 dark:text-orange-400 font-medium"
             >
               Voir tous <ChevronRight className="w-4 h-4" />
             </button>
@@ -355,30 +344,27 @@ export default function LibraryDetails() {
 
           {isLoadingBooks ? (
             <div className="flex justify-center py-8">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
             </div>
           ) : currentPageBooks.length > 0 ? (
-            <>
-              {/* Aperçu des 10 premiers livres en scroll horizontal */}
-              <HorizontalScroll>
-                {currentPageBooks.slice(0, 10).map((book) => (
-                  <div key={book.id} className="w-40 flex-shrink-0 cursor-pointer" onClick={() => router.visit(`/book/${book.id}`)}>
-                    <img 
-                      src={book.image_couverture || '/placeholder-book.jpg'} 
-                      alt={book.titre}
-                      className="w-full h-48 object-cover rounded-lg mb-2"
-                      onError={(e) => e.target.src = '/placeholder-book.jpg'}
-                    />
-                    <p className="font-medium text-gray-900 text-sm line-clamp-2">{book.titre}</p>
-                    <p className="text-xs text-gray-500 line-clamp-1">{book.auteur}</p>
-                  </div>
-                ))}
-              </HorizontalScroll>
-            </>
+            <HorizontalScroll>
+              {currentPageBooks.slice(0, 10).map((book) => (
+                <div key={book.id} className="w-40 flex-shrink-0 cursor-pointer" onClick={() => router.visit(`/book/${book.id}`)}>
+                  <img 
+                    src={book.image_couverture || '/placeholder-book.jpg'} 
+                    alt={book.titre}
+                    className="w-full h-48 object-cover rounded-lg mb-2"
+                    onError={(e) => e.target.src = '/placeholder-book.jpg'}
+                  />
+                  <p className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2">{book.titre}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{book.auteur}</p>
+                </div>
+              ))}
+            </HorizontalScroll>
           ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-xl">
-              <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">Aucun livre disponible pour le moment</p>
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400">Aucun livre disponible pour le moment</p>
             </div>
           )}
         </div>

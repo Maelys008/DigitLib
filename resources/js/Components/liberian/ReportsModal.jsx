@@ -55,7 +55,7 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
         if (isLoading) {
             return (
                 <div className="flex justify-center items-center py-12">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
             );
         }
@@ -64,66 +64,64 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
             case 'overview':
                 return (
                     <div className="space-y-4">
-                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-xl">
-                            <h4 className="font-semibold text-orange-900 mb-3">Statistiques générales</h4>
+                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 p-4 rounded-xl">
+                            <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-3">Statistiques générales</h4>
                         
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Total livres</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats?.totalBooks || 0}</p>
-                                    {/* totalBooks = nombre de livres UNIQUES */}
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Total livres</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalBooks || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Total exemplaires</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats?.totalCopies || 0}</p>
-                                    {/* totalCopies = nombre TOTAL d'exemplaires */}
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Total exemplaires</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalCopies || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Utilisateurs actifs</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats?.users || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Utilisateurs actifs</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.users || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Emprunts en cours</p>
-                                    <p className="text-2xl font-bold text-blue-600">{stats?.borrowed || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Emprunts en cours</p>
+                                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats?.borrowed || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Réservations</p>
-                                    <p className="text-2xl font-bold text-orange-600">{stats?.reservations || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Réservations</p>
+                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats?.reservations || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-xs text-gray-600">Retards</p>
-                                    <p className="text-2xl font-bold text-red-600">{stats?.lateReturns || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">Retards</p>
+                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.lateReturns || 0}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
-                            <h4 className="font-semibold text-blue-900 mb-3">Taux d'utilisation</h4>
+                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 p-4 rounded-xl">
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">Taux d'utilisation</h4>
                             <div className="space-y-3">
                                 <div>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-gray-700">Livres empruntés</span>
-                                        <span className="font-semibold text-blue-900">
+                                        <span className="text-gray-700 dark:text-gray-300">Livres empruntés</span>
+                                        <span className="font-semibold text-blue-900 dark:text-blue-300">
                                             {Math.round((stats?.borrowed / stats?.totalBooks) * 100) || 0}%
                                         </span>
                                     </div>
-                                    <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-blue-600 rounded-full"
+                                            className="h-full bg-blue-600 dark:bg-blue-500 rounded-full"
                                             style={{ width: `${(stats?.borrowed / stats?.totalBooks) * 100 || 0}%` }}
                                         />
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-gray-700">Livres disponibles</span>
-                                        <span className="font-semibold text-green-900">
+                                        <span className="text-gray-700 dark:text-gray-300">Livres disponibles</span>
+                                        <span className="font-semibold text-green-900 dark:text-green-300">
                                             {Math.round((stats?.available / stats?.totalBooks) * 100) || 0}%
                                         </span>
                                     </div>
-                                    <div className="h-2 bg-green-200 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-green-600 rounded-full"
+                                            className="h-full bg-green-600 dark:bg-green-500 rounded-full"
                                             style={{ width: `${(stats?.available / stats?.totalBooks) * 100 || 0}%` }}
                                         />
                                     </div>
@@ -132,9 +130,9 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                         </div>
 
                         {stats?.lateReturns > 0 && (
-                            <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-xl">
-                                <h4 className="font-semibold text-red-900 mb-2">⚠ Alertes</h4>
-                                <p className="text-sm text-red-700">
+                            <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 p-4 rounded-xl">
+                                <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">⚠ Alertes</h4>
+                                <p className="text-sm text-red-700 dark:text-red-300">
                                     {stats.lateReturns} retour{stats.lateReturns > 1 ? 's' : ''} en retard nécessite{stats.lateReturns > 1 ? 'nt' : ''} votre attention
                                 </p>
                             </div>
@@ -145,34 +143,34 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
             case 'borrowings':
                 return (
                     <div className="space-y-4">
-                        <div className="bg-blue-50 p-4 rounded-xl">
-                            <h4 className="font-semibold text-blue-900 mb-3">Rapport des emprunts</h4>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl">
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">Rapport des emprunts</h4>
                             <div className="space-y-3">
-                                <div className="bg-white p-3 rounded-lg flex justify-between items-center">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
                                     <div>
-                                        <p className="text-sm text-gray-600">Emprunts actifs</p>
-                                        <p className="text-xl font-bold text-gray-900">{stats?.borrowed || 0}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Emprunts actifs</p>
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{stats?.borrowed || 0}</p>
                                     </div>
-                                    <TrendingUp className="w-8 h-8 text-green-500" />
+                                    <TrendingUp className="w-8 h-8 text-green-500 dark:text-green-400" />
                                 </div>
-                                <div className="bg-white p-3 rounded-lg flex justify-between items-center">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
                                     <div>
-                                        <p className="text-sm text-gray-600">Réservations en attente</p>
-                                        <p className="text-xl font-bold text-gray-900">{stats?.reservations || 0}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Réservations en attente</p>
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{stats?.reservations || 0}</p>
                                     </div>
-                                    <Calendar className="w-8 h-8 text-orange-500" />
+                                    <Calendar className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600 mb-2">Livres les plus empruntés</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Livres les plus empruntés</p>
                                     <div className="space-y-2">
                                         {topBooks.map((book, index) => (
                                             <div key={index} className="flex justify-between text-sm">
-                                                <span>{book.title} - {book.author}</span>
-                                                <span className="font-semibold">{book.total} fois</span>
+                                                <span className="text-gray-700 dark:text-gray-300">{book.title} - {book.author}</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">{book.total} fois</span>
                                             </div>
                                         ))}
                                         {topBooks.length === 0 && (
-                                            <p className="text-sm text-gray-500">Aucune donnée disponible</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Aucune donnée disponible</p>
                                         )}
                                     </div>
                                 </div>
@@ -184,24 +182,24 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
             case 'users':
                 return (
                     <div className="space-y-4">
-                        <div className="bg-purple-50 p-4 rounded-xl">
-                            <h4 className="font-semibold text-purple-900 mb-3">Rapport utilisateurs</h4>
+                        <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl">
+                            <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-3">Rapport utilisateurs</h4>
                             <div className="space-y-3">
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600">Total utilisateurs</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats?.users || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total utilisateurs</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.users || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600 mb-2">Utilisateurs les plus actifs</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Utilisateurs les plus actifs</p>
                                     <div className="space-y-2">
                                         {topUsers.map((user, index) => (
                                             <div key={index} className="flex justify-between text-sm">
-                                                <span>{user.name}</span>
-                                                <span className="font-semibold">{user.total} emprunts</span>
+                                                <span className="text-gray-700 dark:text-gray-300">{user.name}</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">{user.total} emprunts</span>
                                             </div>
                                         ))}
                                         {topUsers.length === 0 && (
-                                            <p className="text-sm text-gray-500">Aucune donnée disponible</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Aucune donnée disponible</p>
                                         )}
                                     </div>
                                 </div>
@@ -213,37 +211,37 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
             case 'inventory':
                 return (
                     <div className="space-y-4">
-                        <div className="bg-green-50 p-4 rounded-xl">
-                            <h4 className="font-semibold text-green-900 mb-3">Rapport d'inventaire</h4>
+                        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl">
+                            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3">Rapport d'inventaire</h4>
                             <div className="space-y-3">
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600 mb-2">État des livres</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">État des livres</p>
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-green-700">✓ Disponibles</span>
-                                            <span className="font-semibold text-green-900">{stats?.available || 0}</span>
+                                            <span className="text-green-700 dark:text-green-400">✓ Disponibles</span>
+                                            <span className="font-semibold text-green-900 dark:text-green-300">{stats?.available || 0}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-blue-700">📖 Empruntés</span>
-                                            <span className="font-semibold text-blue-900">{stats?.borrowed || 0}</span>
+                                            <span className="text-blue-700 dark:text-blue-400">📖 Empruntés</span>
+                                            <span className="font-semibold text-blue-900 dark:text-blue-300">{stats?.borrowed || 0}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-orange-700">🔖 Réservés</span>
-                                            <span className="font-semibold text-orange-900">{stats?.reservations || 0}</span>
+                                            <span className="text-orange-700 dark:text-orange-400">🔖 Réservés</span>
+                                            <span className="font-semibold text-orange-900 dark:text-orange-300">{stats?.reservations || 0}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600 mb-2">Répartition par genre</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Répartition par genre</p>
                                     <div className="space-y-2">
                                         {genreDistribution.map((genre, index) => (
                                             <div key={index} className="flex justify-between text-sm">
-                                                <span>{genre.name}</span>
-                                                <span className="font-semibold">{genre.total} livres</span>
+                                                <span className="text-gray-700 dark:text-gray-300">{genre.name}</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">{genre.total} livres</span>
                                             </div>
                                         ))}
                                         {genreDistribution.length === 0 && (
-                                            <p className="text-sm text-gray-500">Aucune donnée disponible</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Aucune donnée disponible</p>
                                         )}
                                     </div>
                                 </div>
@@ -255,34 +253,34 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
             case 'penalties':
                 return (
                     <div className="space-y-4">
-                        <div className="bg-red-50 p-4 rounded-xl">
-                            <h4 className="font-semibold text-red-900 mb-3">Rapport des pénalités</h4>
+                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl">
+                            <h4 className="font-semibold text-red-900 dark:text-red-100 mb-3">Rapport des pénalités</h4>
                             <div className="space-y-3">
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600">Retours en retard</p>
-                                    <p className="text-2xl font-bold text-red-600">{stats?.lateReturns || 0}</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Retours en retard</p>
+                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.lateReturns || 0}</p>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600 mb-2">Pénalités actives</p>
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Pénalités actives</p>
                                     <div className="space-y-2">
                                         {activePenalties.map((penalty, index) => (
                                             <div key={index} className="flex justify-between items-center text-sm">
                                                 <div>
-                                                    <p className="font-medium">{penalty.user_name}</p>
-                                                    <p className="text-xs text-gray-500">{penalty.book_title}</p>
+                                                    <p className="font-medium text-gray-900 dark:text-white">{penalty.user_name}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{penalty.book_title}</p>
                                                 </div>
-                                                <span className="font-semibold text-red-600">{penalty.amount} FCFA</span>
+                                                <span className="font-semibold text-red-600 dark:text-red-400">{penalty.amount} FCFA</span>
                                             </div>
                                         ))}
                                         {activePenalties.length === 0 && (
-                                            <p className="text-sm text-gray-500">Aucune pénalité active</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Aucune pénalité active</p>
                                         )}
                                     </div>
                                 </div>
-                                <div className="bg-white p-3 rounded-lg">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-sm text-gray-600">Total pénalités</p>
-                                        <p className="text-xl font-bold text-red-900">{stats?.totalPenalties || 0} FCFA</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Total pénalités</p>
+                                        <p className="text-xl font-bold text-red-900 dark:text-red-300">{stats?.totalPenalties || 0} FCFA</p>
                                     </div>
                                 </div>
                             </div>
@@ -296,8 +294,8 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 text-white sticky top-0 z-10">
                     <div className="flex items-center justify-between mb-4">
@@ -334,7 +332,7 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                 </div>
 
                 {/* Report Type Tabs */}
-                <div className="bg-gray-50 p-4 border-b border-gray-200 overflow-x-auto">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                     <div className="flex gap-2">
                         {reportTypes.map((report) => {
                             const Icon = report.icon;
@@ -345,7 +343,7 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                                     className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap flex items-center gap-2 transition-all ${
                                         selectedReport === report.id
                                             ? `bg-${report.color}-500 text-white shadow-md`
-                                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                     }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -361,7 +359,7 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                     {renderReportContent()}
 
                     {/* Export Button */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2">
                             <Download className="w-5 h-5" />
                             Exporter en PDF

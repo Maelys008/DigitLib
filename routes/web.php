@@ -234,4 +234,5 @@ Route::get('/librarian/books/{book}/copies', function ($bookId) {
     ]);
 })->name('librarian.books.copies');
 
+
 require __DIR__ . '/auth.php';

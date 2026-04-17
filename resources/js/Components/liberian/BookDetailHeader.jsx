@@ -20,21 +20,21 @@ export default function BookDetailHeader({
           alt=""
           className="w-full h-full object-cover scale-110 blur-xl brightness-70"
         />
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-black/20 dark:bg-black/40" />
       </div>
       
       <div className="relative pt-16 pb-8 flex flex-col items-center">
         <div className="absolute top-4 left-4 right-4 flex justify-between z-10">
           <button 
             onClick={() => router.visit('/librarian/books')}
-            className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-black/30 transition-colors"
+            className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-black/30 transition-colors dark:bg-black/30 dark:hover:bg-black/50"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
           
           <button 
             onClick={() => setShowBottomSheet(true)}
-            className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-black/30 transition-colors"
+            className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-black/30 transition-colors dark:bg-black/30 dark:hover:bg-black/50"
           >
             <MoreHorizontal className="w-6 h-6" />
           </button>

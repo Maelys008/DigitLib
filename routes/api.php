@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
+use App\Http\Controllers\Api\IncidentController;
 use App\Models\Badge;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
@@ -114,6 +115,34 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Scan Book
 
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
+    // Scan Book
+Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
+Route::get('/scan-user/{token}', function ($token) {
+    try {
+        $decoded = base64_decode($token);
+        $data = json_decode($decoded, true);
+        
+        if ($data && isset($data['type']) && $data['type'] === 'user_profile') {
+            $user = \App\Models\User::with('badge')->find($data['id']);
+            if ($user) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'badge' => $user->badge?->name ?? 'Bronze',
+                        'score' => $user->score ?? 0,
+                        'borrowedBooks' => $user->loans()->whereNull('actual_return_date')->count()
+                    ]
+                ]);
+            }
+        }
+        return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
+    }
+});
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
@@ -156,5 +185,11 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
 
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
-    Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
+   // Dans la section protégée (middleware auth:sanctum)
+// Dans la section protégée
+Route::prefix('incidents')->group(function () {
+    Route::get('/', [IncidentController::class, 'getLibraryIncidents']); // Récupérer incidents de SA bibliothèque
+    Route::post('/', [IncidentController::class, 'store']); // Créer un incident
+    Route::patch('/{id}/resolve', [IncidentController::class, 'resolve']); // Résoudre
+});
 });

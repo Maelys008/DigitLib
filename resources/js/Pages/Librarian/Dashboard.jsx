@@ -77,48 +77,45 @@ export default function Dashboard() {
   }, [user]);
 
   const loadBooks = async (lib) => {
-  try {
-    let allBooks = [];
-    let currentPage = 1;
-    let hasMore = true;
-    let totalCopies = 0;
-    let totalAvailable = 0;
-    
-    // Récupérer TOUS les livres de toutes les pages
-    while (hasMore) {
-      const response = await api.getBooks({ 
-        library_id: lib.id,
-        page: currentPage,
-        per_page: 100 // Nombre max par page
-      });
+    try {
+      let allBooks = [];
+      let currentPage = 1;
+      let hasMore = true;
+      let totalCopies = 0;
+      let totalAvailable = 0;
       
-      const booksData = response.data?.data || [];
-      allBooks = [...allBooks, ...booksData];
+      while (hasMore) {
+        const response = await api.getBooks({ 
+          library_id: lib.id,
+          page: currentPage,
+          per_page: 100
+        });
+        
+        const booksData = response.data?.data || [];
+        allBooks = [...allBooks, ...booksData];
+        
+        booksData.forEach(book => {
+          totalCopies += book.nb_copy || 0;
+          totalAvailable += book.nb_available || 0;
+        });
+        
+        hasMore = response.data?.current_page < response.data?.last_page;
+        currentPage++;
+      }
       
-      // Calculer les totaux au fur et à mesure
-      booksData.forEach(book => {
-        totalCopies += book.nb_copy || 0;
-        totalAvailable += book.nb_available || 0;
-      });
+      setBooks(allBooks);
+      setStats(prev => ({
+        ...prev,
+        totalCopies: totalCopies,
+        totalBooks: allBooks.length,
+        available: totalAvailable,
+        borrowed: totalCopies - totalAvailable
+      }));
       
-      // Vérifier s'il y a une page suivante
-      hasMore = response.data?.current_page < response.data?.last_page;
-      currentPage++;
+    } catch (error) {
+      console.error('Erreur chargement livres:', error);
     }
-    
-    setBooks(allBooks);
-    setStats(prev => ({
-      ...prev,
-      totalCopies: totalCopies,
-      totalBooks: allBooks.length,
-      available: totalAvailable,
-      borrowed: totalCopies - totalAvailable
-    }));
-    
-  } catch (error) {
-    console.error('Erreur chargement livres:', error);
-  }
-};
+  };
 
   const loadMembers = async (lib) => {
     try {
@@ -200,28 +197,28 @@ export default function Dashboard() {
     router.visit('/librarian/borrowing-rules');
   };
   
-const handlePartnerLibraries = () => {
+  const handlePartnerLibraries = () => {
     router.visit('/librarian/partner-libraries');
-};
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!library) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <DashboardHeader />
         <div className="p-6 text-center">
-          <LibraryIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Aucune bibliothèque trouvée</p>
+          <LibraryIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
           <button 
             onClick={() => router.visit('/librarian/create')} 
-            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors"
           >
             Créer une bibliothèque
           </button>
@@ -231,7 +228,7 @@ const handlePartnerLibraries = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DashboardHeader />
       
       <div className="p-6">

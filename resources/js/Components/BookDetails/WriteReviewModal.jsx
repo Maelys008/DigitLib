@@ -27,73 +27,73 @@ export default function WriteReviewModal({
     }
   }, [isOpen]);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (rating === 0) {
-    setError('Veuillez donner une note');
-    return;
-  }
-  
-  if (!comment.trim()) {
-    setError('Veuillez écrire un commentaire');
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError('');
-
-  try {
-    const res = await api.addReview(bookId, {
-      rating,
-      comment: comment.trim()
-    });
-
-    if (res.success) {
-      const newReview = res.data.review;
-      const formattedReview = {
-        id: newReview.id,
-        nom: user?.name || 'Utilisateur',
-        note: rating,  
-        date: new Date().toLocaleDateString('fr-FR'),
-        commentaire: comment.trim(),
-        likes_count: 0,
-        is_liked: false,
-        created_at: new Date().toISOString(),
-        user: { name: user?.name || 'Utilisateur' }
-      };
-
-      if (onReviewCreated) {
-        onReviewCreated(formattedReview);
-      }
-
-      setIsSubmitted(true);
-      setTimeout(() => {
-        onClose();
-      }, 2000);
-    } else {
-      setError(res.message);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (rating === 0) {
+      setError('Veuillez donner une note');
+      return;
     }
-  } catch (error) {
-    console.error(error);
-    setError('Une erreur est survenue');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    
+    if (!comment.trim()) {
+      setError('Veuillez écrire un commentaire');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const res = await api.addReview(bookId, {
+        rating,
+        comment: comment.trim()
+      });
+
+      if (res.success) {
+        const newReview = res.data.review;
+        const formattedReview = {
+          id: newReview.id,
+          nom: user?.name || 'Utilisateur',
+          note: rating,  
+          date: new Date().toLocaleDateString('fr-FR'),
+          commentaire: comment.trim(),
+          likes_count: 0,
+          is_liked: false,
+          created_at: new Date().toISOString(),
+          user: { name: user?.name || 'Utilisateur' }
+        };
+
+        if (onReviewCreated) {
+          onReviewCreated(formattedReview);
+        }
+
+        setIsSubmitted(true);
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        setError(res.message);
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Une erreur est survenue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 transition-opacity"
         onClick={onClose}
       />
-      <div className="fixed inset-x-0 bottom-0 top-16 bg-white rounded-t-3xl z-50 animate-slide-up overflow-y-auto">
-        <div className="flex justify-center pt-4 pb-2 sticky top-0 bg-white border-b border-gray-100">
+      <div className="fixed inset-x-0 bottom-0 top-16 bg-white dark:bg-gray-800 rounded-t-3xl z-50 animate-slide-up overflow-y-auto">
+        <div className="flex justify-center pt-4 pb-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
           <div 
-            className="w-12 h-1 bg-gray-300 rounded-full cursor-pointer"
+            className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
             onClick={onClose}
           />
         </div>
@@ -104,7 +104,7 @@ export default function WriteReviewModal({
               <div className="mb-6 flex justify-center">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="w-32 h-32 text-gray-800" 
+                  className="w-32 h-32 text-gray-800 dark:text-gray-300" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   strokeWidth="1.2"
@@ -118,27 +118,27 @@ export default function WriteReviewModal({
                 </svg>
               </div>
               
-              <h2 className="text-2xl font-bold text-black mb-2">
+              <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
                 Merci pour votre avis
               </h2>
               
-              <p className="text-gray-500 text-sm leading-tight max-w-[250px] mb-8">
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-tight max-w-[250px] mb-8">
                 Votre avis peut être pour quelqu'un décisif
               </p>
               <button
                 onClick={onClose}
-                className="w-full py-4 bg-[#1C1C1C] text-white font-medium rounded-2xl hover:bg-black transition-all"
+                className="w-full py-4 bg-[#1C1C1C] dark:bg-gray-700 text-white font-medium rounded-2xl hover:bg-black dark:hover:bg-gray-600 transition-all"
               >
                 Retourner sur la page du livre
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">Avis et note</h2>
-              <p className="text-sm text-gray-500 mb-6">{bookTitle}</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Avis et note</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{bookTitle}</p>
             
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
                   {error}
                 </div>
               )}
@@ -158,13 +158,13 @@ export default function WriteReviewModal({
                         className={`w-8 h-8 transition-colors ${
                           star <= (hoverRating || rating)
                             ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
+                            : 'text-gray-300 dark:text-gray-600'
                         }`}
                       />
                     </button>
                   ))}
                 </div>
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                   {rating > 0 ? `${rating} étoile(s)` : 'Tapez pour évaluer'}
                 </p>
               </div>
@@ -175,7 +175,7 @@ export default function WriteReviewModal({
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="L'auteur parle simplement et directement des relations complexes..."
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   required
                 />
               </div>
@@ -184,20 +184,20 @@ export default function WriteReviewModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 bg-gray-100 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={rating === 0 || comment.trim() === '' || isSubmitting}
-                  className="flex-1 bg-gray-900 text-white font-semibold py-3 rounded-xl hover:bg-gray-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md"
+                  className="flex-1 bg-gray-900 dark:bg-gray-700 text-white font-semibold py-3 rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed shadow-md"
                 >
                   {isSubmitting ? 'Publication...' : 'Publier'}
                 </button>
               </div>
               
-              <p className="text-xs text-gray-400 text-center mt-4">
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
                 Votre avis sera visible par tous les utilisateurs
               </p>
             </form>

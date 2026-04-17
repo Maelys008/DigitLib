@@ -76,7 +76,7 @@ export default function ReviewSection({
       <div className={`mb-6 ${className}`}>
         <SectionHeader titre="Avis" voirToutLien={`/book/${bookId}/reviews`} />
         <div className="flex justify-center py-8">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -98,16 +98,16 @@ export default function ReviewSection({
           ))}
         </HorizontalScroll>
       ) : (
-        <div className="bg-gray-50 rounded-xl p-8 text-center">
-          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">Aucun avis pour le moment</p>
-          <p className="text-xs text-gray-400 mt-1">Soyez le premier à donner votre avis</p>
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 text-center">
+          <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Aucun avis pour le moment</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Soyez le premier à donner votre avis</p>
         </div>
       )}
       
       <button
         onClick={() => setIsModalOpen(true)} 
-        className="w-full border border-purple-600 text-purple-600 font-medium py-3 rounded-xl mt-4 hover:bg-purple-50 transition-colors"
+        className="w-full border border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 font-medium py-3 rounded-xl mt-4 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
       >
         Écrire un avis
       </button>
