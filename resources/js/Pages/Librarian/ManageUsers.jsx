@@ -37,11 +37,15 @@ export default function ManageUsers() {
         if (userLibrary) {
           setLibrary(userLibrary);
           
+          // Récupérer TOUS les emprunts (inclut pending_pickup et active)
           const loansData = await api.getLibraryLoans(userLibrary.id);
+          console.log('📚 Emprunts:', loansData);
           setLoans(loansData);
           
-          const reservationsData = await api.getLibraryReservations(userLibrary.id);
-          setReservations(reservationsData.reservations || []);
+          // Récupérer UNIQUEMENT les réservations actives (en attente)
+          const activeReservationsData = await api.getActiveReservations(userLibrary.id);
+          console.log('📋 Réservations actives:', activeReservationsData);
+          setReservations(activeReservationsData.reservations || []);
         }
       } catch (error) {
         console.error('Erreur chargement données:', error);
@@ -257,7 +261,6 @@ export default function ManageUsers() {
               <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl">
                 <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">Aucun emprunt en cours</p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Tous les livres sont disponibles</p>
               </div>
             ) : (
               filteredLoans.map((loan) => (

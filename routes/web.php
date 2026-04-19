@@ -233,6 +233,25 @@ Route::get('/librarian/books/{book}/copies', function ($bookId) {
         'bookAuthor' => $book->author,
     ]);
 })->name('librarian.books.copies');
+Route::get('/librarian/library-records', function () {
+        return inertia('Librarian/LibraryRecords');
+    })->name('library.records');
+    
+    Route::get('/librarian/library-records/{id}', function ($id) {
+        return inertia('Librarian/LibraryRecordDetail', ['id' => $id]);
+    })->name('library.records.show');
+// Routes pour les incidents (à ajouter dans web.php)
+Route::get('/librarian/incidents', function () {
+    return Inertia::render('Librarian/Incidents');
+})->name('librarian.incidents');
+
+Route::get('/librarian/incidents/{id}', function ($id) {
+    return Inertia::render('Librarian/IncidentDetail', ['id' => $id]);
+})->name('librarian.incidents.show');
+
+Route::get('/librarian/incidents/create', function () {
+    return Inertia::render('Librarian/CreateIncident');
+})->name('librarian.incidents.create');
 
 
 require __DIR__ . '/auth.php';

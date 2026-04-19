@@ -220,14 +220,22 @@ async getProfile() {
         }
     }
 
-    async createBook(formData) {
-        try {
-            const response = await this.axios.post("/books", formData, { headers: { "Content-Type": "multipart/form-data" } });
-            return { success: true, data: response.data };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors de l'ajout" };
-        }
+   async createBook(formData) {
+    try {
+        const response = await this.axios.post("/books", formData, { 
+            headers: { "Content-Type": "multipart/form-data" } 
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        // Affiche les erreurs de validation pour debug
+        console.error('Validation errors:', error.response?.data?.errors);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de l'ajout",
+            errors: error.response?.data?.errors 
+        };
     }
+}
 
     async updateBook(id, formData) {
         try {
@@ -401,6 +409,15 @@ async getPartnerLibraries() {
             success: false, 
             message: error.response?.data?.message || 'Erreur lors de la confirmation du retrait'
         };
+    }
+}
+async getActiveReservations(libraryId) {
+    try {
+        const response = await this.axios.get(`/libraries/${libraryId}/active-reservations`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching active reservations:", error);
+        return { count: 0, reservations: [] };
     }
 }
     async returnBook(loanId, conditionOnReturn, additionalPenaltyAmount = null, penaltyReason = null) {
@@ -701,6 +718,20 @@ async getLibraryIncidents() {
         return [];
     }
 }
+async resolveIncident(incidentId) {
+    try {
+        console.log('📤 Résolution incident:', incidentId);
+        const response = await this.axios.patch(`/incidents/${incidentId}/resolve`);
+        console.log('📥 Réponse:', response.data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('❌ Erreur résolution incident:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de la résolution"
+        };
+    }
+}
 // ==================== RAPPORTS ====================
 async getReportsStats(libraryId, period = 'month') {
     try {
@@ -897,7 +928,56 @@ async scanQRCode(token) {
         return null;
     }
 }
+// ==================== CASIER BIBLIOTHÉCAIRE ====================
+async getLibraryRecords() {
+    try {
+        const response = await this.axios.get('/library-records');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching library records:', error);
+        return { records: [], total: 0 };
+    }
+}
 
+async createLibraryRecord(data) {
+    try {
+        console.log('📤 API createLibraryRecord appelée avec:', data);
+        const response = await this.axios.post('/library-records', data);
+        console.log('📥 Réponse API createLibraryRecord:', response.data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('❌ Erreur API createLibraryRecord:', error.response?.data || error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de la création"
+        };
+    }
+}
+
+async resolveLibraryRecord(recordId) {
+    try {
+        console.log('📤 Résolution signalement:', recordId);
+        const response = await this.axios.patch(`/library-records/${recordId}/resolve`);
+        console.log('📥 Réponse:', response.data);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('❌ Erreur:', error.response?.data || error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de la résolution"
+        };
+    }
+}
+
+async getLibraryRecordDetail(recordId) {
+    try {
+        const response = await this.axios.get(`/library-records/${recordId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching record detail:', error);
+        return null;
+    }
+}
 }
 
 export default new ApiService();

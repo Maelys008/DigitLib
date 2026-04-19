@@ -1,4 +1,3 @@
-// resources/js/Pages/Librarian/IncidentDetail.jsx
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle, User, BookOpen, Calendar, Loader2, CheckCircle, Send, Clock, Library } from 'lucide-react';
@@ -14,16 +13,19 @@ export default function IncidentDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [isResolving, setIsResolving] = useState(false);
     const [showResolveConfirm, setShowResolveConfirm] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasBeenReported, setHasBeenReported] = useState(false);
 
     useEffect(() => {
         fetchIncident();
     }, [id]);
 
-    const fetchIncident = async () => {
+  const fetchIncident = async () => {
         setIsLoading(true);
         try {
-            const incidents = await api.getLibraryIncidents();
-            const found = incidents.find(inc => inc.id === parseInt(id));
+            const data = await api.getLibraryIncidents();
+            // Trouver l'incident spécifique par son ID
+            const found = data.find(inc => inc.id === parseInt(id));
             setIncident(found);
         } catch (error) {
             console.error('Erreur chargement incident:', error);
@@ -58,6 +60,8 @@ export default function IncidentDetail() {
             if (result.success) {
                 await fetchIncident();
                 setShowResolveConfirm(false);
+                // Rediriger vers la liste des incidents
+                router.visit('/librarian/incidents');
             }
         } catch (error) {
             console.error('Erreur résolution:', error);
@@ -158,32 +162,68 @@ export default function IncidentDetail() {
                             {incident.description}
                         </p>
                     </div>
-										{/* Section pour signaler un incident grave */}
-										<div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-5 mb-6 border border-red-200 dark:border-red-800">
-												<div className="flex items-start gap-3">
-														<div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-																<AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-														</div>
-														<div className="flex-1">
-																<h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">Signaler un incident grave</h3>
-																<p className="text-sm text-red-700 dark:text-red-400 mb-3">
-																		Si cet incident est grave et nécessite l'attention de tous les bibliothécaires, vous pouvez le signaler.
-																		Une notification sera envoyée à TOUS les bibliothécaires de l'application.
-																</p>
-																<button
-																		onClick={() => {
-																				if (confirm('Confirmer le signalement de cet incident ? Tous les bibliothécaires seront alertés.')) {
-																						router.visit(`/librarian/incidents/create?incident_id=${incident.id}`);
-																				}
-																		}}
-																		className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-																>
-																		<AlertTriangle className="w-4 h-4" />
-																		Signaler cet incident
-																</button>
-														</div>
-												</div>
-										</div>
+
+                    {/* Section pour signaler un incident grave */}
+                    <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-5 mb-6 border border-red-200 dark:border-red-800">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">Signaler un incident grave</h3>
+                                <p className="text-sm text-red-700 dark:text-red-400 mb-3">
+                                    Si cet incident est grave et nécessite l'attention de tous les bibliothécaires, vous pouvez le signaler.
+                                    Une notification sera envoyée à TOUS les bibliothécaires de l'application.
+                                </p>
+
+                                <button
+                                    onClick={async () => {
+                                        if (hasBeenReported) {
+                                            alert('Ce signalement a déjà été envoyé !');
+                                            return;
+                                        }
+                                        
+                                        if (confirm('Confirmer le signalement de cet incident ? Tous les bibliothécaires seront alertés.')) {
+                                            setIsSubmitting(true);
+                                            try {
+                                                const result = await api.createLibraryRecord({
+                                                    title: `Incident grave: ${incident.title || 'Signalement'}`,
+                                                    description: incident.description,
+                                                    severity: incident.severity || 'critical',
+                                                    related_incident_id: incident.id,
+                                                    user_id: incident.user?.id,
+                                                    library_id: incident.library?.id,
+                                                });
+                                                
+                                                if (result.success) {
+                                                    setHasBeenReported(true);
+                                                    alert('Incident signalé à tous les bibliothécaires !');
+                                                    router.visit('/librarian/library-records');
+                                                } else {
+                                                    alert('Erreur: ' + result.message);
+                                                }
+                                            } catch (error) {
+                                                alert('Erreur lors du signalement');
+                                            } finally {
+                                                setIsSubmitting(false);
+                                            }
+                                        }
+                                    }}
+                                    disabled={isSubmitting || hasBeenReported}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : hasBeenReported ? (
+                                        '✓ Déjà signalé'
+                                    ) : (
+                                        <AlertTriangle className="w-4 h-4" />
+                                    )}
+                                    Signaler cet incident à tous
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Informations sur le livre et l'utilisateur */}
                     {incident.loan && (
@@ -262,42 +302,25 @@ export default function IncidentDetail() {
                             )}
                         </div>
                     </div>
-                     {/* Bibliothèque concernée */}
-													{incident.library && (
-															<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mb-6">
-																	<h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-																			<Library className="w-5 h-5 text-purple-500" />
-																			Bibliothèque concernée
-																	</h3>
-																	<p className="font-medium text-gray-900 dark:text-white">{incident.library.name}</p>
-															</div>
-													)}
-                    {/* Actions */}
-                    {incident.status === 'pending' && (
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => router.visit('/librarian/incidents')}
-                                className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                            >
-                                Retour
-                            </button>
-                            <button
-                                onClick={() => setShowResolveConfirm(true)}
-                                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <CheckCircle className="w-5 h-5" />
-                                Marquer comme résolu
-                            </button>
+
+                    {/* Bibliothèque concernée */}
+                    {incident.library && (
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mb-6">
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                <Library className="w-5 h-5 text-purple-500" />
+                                Bibliothèque concernée
+                            </h3>
+                            <p className="font-medium text-gray-900 dark:text-white">{incident.library.name}</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Modal de confirmation de résolution */}
+            {/* Modal de confirmation de résolution - CENTRÉ AU MILIEU */}
             {showResolveConfirm && (
-                <>
-                    <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowResolveConfirm(false)} />
-                    <div className="fixed inset-x-0 bottom-0 bg-white dark:bg-gray-800 rounded-t-3xl z-50 animate-slide-up p-6">
+                <div className="fixed inset-0 flex items-center justify-center z-[9999]">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowResolveConfirm(false)} />
+                    <div className="relative bg-white dark:bg-gray-800 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl">
                         <div className="text-center mb-4">
                             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
@@ -306,22 +329,27 @@ export default function IncidentDetail() {
                             <p className="text-gray-600 dark:text-gray-400">
                                 Êtes-vous sûr de vouloir marquer cet incident comme résolu ?
                             </p>
+                            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {incident.title}
+                                </p>
+                            </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={() => setShowResolveConfirm(false)}
-                                className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
                             >
                                 Annuler
                             </button>
                             <button
                                 onClick={handleResolve}
                                 disabled={isResolving}
-                                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
                             >
                                 {isResolving ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        <Loader2 className="w-5 h-5 animate-spin" />
                                         Traitement...
                                     </>
                                 ) : (
@@ -333,7 +361,7 @@ export default function IncidentDetail() {
                             </button>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </MobileLayout>
     );

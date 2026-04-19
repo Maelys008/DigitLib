@@ -218,50 +218,58 @@ class LibraryController extends Controller
         return response()->json($libraries);
     }
 
-    // Récupérer les réservations de la bibliothèque
-    public function reservations($libraryId)
-    {
-        $library = Library::findOrFail($libraryId);
+   // Récupérer les réservations de la bibliothèque
+public function reservations($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
 
-        // Vérifier que l'utilisateur est admin de cette bibliothèque
-        $user = auth('sanctum')->user();
-        if ($library->administrator_id !== $user->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
-        }
-
-        // Compter les réservations actives pour les livres de cette bibliothèque
-        $reservationsCount = Reservation::whereHas('book', function ($query) use ($libraryId) {
-            $query->where('library_id', $libraryId);
-        })->whereIn('status', ['active', 'notified'])->count();
-
-        return response()->json([
-            'count' => $reservationsCount,
-            'reservations' => Reservation::whereHas('book', function ($query) use ($libraryId) {
-                $query->where('library_id', $libraryId);
-            })->with(['user', 'book'])->whereIn('status', ['active', 'notified'])->get(),
-        ]);
+    // Vérifier que l'utilisateur est admin de cette bibliothèque
+    $user = auth('sanctum')->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
     }
+
+    // Récupérer TOUTES les réservations (active + notified)
+    $allReservations = Reservation::whereHas('book', function ($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })
+    ->with(['user', 'book'])
+    ->orderBy('created_at', 'asc')
+    ->get();
+
+    // Compter les actives ET les notifiées
+    $activeCount = $allReservations->where('status', 'active')->count();
+    $notifiedCount = $allReservations->where('status', 'notified')->count();
+
+    return response()->json([
+        'count' => $activeCount + $notifiedCount,
+        'active_count' => $activeCount,
+        'notified_count' => $notifiedCount,
+        'reservations' => $allReservations, // Garde tout pour le moment
+    ]);
+}
 
     // Récupérer tous les emprunts de la bibliothèque
-    public function loans($libraryId)
-    {
-        $library = Library::findOrFail($libraryId);
+  
+public function loans($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
 
-        // Vérifier que l'utilisateur est admin de cette bibliothèque
-        $user = auth('sanctum')->user();
-        if ($library->administrator_id !== $user->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
-        }
-
-        $loans = Loan::whereHas('copy.book', function ($query) use ($libraryId) {
-            $query->where('library_id', $libraryId);
-        })
-            ->with(['user', 'copy.book'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($loans);
+    $user = auth('sanctum')->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
     }
+
+    // ✅ Récupérer TOUS les emprunts (incluant pending_pickup)
+    $loans = Loan::whereHas('copy.book', function ($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })
+    ->with(['user', 'copy.book'])
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    return response()->json($loans);
+}
 
     public function destroy(Library $library)
     {
@@ -337,7 +345,53 @@ class LibraryController extends Controller
             'totalPenalties' => $totalUnpaidPenalties,
         ]);
     }
+     // Récupérer UNIQUEMENT les réservations actives (pas les notified)
+public function activeReservations($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
 
+    // Vérifier que l'utilisateur est admin de cette bibliothèque
+    $user = auth('sanctum')->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+
+    // Récupérer UNIQUEMENT les réservations avec status 'active'
+    $reservations = Reservation::whereHas('book', function ($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })
+    ->where('status', 'active')  // ← IMPORTANT: seulement les actives
+    ->with(['user', 'book'])
+    ->orderBy('created_at', 'asc')
+    ->get();
+
+    return response()->json([
+        'count' => $reservations->count(),
+        'reservations' => $reservations,
+    ]);
+}
+// Récupérer les emprunts en attente de retrait (pending_pickup)
+public function pendingPickups($libraryId)
+{
+    $library = Library::findOrFail($libraryId);
+
+    // Vérifier que l'utilisateur est admin de cette bibliothèque
+    $user = auth('sanctum')->user();
+    if ($library->administrator_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+
+    // Récupérer les emprunts en attente de retrait
+    $pendingPickups = Loan::whereHas('copy.book', function ($query) use ($libraryId) {
+        $query->where('library_id', $libraryId);
+    })
+    ->where('status', 'pending_pickup')
+    ->with(['user', 'copy.book'])
+    ->orderBy('pickup_deadline', 'asc')
+    ->get();
+
+    return response()->json($pendingPickups);
+}
     public function topBooks(Request $request, $libraryId)
     {
         $library = Library::findOrFail($libraryId);

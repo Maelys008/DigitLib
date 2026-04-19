@@ -64,7 +64,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
 
     // casier bibliothécaire
-    Route::get('/profile/record/{user?}', [RecordController::class, 'getLibraryRecord']);
+  Route::get('/library-records', [RecordController::class, 'getLibraryRecords']);
+    Route::post('/library-records', [RecordController::class, 'createLibraryRecord']);
+    Route::get('/library-records/{id}', [RecordController::class, 'getLibraryRecordDetail']);
+    Route::patch('/library-records/{id}/resolve', [RecordController::class, 'resolveLibraryRecord']);
 
     // ==================== RAPPORTS ====================
     Route::get('/libraries/{library}/reports/stats', [LibraryController::class, 'reportsStats']);
@@ -86,8 +89,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/my-managed-libraries', [LibraryController::class, 'myManagedLibraries']);
     Route::get('/libraries/{library}/inscriptions', [LibraryController::class, 'inscriptions']);
     Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
-    Route::get('/libraries/{library}/reservations', [LibraryController::class, 'reservations']);
-    Route::get('/libraries/{library}/loans', [LibraryController::class, 'loans']);
+    Route::get('/libraries/{libraryId}/loans', [LibraryController::class, 'loans']);
+    Route::get('/libraries/{libraryId}/reservations', [LibraryController::class, 'reservations']);
+    Route::get('/libraries/{libraryId}/active-reservations', [LibraryController::class, 'activeReservations']); // Nouvelle
+    Route::get('/libraries/{libraryId}/pending-pickups', [LibraryController::class, 'pendingPickups']); // Nouvelle
     Route::get('/libraries/partners', [LibraryController::class, 'partnerLibraries']);
     Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
     // --- Pénalités ---
@@ -149,6 +154,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
         }
     });
+     Route::patch('/incidents/{id}/resolve', [LoanController::class, 'resolveIncident']);
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);

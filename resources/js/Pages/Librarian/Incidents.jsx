@@ -1,6 +1,6 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, AlertTriangle, User, BookOpen, Calendar, Loader2, Search, X } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, User, BookOpen, Calendar, Loader2, Search, X, PenTool } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -16,23 +16,26 @@ export default function Incidents() {
         fetchIncidents();
     }, []);
 
-   const fetchIncidents = async () => {
-    setIsLoading(true);
-    try {
-        const data = await api.getLibraryIncidents();
-        console.log('📋 Incidents récupérés:', data);
-        console.log('🔍 Premier incident:', data[0]);
-        setIncidents(data);
-    } catch (error) {
-        console.error('Erreur chargement incidents:', error);
-    } finally {
-        setIsLoading(false);
-    }
-};
+    const fetchIncidents = async () => {
+        setIsLoading(true);
+        try {
+            const data = await api.getLibraryIncidents();
+            console.log('📋 Incidents récupérés:', data);
+            console.log('🔍 Premier incident:', data[0]);
+            setIncidents(data);
+        } catch (error) {
+            console.error('Erreur chargement incidents:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const getIncidentIcon = (description) => {
         if (description?.toLowerCase().includes('perdu')) {
             return '🔴';
+        }
+        if (description?.toLowerCase().includes('dégradé') || description?.toLowerCase().includes('abîmé')) {
+            return '📖';
         }
         return '⚠️';
     };
@@ -41,24 +44,31 @@ export default function Incidents() {
         if (description?.toLowerCase().includes('perdu')) {
             return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 border-red-200 dark:border-red-800';
         }
-        return 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+        if (description?.toLowerCase().includes('dégradé') || description?.toLowerCase().includes('abîmé')) {
+            return 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+        }
+        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
     };
 
     const getIncidentLabel = (description) => {
         if (description?.toLowerCase().includes('perdu')) {
-            return 'Livre perdu';
+            return '📖 Livre perdu';
         }
-        return 'Retard prolongé';
+        if (description?.toLowerCase().includes('dégradé') || description?.toLowerCase().includes('abîmé')) {
+            return '⚠️ Livre endommagé';
+        }
+        return '⏰ Retard prolongé';
     };
 
     const filteredIncidents = incidents.filter(incident => {
         const matchesSearch = 
             incident.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            incident.loan?.copy?.book?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+            incident.loan?.copy?.book?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            incident.loan?.copy?.book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filter === 'all') return matchesSearch;
         if (filter === 'lost') return matchesSearch && incident.description?.toLowerCase().includes('perdu');
-        if (filter === 'damaged') return matchesSearch && !incident.description?.toLowerCase().includes('perdu');
+        if (filter === 'damaged') return matchesSearch && (incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé'));
         
         return matchesSearch;
     });
@@ -77,7 +87,6 @@ export default function Incidents() {
         <MobileLayout>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
-               
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -103,7 +112,7 @@ export default function Incidents() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
-                            placeholder="Rechercher par utilisateur ou titre de livre..."
+                            placeholder="Rechercher par utilisateur, titre ou auteur..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
@@ -150,7 +159,7 @@ export default function Incidents() {
                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
                         >
-                            Retards prolongés ({incidents.filter(i => !i.description?.toLowerCase().includes('perdu')).length})
+                            Livres endommagés ({incidents.filter(i => i.description?.toLowerCase().includes('dégradé') || i.description?.toLowerCase().includes('abîmé')).length})
                         </button>
                     </div>
                 </div>
@@ -169,7 +178,13 @@ export default function Incidents() {
                         filteredIncidents.map((incident) => (
                             <div
                                 key={incident.id}
-                                className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-2 ${getIncidentColor(incident.description)}`}
+                                className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-l-4 ${
+                                    incident.description?.toLowerCase().includes('perdu')
+                                        ? 'border-red-500'
+                                        : incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé')
+                                        ? 'border-orange-500'
+                                        : 'border-yellow-500'
+                                }`}
                             >
                                 <div className="flex items-start gap-4">
                                     {/* Icône */}
@@ -194,12 +209,20 @@ export default function Incidents() {
                                             </div>
                                         </div>
 
-                                        {/* Livre */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <BookOpen className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                        {/* Livre - Titre */}
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <BookOpen className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                                             <h3 className="font-semibold text-gray-900 dark:text-white">
                                                 {incident.loan?.copy?.book?.title || 'Livre inconnu'}
                                             </h3>
+                                        </div>
+
+                                        {/* Auteur du livre */}
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <PenTool className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                {incident.loan?.copy?.book?.author || 'Auteur inconnu'}
+                                            </span>
                                         </div>
 
                                         {/* Utilisateur */}
@@ -219,7 +242,7 @@ export default function Incidents() {
 
                                         {/* Actions */}
                                         <div className="flex gap-3 mt-4">
-                                           <button
+                                            <button
                                                 onClick={() => router.visit(`/librarian/incidents/${incident.id}`)}
                                                 className="text-sm text-orange-600 dark:text-orange-400 font-medium hover:underline"
                                             >

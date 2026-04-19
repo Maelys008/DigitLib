@@ -200,6 +200,9 @@ export default function Dashboard() {
   const handlePartnerLibraries = () => {
     router.visit('/librarian/partner-libraries');
   };
+  const handleViewCasier = () => {
+    router.visit('/librarian/library-records');
+};
 
   if (isLoading) {
     return (
@@ -243,6 +246,7 @@ export default function Dashboard() {
           onViewReports={handleViewReports}
           onBorrowingRules={handleBorrowingRules}
           onPartnerLibraries={handlePartnerLibraries}
+           onViewCasier={handleViewCasier}
         />
       </div>
 

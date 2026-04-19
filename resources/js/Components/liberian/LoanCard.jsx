@@ -4,6 +4,7 @@ import { useState } from "react";
 export default function LoanCard({ 
   loan, 
   type = 'loan', // 'loan' ou 'reservation'
+  reservation = null,
   onReturn,
   onConfirmPickup, 
   className = '' 
@@ -123,21 +124,34 @@ export default function LoanCard({
           </div>
         )}
 
-        {/* Statut de réservation */}
-        {type === 'reservation' && status && (
-          <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg w-fit mb-3 ${
-            status === 'notified' ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'
-          }`}>
-            <AlertCircle className={`w-3.5 h-3.5 ${
-              status === 'notified' ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'
-            }`} />
-            <span className={`text-xs font-medium ${
-              status === 'notified' ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'
+
+
+          {/* Statut de réservation */}
+          {type === 'reservation' && status && (
+            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg w-fit mb-3 ${
+              status === 'notified' 
+                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                : 'bg-blue-50 dark:bg-blue-900/20'
             }`}>
-              {status === 'notified' ? 'À récupérer' : 'En attente'}
-            </span>
-          </div>
-        )}
+              {status === 'notified' ? (
+                <CheckCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+              ) : (
+                <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              )}
+              <span className={`text-xs font-medium ${
+                status === 'notified' 
+                  ? 'text-green-700 dark:text-green-400 font-semibold' 
+                  : 'text-blue-600 dark:text-blue-400'
+              }`}>
+                {status === 'notified' ? '✅ Livre disponible - À récupérer' : '⏳ En liste d\'attente'}
+              </span>
+              {status === 'notified' && reservation?.expires_at && (
+                <span className="text-xs text-orange-600 dark:text-orange-400 ml-1">
+                  (avant {new Date(reservation.expires_at).toLocaleString()})
+                </span>
+              )}
+            </div>
+          )}
 
         {/* Boutons d'action */}
         <div className="flex gap-2 mt-2">
