@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { ArrowLeft, AlertCircle, CheckCircle, X, Search, DollarSign, Calendar, User, BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; // ← AJOUTE CETTE LIGNE
 import api from '../../services/api';
 import MobileLayout from '@/Layouts/MobileLayout';
 
 export default function ManagePenalties() {
   const { user } = useAuth();
+  const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); // ← AJOUTE CETTE LIGNE
   const [library, setLibrary] = useState(null);
   const [allPenalties, setAllPenalties] = useState([]); 
   const [filterStatus, setFilterStatus] = useState('all'); 
@@ -22,17 +24,22 @@ export default function ManagePenalties() {
       setIsLoading(true);
       
       try {
-        // Récupérer toutes les bibliothèques de l'utilisateur
-        const libraries = await api.getUserLibraries();
-        
-        // Trouver la bibliothèque où l'utilisateur est admin
-        const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
-        
-        if (userLibrary) {
-          setLibrary(userLibrary);
-          await loadPenalties(userLibrary.id); // Passer l'ID de la bibliothèque
+        // 🔥 Utilise la bibliothèque active du Context
+        if (activeLibrary) {
+          console.log('📚 ManagePenalties - Utilisation de la bibliothèque active:', activeLibrary.name);
+          setLibrary(activeLibrary);
+          await loadPenalties(activeLibrary.id);
         } else {
-          setMessage({ type: 'error', text: 'Vous n\'êtes administrateur d\'aucune bibliothèque' });
+          // Fallback: cherche la bibliothèque où l'utilisateur est admin
+          const libraries = await api.getUserLibraries();
+          const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
+          
+          if (userLibrary) {
+            setLibrary(userLibrary);
+            await loadPenalties(userLibrary.id);
+          } else {
+            setMessage({ type: 'error', text: 'Vous n\'êtes administrateur d\'aucune bibliothèque' });
+          }
         }
       } catch (error) {
         console.error('Erreur chargement données:', error);
@@ -42,13 +49,13 @@ export default function ManagePenalties() {
       }
     };
     
-    loadData();
-  }, [user]);
+    if (!libraryLoading) {
+      loadData();
+    }
+  }, [user, activeLibrary, libraryLoading]);
 
-  // Modifier loadPenalties pour accepter libraryId
   const loadPenalties = async (libraryId) => {
     try {
-      // Passer l'ID de la bibliothèque pour ne récupérer que ses pénalités
       const penalties = await api.getPenalties(libraryId);
       console.log(`Pénalités de la bibliothèque ${libraryId}:`, penalties);
       setAllPenalties(penalties);
@@ -66,7 +73,6 @@ export default function ManagePenalties() {
       
       if (result.success) {
         setMessage({ type: 'success', text: 'Pénalité réglée avec succès !' });
-        // Recharger les pénalités avec l'ID de la bibliothèque
         if (library) {
           await loadPenalties(library.id);
         }
@@ -107,7 +113,31 @@ export default function ManagePenalties() {
   const paidCount = allPenalties.filter(p => p.status === 'payé').length;
   const totalAmount = filteredPenalties.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-  if (isLoading) {
+  // Vérifie si l'utilisateur est admin de cette bibliothèque
+  const isAdmin = library && library.administrator_id === user?.id;
+
+  // Redirige si l'utilisateur n'est pas admin
+  if (!isLoading && !libraryLoading && !isAdmin) {
+    return (
+      <MobileLayout>
+        <div className="p-6 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Seuls les administrateurs peuvent accéder à cette page.
+          </p>
+          <button
+            onClick={() => router.visit('/librarian/dashboard')}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  if (isLoading || libraryLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">

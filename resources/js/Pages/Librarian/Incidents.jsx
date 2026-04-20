@@ -3,32 +3,57 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle, User, BookOpen, Calendar, Loader2, Search, X, PenTool } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
 
 export default function Incidents() {
     const { user } = useAuth();
+    const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
+    const [library, setLibrary] = useState(null);
     const [incidents, setIncidents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('all'); // all, lost, damaged
 
     useEffect(() => {
-        fetchIncidents();
-    }, []);
-
-    const fetchIncidents = async () => {
-        setIsLoading(true);
-        try {
-            const data = await api.getLibraryIncidents();
-            console.log('📋 Incidents récupérés:', data);
-            console.log('🔍 Premier incident:', data[0]);
-            setIncidents(data);
-        } catch (error) {
-            console.error('Erreur chargement incidents:', error);
-        } finally {
-            setIsLoading(false);
+        const loadIncidents = async () => {
+            if (!user) return;
+            
+            // 🔥 Utilise la bibliothèque active du Context
+            let lib = activeLibrary;
+            
+            if (!lib) {
+                // Fallback: cherche la bibliothèque où l'utilisateur est admin
+                const libraries = await api.getUserLibraries();
+                lib = libraries.find(l => l.administrator_id === user.id);
+            }
+            
+            if (lib) {
+                setLibrary(lib);
+                await fetchIncidents(lib.id);
+            } else {
+                setIsLoading(false);
+            }
+        };
+        
+        if (!libraryLoading) {
+            loadIncidents();
         }
-    };
+    }, [user, activeLibrary, libraryLoading]);
+
+   const fetchIncidents = async () => {
+    setIsLoading(true);
+    try {
+        // N'envoie pas de paramètre
+        const data = await api.getLibraryIncidents();
+        console.log('📋 Incidents récupérés:', data);
+        setIncidents(data);
+    } catch (error) {
+        console.error('Erreur chargement incidents:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     const getIncidentIcon = (description) => {
         if (description?.toLowerCase().includes('perdu')) {
@@ -73,7 +98,31 @@ export default function Incidents() {
         return matchesSearch;
     });
 
-    if (isLoading) {
+    // Vérifie si l'utilisateur est admin de cette bibliothèque
+    const isAdmin = library && library.administrator_id === user?.id;
+
+    // Redirige ou affiche message si l'utilisateur n'est pas admin
+    if (!isLoading && !libraryLoading && !isAdmin && library) {
+        return (
+            <MobileLayout>
+                <div className="p-6 text-center">
+                    <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Seuls les administrateurs peuvent accéder aux incidents.
+                    </p>
+                    <button
+                        onClick={() => router.visit('/librarian/dashboard')}
+                        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+                    >
+                        Retour au tableau de bord
+                    </button>
+                </div>
+            </MobileLayout>
+        );
+    }
+
+    if (isLoading || libraryLoading) {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-screen">

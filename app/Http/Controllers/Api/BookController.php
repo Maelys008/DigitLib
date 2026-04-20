@@ -59,8 +59,12 @@ class BookController extends Controller
      * Store a newly created resource in storage.
      */
 
-    public function store(Request $request)
-    {
+ public function store(Request $request)
+{
+    \Log::info('=== STORE BOOK ===');
+    \Log::info('Données reçues:', $request->all());
+    
+    try {
         $request->validate([
             'title' => 'required|string',
             'author' => 'required|string',
@@ -74,14 +78,12 @@ class BookController extends Controller
             'nb_copy' => 'required|integer|min:0',
         ]);
 
-
         $isbnExists = Book::where('isbn', $request->isbn)
             ->where('library_id', $request->library_id)
             ->exists();
+            
         if ($isbnExists) {
-            return response()->json([
-                'message' => 'Un livre avec cet ISBN existe déjà.',
-            ], 422);
+            return response()->json(['message' => 'Un livre avec cet ISBN existe déjà.'], 422);
         }
 
         $data = $request->all();
@@ -89,17 +91,34 @@ class BookController extends Controller
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('covers', 'public');
             $data['cover_image'] = $path;
+            \Log::info('Image sauvegardée:', ['path' => $path]);
         }
 
-        $data['nb_available'] = $data['nb_copy'];
-        $book = Book::create($data);
-        $this->generateCopies($book, $data['nb_copy']);
+        // 🔥 N'écrase PAS nb_available
+        // $data['nb_available'] = $data['nb_copy'];
 
-        return response()->json([
-            'message' => 'Livre ajouté',
-            'data' => $book,
-        ], 201);
+        \Log::info('Création du livre avec:', $data);
+        
+        $book = Book::create($data);
+        
+        \Log::info('Livre créé avec ID: ' . $book->id);
+        
+        $this->generateCopies($book, $data['nb_copy']);
+        
+        \Log::info('Copies générées');
+
+        return response()->json(['message' => 'Livre ajouté', 'data' => $book], 201);
+        
+    } catch (\Exception $e) {
+        \Log::error('ERREUR STORE BOOK:', [
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['message' => 'Erreur: ' . $e->getMessage()], 500);
     }
+}
 
     private function generateCopies(Book $book, int $count)
     {

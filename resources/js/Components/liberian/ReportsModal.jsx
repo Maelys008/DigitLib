@@ -1,8 +1,8 @@
-import { X, Download, Calendar, TrendingUp, Users, BookOpen, BarChart3, FileText, PieChart, Loader2 } from 'lucide-react';
+import { X, Download, Calendar, TrendingUp, Users, BookOpen, BarChart3, FileText, PieChart, Loader2, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
-export default function ReportsModal({ isOpen, onClose, libraryId }) {
+export default function ReportsModal({ isOpen, onClose, libraryId, isAdmin }) {
     const [selectedReport, setSelectedReport] = useState('overview');
     const [dateRange, setDateRange] = useState('month');
     const [isLoading, setIsLoading] = useState(true);
@@ -13,10 +13,12 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
     const [activePenalties, setActivePenalties] = useState([]);
 
     useEffect(() => {
-        if (isOpen && libraryId) {
+        if (isOpen && libraryId && isAdmin) {
             fetchAllData();
+        } else if (isOpen && !isAdmin) {
+            setIsLoading(false);
         }
-    }, [isOpen, libraryId, dateRange]);
+    }, [isOpen, libraryId, dateRange, isAdmin]);
 
     const fetchAllData = async () => {
         setIsLoading(true);
@@ -43,6 +45,32 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
 
     if (!isOpen) return null;
 
+    // 🔥 Si l'utilisateur n'est pas admin, afficher le message d'erreur directement
+    if (!isAdmin) {
+        return (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-col items-center justify-center py-6">
+                        <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-4 mb-4">
+                            <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">Accès non autorisé</h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-center">
+                            Les rapports sont réservés aux administrateurs de la bibliothèque.
+                        </p>
+                        <button
+                            onClick={onClose}
+                            className="mt-6 px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors w-full"
+                        >
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Reste du code pour les admins (inchangé)
     const reportTypes = [
         { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3, color: 'orange' },
         { id: 'borrowings', label: 'Emprunts', icon: BookOpen, color: 'blue' },
@@ -66,7 +94,6 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                     <div className="space-y-4">
                         <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 p-4 rounded-xl">
                             <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-3">Statistiques générales</h4>
-                        
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
                                     <p className="text-xs text-gray-600 dark:text-gray-400">Total livres</p>
@@ -94,7 +121,6 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                                 </div>
                             </div>
                         </div>
-
                         <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 p-4 rounded-xl">
                             <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">Taux d'utilisation</h4>
                             <div className="space-y-3">
@@ -102,33 +128,26 @@ export default function ReportsModal({ isOpen, onClose, libraryId }) {
                                     <div className="flex justify-between text-sm mb-1">
                                         <span className="text-gray-700 dark:text-gray-300">Livres empruntés</span>
                                         <span className="font-semibold text-blue-900 dark:text-blue-300">
-                                            {Math.round((stats?.borrowed / stats?.totalBooks) * 100) || 0}%
+                                            {stats?.totalBooks ? Math.round((stats?.borrowed / stats?.totalBooks) * 100) : 0}%
                                         </span>
                                     </div>
                                     <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-blue-600 dark:bg-blue-500 rounded-full"
-                                            style={{ width: `${(stats?.borrowed / stats?.totalBooks) * 100 || 0}%` }}
-                                        />
+                                        <div className="h-full bg-blue-600 dark:bg-blue-500 rounded-full" style={{ width: `${stats?.totalBooks ? (stats?.borrowed / stats?.totalBooks) * 100 : 0}%` }} />
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between text-sm mb-1">
                                         <span className="text-gray-700 dark:text-gray-300">Livres disponibles</span>
                                         <span className="font-semibold text-green-900 dark:text-green-300">
-                                            {Math.round((stats?.available / stats?.totalBooks) * 100) || 0}%
+                                            {stats?.totalBooks ? Math.round((stats?.available / stats?.totalBooks) * 100) : 0}%
                                         </span>
                                     </div>
                                     <div className="h-2 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-green-600 dark:bg-green-500 rounded-full"
-                                            style={{ width: `${(stats?.available / stats?.totalBooks) * 100 || 0}%` }}
-                                        />
+                                        <div className="h-full bg-green-600 dark:bg-green-500 rounded-full" style={{ width: `${stats?.totalBooks ? (stats?.available / stats?.totalBooks) * 100 : 0}%` }} />
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                         {stats?.lateReturns > 0 && (
                             <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 p-4 rounded-xl">
                                 <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">⚠ Alertes</h4>

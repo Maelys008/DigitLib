@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext';
 import api from '../../services/api';
 import BooksSection from '@/Components/liberian/BooksSection';
 import AddBookModal from '@/Components/liberian/AddBookModal';
@@ -9,6 +10,7 @@ import Pagination from '@/Components/Pagination';
 
 export default function Books() {
   const { user } = useAuth();
+  const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary();
   const [library, setLibrary] = useState(null);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,23 +24,39 @@ export default function Books() {
 
   useEffect(() => {
     const fetchGenres = async () => {
-      const { data } = await api.getGenres();
-      setGenres(data);
+      try {
+        const { data } = await api.getGenres();
+        setGenres(data);
+      } catch (error) {
+        console.error('Erreur chargement genres:', error);
+      }
     };
     fetchGenres();
   }, []);
 
   useEffect(() => {
-    if (user) {
-      const key = `user_library_${user.id}`;
-      const savedLibrary = localStorage.getItem(key);
-      if (savedLibrary) {
-        const lib = JSON.parse(savedLibrary);
-        setLibrary(lib);
-        loadBooks(lib, 1);
+    const loadInitialLibrary = async () => {
+      if (!user) return;
+      
+      if (activeLibrary) {
+        console.log('📚 Books - Utilisation de la bibliothèque active:', activeLibrary);
+        setLibrary(activeLibrary);
+        await loadBooks(activeLibrary, 1);
+      } else {
+        const libraries = await api.getUserLibraries();
+        const ownedLib = libraries.find(lib => lib.administrator_id === user.id);
+        if (ownedLib) {
+          setLibrary(ownedLib);
+          await loadBooks(ownedLib, 1);
+        }
       }
+      setIsLoading(false);
+    };
+    
+    if (!libraryLoading && user) {
+      loadInitialLibrary();
     }
-  }, [user]);
+  }, [user, activeLibrary, libraryLoading]);
 
   useEffect(() => {
     if (library) {
@@ -47,21 +65,24 @@ export default function Books() {
   }, [currentPage]);
 
   const loadBooks = async (lib, page = 1) => {
+    if (!lib) return;
     setIsLoading(true);
     try {
+      console.log('🔍 Chargement livres pour bibliothèque:', lib.id);
       const response = await api.getBooks({ 
         library_id: lib.id,
         page: page,
         per_page: perPage
       });
       
+      console.log('📚 Réponse:', response);
       const booksData = response.data?.data || [];
       setBooks(booksData);
       setTotalPages(response.data?.last_page || 1);
       setTotalBooks(response.data?.total || 0);
       
     } catch (error) {
-      console.error('Erreur chargement livres:', error);
+      console.error('❌ Erreur chargement livres:', error);
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +98,7 @@ export default function Books() {
       }
       return { success: false, message: response.message };
     } catch (error) {
+      console.error('Erreur ajout livre:', error);
       return { success: false, message: 'Erreur lors de l\'ajout' };
     }
   };
@@ -101,7 +123,10 @@ export default function Books() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading) {
+  // 🔥 CORRECTION : Définir canAddBooks (toujours true pour l'affichage, le backend gère la sécurité)
+  const canAddBooks = true;
+
+  if (isLoading || libraryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
@@ -150,7 +175,7 @@ export default function Books() {
       <div className="p-6">
         <BooksSection 
           books={books}
-          onAddBook={() => setShowAddBookModal(true)}
+          onAddBook={() => setShowAddBookModal(true)}  // ← Toujours visible
           onEditBook={handleEditBook}
           onDeleteBook={handleDeleteBook}
         />

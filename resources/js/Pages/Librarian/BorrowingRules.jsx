@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Calendar, AlertCircle } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
 
 export default function BorrowingRules() {
   const { user } = useAuth();
-  const { props } = usePage();
+  const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
   const [library, setLibrary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,11 +24,17 @@ export default function BorrowingRules() {
     const fetchLibrary = async () => {
       if (!user) return;
       
-      const key = `user_library_${user.id}`;
-      const savedLibrary = localStorage.getItem(key);
+      // 🔥 Utilise la bibliothèque active du Context
+      let lib = activeLibrary;
       
-      if (savedLibrary) {
-        const lib = JSON.parse(savedLibrary);
+      if (!lib) {
+        // Fallback: cherche la bibliothèque où l'utilisateur est admin
+        const libraries = await api.getUserLibraries();
+        lib = libraries.find(l => l.administrator_id === user.id);
+      }
+      
+      if (lib) {
+        console.log('📚 BorrowingRules - Bibliothèque chargée:', lib.name);
         setLibrary(lib);
         setFormData({
           loan_duration: lib.loan_duration || 14,
@@ -37,8 +44,10 @@ export default function BorrowingRules() {
       setIsLoading(false);
     };
     
-    fetchLibrary();
-  }, [user]);
+    if (!libraryLoading) {
+      fetchLibrary();
+    }
+  }, [user, activeLibrary, libraryLoading]);
 
   const handleSave = async () => {
     if (!library) return;
@@ -61,10 +70,21 @@ export default function BorrowingRules() {
       if (result.success) {
         setSuccess(true);
         
-        const key = `user_library_${user.id}`;
+        // Met à jour la bibliothèque dans le state
         const updatedLibrary = { ...library, ...formData };
-        localStorage.setItem(key, JSON.stringify(updatedLibrary));
         setLibrary(updatedLibrary);
+        
+        // Met à jour le localStorage
+        const key = `user_library_${user.id}`;
+        localStorage.setItem(key, JSON.stringify(updatedLibrary));
+        
+        // 🔥 Met aussi à jour le Context si la bibliothèque active est la même
+        if (activeLibrary && activeLibrary.id === library.id) {
+          // Recharge la bibliothèque dans le Context
+          const refreshedLibrary = await api.getLibrary(library.id);
+          localStorage.setItem('active_library_id', refreshedLibrary.id);
+          localStorage.setItem('active_library_name', refreshedLibrary.name);
+        }
         
         setTimeout(() => setSuccess(false), 3000);
       } else {
@@ -77,7 +97,39 @@ export default function BorrowingRules() {
     }
   };
 
-  if (isLoading) {
+  // Vérifie si l'utilisateur est admin de cette bibliothèque
+  const isAdmin = library && library.administrator_id === user?.id;
+
+  // Redirige si l'utilisateur n'est pas admin
+  if (!isLoading && !libraryLoading && !isAdmin && library) {
+    return (
+      <MobileLayout>
+        <div className="px-6 py-4">
+          <button 
+            onClick={() => router.visit('/librarian/dashboard')}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          </button>
+          <div className="text-center py-12">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Seuls les administrateurs peuvent modifier les règles d'emprunt.
+            </p>
+            <button
+              onClick={() => router.visit('/librarian/dashboard')}
+              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+            >
+              Retour au tableau de bord
+            </button>
+          </div>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  if (isLoading || libraryLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
