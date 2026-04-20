@@ -248,18 +248,6 @@ export default function Incidents() {
                                             >
                                                 Voir les détails
                                             </button>
-                                            {incident.description?.toLowerCase().includes('perdu') && (
-                                                <button
-                                                    className="text-sm text-red-600 dark:text-red-400 font-medium hover:underline"
-                                                    onClick={() => {
-                                                        if (confirm('Confirmer la perte définitive du livre ?')) {
-                                                            // Action à implémenter
-                                                        }
-                                                    }}
-                                                >
-                                                    Marquer comme résolu
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
