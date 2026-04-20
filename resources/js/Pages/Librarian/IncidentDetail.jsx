@@ -20,11 +20,10 @@ export default function IncidentDetail() {
         fetchIncident();
     }, [id]);
 
-  const fetchIncident = async () => {
+    const fetchIncident = async () => {
         setIsLoading(true);
         try {
             const data = await api.getLibraryIncidents();
-            // Trouver l'incident spécifique par son ID
             const found = data.find(inc => inc.id === parseInt(id));
             setIncident(found);
         } catch (error) {
@@ -60,11 +59,11 @@ export default function IncidentDetail() {
             if (result.success) {
                 await fetchIncident();
                 setShowResolveConfirm(false);
-                // Rediriger vers la liste des incidents
                 router.visit('/librarian/incidents');
             }
         } catch (error) {
             console.error('Erreur résolution:', error);
+            alert('Erreur lors de la résolution');
         } finally {
             setIsResolving(false);
         }
@@ -186,15 +185,27 @@ export default function IncidentDetail() {
                                         if (confirm('Confirmer le signalement de cet incident ? Tous les bibliothécaires seront alertés.')) {
                                             setIsSubmitting(true);
                                             try {
-                                                const result = await api.createLibraryRecord({
+                                                // 🔥 CORRECTION ICI : Récupère le library_id correctement
+                                                const libraryId = incident.library_id || incident.library?.id;
+                                                
+                                                console.log('📤 Envoi du signalement...', {
                                                     title: `Incident grave: ${incident.title || 'Signalement'}`,
                                                     description: incident.description,
                                                     severity: incident.severity || 'critical',
                                                     related_incident_id: incident.id,
                                                     user_id: incident.user?.id,
-                                                    library_id: incident.library?.id,
+                                                    library_id: libraryId,
                                                 });
                                                 
+                                           const result = await api.createLibraryRecord({
+                                                    title: `Incident grave: ${incident.title || 'Signalement'}`,
+                                                    description: incident.description,
+                                                    severity: incident.severity || 'critical',
+                                                    related_incident_id: incident.id,
+                                                    user_id: incident.user?.id,
+                                                    library_id: libraryId,  
+                                                });
+                                                                                                
                                                 if (result.success) {
                                                     setHasBeenReported(true);
                                                     alert('Incident signalé à tous les bibliothécaires !');
@@ -203,6 +214,7 @@ export default function IncidentDetail() {
                                                     alert('Erreur: ' + result.message);
                                                 }
                                             } catch (error) {
+                                                console.error('❌ Erreur:', error);
                                                 alert('Erreur lors du signalement');
                                             } finally {
                                                 setIsSubmitting(false);

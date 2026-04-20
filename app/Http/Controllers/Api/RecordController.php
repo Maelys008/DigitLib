@@ -20,7 +20,7 @@ class RecordController extends Controller
     $authUser = $request->user();
     
     // UNIQUEMENT LES SIGNALEMENTS GRAVES NON RÉSOLUS
-    $records = Incident::where('is_library_record', true)
+    $records = Incident::where('is_library_record', 1)
         ->where('status', '!=', 'resolved')  // ← EXCLURE LES RÉSOLUS
         ->with(['user', 'library'])
         ->orderBy('created_at', 'desc')
@@ -35,103 +35,90 @@ class RecordController extends Controller
     /**
      * Créer un signalement dans le casier bibliothécaire
      */
-    public function createLibraryRecord(Request $request)
-    {
-        $authUser = $request->user();
-        
-        // Vérifier que l'utilisateur est bibliothécaire
-        $isLibrarian = Internal_member::where('user_id', $authUser->id)->exists();
-        
-        if (!$isLibrarian && $authUser->role !== 'admin') {
-            return response()->json([
-                'message' => 'Seuls les bibliothécaires peuvent signaler des incidents'
-            ], 403);
-        }
-        
-        // Vérifier si déjà signalé (évite les doublons)
-        if ($request->related_incident_id) {
-            $existing = Incident::where('related_incident_id', $request->related_incident_id)
-                ->where('is_library_record', true)
-                ->first();
-            
-            if ($existing) {
-                return response()->json([
-                    'message' => 'Cet incident a déjà été signalé au casier'
-                ], 422);
-            }
-        }
-        
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'severity' => 'required|in:info,warning,critical,emergency',
-            'related_incident_id' => 'nullable|exists:incidents,id',
-            'user_id' => 'nullable|exists:users,id',
-            'library_id' => 'nullable|exists:libraries,id',
-        ]);
-        
-        // Récupérer la bibliothèque de l'utilisateur
-        $userLibrary = Internal_member::where('user_id', $authUser->id)->first();
-        $libraryId = $request->library_id ?? ($userLibrary ? $userLibrary->library_id : null);
-        
-        $incident = Incident::create([
-            'user_id' => $request->user_id ?? $authUser->id,
-            'library_id' => $libraryId,
-            'description' => $request->description,
-            'date' => now(),
-            'severity' => $request->severity,
-            'title' => $request->title,
-            'status' => 'pending',
-            'is_library_record' => true,
-            'notify_all_librarians' => true,
-            'related_incident_id' => $request->related_incident_id,
-            'created_by' => $authUser->id,
-        ]);
-        
-        // =============================================================
-        // 1. NOTIFIER LE READER CONCERNÉ
-        // =============================================================
-        if ($request->user_id) {
-            $concernedUser = User::find($request->user_id);
-            if ($concernedUser) {
-                Notification::create([
-                    'user_id' => $concernedUser->id,
-                    'type' => 'incident_reported',
-                    'message' => "Un incident grave vous concernant a été signalé par {$authUser->name}. Un bibliothécaire va vous contacter.",
-                    'object_type' => 'incident',
-                    'object' => $incident->id,
-                    'date_sent' => now(),
-                ]);
-            }
-        }
-        
-        // =============================================================
-        // 2. NOTIFIER TOUS LES BIBLIOTHÉCAIRES
-        // =============================================================
-        $librarianIds = Internal_member::distinct()->pluck('user_id');
-        $adminIds = User::where('role', 'admin')->pluck('id');
-        $allLibrarianIds = $librarianIds->merge($adminIds)->unique();
-        
-        foreach ($allLibrarianIds as $librarianId) {
-            if ($librarianId == $authUser->id) {
-                continue;
-            }
-            
+public function createLibraryRecord(Request $request)
+{
+     \Log::info('=== createLibraryRecord appelée ===');
+    \Log::info('related_incident_id reçu: ' . $request->related_incident_id);
+    
+    $authUser = $request->user();
+    
+    // Vérifier que l'utilisateur est bibliothécaire
+    $isLibrarian = Internal_member::where('user_id', $authUser->id)->exists();
+    
+    if (!$isLibrarian && $authUser->role !== 'admin') {
+        return response()->json(['message' => 'Seuls les bibliothécaires peuvent signaler des incidents'], 403);
+    }
+    
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'required|string',
+        'severity' => 'required|in:info,warning,critical,emergency',
+        'related_incident_id' => 'required|exists:incidents,id',  // ← required
+        'user_id' => 'nullable|exists:users,id',
+        'library_id' => 'nullable|exists:libraries,id',
+    ]);
+    
+    // 🔥 RÉCUPÉRER L'INCIDENT EXISTANT
+    $existingIncident = Incident::findOrFail($request->related_incident_id);
+       
+    \Log::info('Incident trouvé - is_library_record AVANT: ' . $existingIncident->is_library_record);
+    
+    // Vérifier si déjà signalé au casier
+    if ($existingIncident->is_library_record) {
+        return response()->json(['message' => 'Cet incident a déjà été signalé au casier'], 422);
+    }
+    
+    // 🔥 METTRE À JOUR L'INCIDENT EXISTANT (pas en créer un nouveau)
+    $existingIncident->update([
+        'title' => $request->title,
+        'severity' => $request->severity,
+        'is_library_record' => 1,
+        'notify_all_librarians' => 1,
+    ]);
+        $existingIncident->refresh();
+    
+    \Log::info('Incident mis à jour - is_library_record APRÈS: ' . $existingIncident->is_library_record);
+
+    \Log::info('Incident mis à jour - ID: ' . $existingIncident->id . ', is_library_record: ' . $existingIncident->is_library_record);
+    
+    // Notifications pour le reader concerné
+    if ($request->user_id) {
+        $concernedUser = User::find($request->user_id);
+        if ($concernedUser) {
             Notification::create([
-                'user_id' => $librarianId,
-                'type' => 'library_record',
-                'message' => "⚠️ NOUVEAU SIGNALEMENT - {$incident->title} - Gravité: {$incident->severity}",
+                'user_id' => $concernedUser->id,
+                'type' => 'incident_reported',
+                'message' => "Un incident grave vous concernant a été signalé par {$authUser->name}.",
                 'object_type' => 'incident',
-                'object' => $incident->id,
+                'object' => $existingIncident->id,
                 'date_sent' => now(),
             ]);
         }
-        
-        return response()->json([
-            'message' => 'Incident signalé à tous les bibliothécaires',
-            'record' => $incident->load(['user', 'library'])
-        ], 201);
     }
+    
+    // Notifier tous les bibliothécaires
+    $librarianIds = Internal_member::distinct()->pluck('user_id');
+    $adminIds = User::where('role', 'admin')->pluck('id');
+    $allLibrarianIds = $librarianIds->merge($adminIds)->unique();
+    
+    foreach ($allLibrarianIds as $librarianId) {
+        if ($librarianId == $authUser->id) continue;
+        
+        Notification::create([
+            'user_id' => $librarianId,
+            'type' => 'library_record',
+            'message' => "⚠️ NOUVEAU SIGNALEMENT - {$existingIncident->title}",
+            'object_type' => 'incident',
+            'object' => $existingIncident->id,
+            'date_sent' => now(),
+        ]);
+    }
+    
+    return response()->json([
+        'message' => 'Incident signalé à tous les bibliothécaires',
+        'record' => $existingIncident->load(['user', 'library'])
+    ], 201);
+}
 
     /**
      * Récupérer un signalement spécifique du casier
