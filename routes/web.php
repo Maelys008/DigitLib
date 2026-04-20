@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\KkiapayController;
+use App\Models\Book;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
 
 // Routes d'authentification
 Route::get('/login', function () {
@@ -157,7 +160,7 @@ Route::get('/librarian/settings', function () {
 })->name('librarian.settings');
 Route::get('/librarian/library/{id}', function ($id) {
     return Inertia::render('Librarian/LibraryDetail', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('librarian.library.detail');
 Route::get('/notifications', function () {
@@ -199,7 +202,6 @@ Route::get('/profile/change-password', function () {
     return Inertia::render('ChangePassword');
 })->name('profile.change-password');
 
-
 Route::get('/clubs', function () {
     return Inertia::render('Clubs/Index');
 })->name('clubs.index');
@@ -219,14 +221,15 @@ Route::get('/librarian/partner-libraries', function () {
 })->name('librarian.partner-libraries');
 Route::get('/auth/{provider}/callback', function ($provider) {
     // Le backend gère la redirection
-    return Inertia::location('/api/auth/' . $provider . '/callback');
+    return Inertia::location('/api/auth/'.$provider.'/callback');
 });
 Route::get('/auth/callback', function () {
     return Inertia::render('Auth/Callback');
 })->name('auth.callback');
 Route::get('/librarian/books/{book}/copies', function ($bookId) {
     // Récupère le livre pour avoir son titre et auteur
-    $book = \App\Models\Book::findOrFail($bookId);
+    $book = Book::findOrFail($bookId);
+
     return Inertia::render('Librarian/ManageCopies', [
         'bookId' => $bookId,
         'bookTitle' => $book->title,
@@ -234,12 +237,12 @@ Route::get('/librarian/books/{book}/copies', function ($bookId) {
     ]);
 })->name('librarian.books.copies');
 Route::get('/librarian/library-records', function () {
-        return inertia('Librarian/LibraryRecords');
-    })->name('library.records');
-    
-    Route::get('/librarian/library-records/{id}', function ($id) {
-        return inertia('Librarian/LibraryRecordDetail', ['id' => $id]);
-    })->name('library.records.show');
+    return inertia('Librarian/LibraryRecords');
+})->name('library.records');
+
+Route::get('/librarian/library-records/{id}', function ($id) {
+    return inertia('Librarian/LibraryRecordDetail', ['id' => $id]);
+})->name('library.records.show');
 // Routes pour les incidents (à ajouter dans web.php)
 Route::get('/librarian/incidents', function () {
     return Inertia::render('Librarian/Incidents');
@@ -254,4 +257,14 @@ Route::get('/librarian/incidents/create', function () {
 })->name('librarian.incidents.create');
 
 
-require __DIR__ . '/auth.php';
+
+
+// 1. Afficher la page de test
+Route::get('/pay', function () {
+    return view('test-payment');
+});
+
+// 2. Route de retour après succès
+Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+    ->name('payment.success');
+require __DIR__.'/auth.php';

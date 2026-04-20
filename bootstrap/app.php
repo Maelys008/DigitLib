@@ -35,7 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('loans:cancel-expired-pending')->hourly();
 
     })
-
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/kkiapay',
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

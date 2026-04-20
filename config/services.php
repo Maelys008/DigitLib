@@ -46,4 +46,11 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
+
+    'kkiapay' => [
+    'public_key'  => env('KKIAPAY_PUBLIC_KEY'),
+    'private_key' => env('KKIAPAY_PRIVATE_KEY'),
+    'secret_key'  => env('KKIAPAY_SECRET_KEY'),
+    'webhook_secret' => env('KKIAPAY_WEBHOOK_SECRET'),
+],
 ];

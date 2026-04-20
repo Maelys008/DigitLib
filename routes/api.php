@@ -3,9 +3,11 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookController;
 use App\Http\Controllers\Api\ClubController;
+use App\Http\Controllers\Api\ContestationController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\IncidentController;
 use App\Http\Controllers\Api\InternalMemberController;
+use App\Http\Controllers\Api\KkiapayController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\NotificationController;
@@ -50,6 +52,9 @@ Route::get('/genres', function () {
     return response()->json(Genre::all());
 });
 
+// Webhook
+Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
+
 // -------------------------------------------------------------------------
 // ROUTES PROTÉGÉES (Utilisateurs connectés)
 // -------------------------------------------------------------------------
@@ -64,7 +69,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/profile/status', [ProfilController::class, 'status']); // info sur le badge
 
     // casier bibliothécaire
-  Route::get('/library-records', [RecordController::class, 'getLibraryRecords']);
+    Route::get('/library-records', [RecordController::class, 'getLibraryRecords']);
     Route::post('/library-records', [RecordController::class, 'createLibraryRecord']);
     Route::get('/library-records/{id}', [RecordController::class, 'getLibraryRecordDetail']);
     Route::patch('/library-records/{id}/resolve', [RecordController::class, 'resolveLibraryRecord']);
@@ -125,8 +130,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Scan Book
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
-    // Scan Book
-    Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
     Route::get('/scan-user/{token}', function ($token) {
         try {
             $decoded = base64_decode($token);
@@ -154,7 +157,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             return response()->json(['success' => false, 'message' => 'QR code invalide'], 404);
         }
     });
-     Route::patch('/incidents/{id}/resolve', [LoanController::class, 'resolveIncident']);
+    Route::patch('/incidents/{id}/resolve', [LoanController::class, 'resolveIncident']);
+
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
@@ -168,6 +172,26 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'detachBook']);
     Route::put('/shelves/{shelf}', [ShelfController::class, 'update']);
     Route::delete('/shelves/{shelf}', [ShelfController::class, 'destroy']);
+
+    // --- Paiements ---
+    Route::post('/payments/create-for-penalty', [KkiapayController::class, 'createPaymentForPenalty']);
+    Route::post('/payments/verify', [KkiapayController::class, 'verify']);
+    Route::get('/payments/my-transactions', [KkiapayController::class, 'userTransactions']);
+    Route::get('/libraries/{libraryId}/transactions', [KkiapayController::class, 'libraryTransactions']);
+
+    // --- Contestations ---
+    Route::prefix('contestations')->group(function () {
+        // Pour tous les utilisateurs
+        Route::get('/', [ContestationController::class, 'index']);
+        Route::post('/', [ContestationController::class, 'store']);
+        Route::get('/{id}', [ContestationController::class, 'show']);
+        Route::post('/{id}/comment', [ContestationController::class, 'addComment']);
+
+        // Pour les bibliothécaires
+        Route::get('/library/all', [ContestationController::class, 'libraryContestations']);
+        Route::get('/library/stats', [ContestationController::class, 'stats']);
+        Route::post('/{id}/process', [ContestationController::class, 'process']);
+    });
 });
 
 // ---------------------------------------------------------------------
