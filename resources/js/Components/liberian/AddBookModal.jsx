@@ -123,6 +123,18 @@ export default function AddBookModal({ isOpen, onClose, onSubmit, libraryId, gen
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+      console.log('📤 Données envoyées:', {
+    title: formData.title,
+    author: formData.author,
+    genre_id: formData.genre_id,
+    isbn: formData.isbn,
+    description: formData.description,
+    year_of_publication: formData.year_of_publication,
+    library_id: libraryId,
+    nb_copy: formData.nb_copy,
+    nb_available: formData.nb_available,
+    has_cover: !!formData.cover_image
+  });
     if (formData.nb_copy !== formData.nb_available) {
       setError('⚠️ Le nombre d\'exemplaires et le nombre de livres disponibles doivent être identiques');
       return;

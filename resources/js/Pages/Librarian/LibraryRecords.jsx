@@ -3,23 +3,48 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle, User, BookOpen, Calendar, Loader2, Search, X, CheckCircle, Library } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
 
 export default function LibraryRecords() {
     const { user } = useAuth();
+    const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
+    const [library, setLibrary] = useState(null);
     const [records, setRecords] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('all');
 
     useEffect(() => {
-        fetchRecords();
-    }, []);
+        const loadRecords = async () => {
+            if (!user) return;
+            
+            // 🔥 Utilise la bibliothèque active du Context
+            let lib = activeLibrary;
+            
+            if (!lib) {
+                // Fallback: cherche la bibliothèque où l'utilisateur est admin
+                const libraries = await api.getUserLibraries();
+                lib = libraries.find(l => l.administrator_id === user.id);
+            }
+            
+            if (lib) {
+                setLibrary(lib);
+                await fetchRecords(lib.id);
+            } else {
+                setIsLoading(false);
+            }
+        };
+        
+        if (!libraryLoading) {
+            loadRecords();
+        }
+    }, [user, activeLibrary, libraryLoading]);
 
-    const fetchRecords = async () => {
+    const fetchRecords = async (libraryId) => {
         setIsLoading(true);
         try {
-            const data = await api.getLibraryRecords();
+            const data = await api.getLibraryRecords(libraryId);
             console.log('📋 Casiers récupérés:', data);
             setRecords(data.records || []);
         } catch (error) {
@@ -56,11 +81,22 @@ export default function LibraryRecords() {
         return matchesSearch;
     });
 
-    if (isLoading) {
+    if (isLoading || libraryLoading) {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-screen">
                     <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                </div>
+            </MobileLayout>
+        );
+    }
+
+    if (!library) {
+        return (
+            <MobileLayout>
+                <div className="p-6 text-center">
+                    <AlertTriangle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-medium">Aucune bibliothèque trouvée</p>
                 </div>
             </MobileLayout>
         );

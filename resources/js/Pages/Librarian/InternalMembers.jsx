@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, X, Mail, User, Shield } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
 
 export default function InternalMembers() {
   const { user } = useAuth();
+  const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
   const [library, setLibrary] = useState(null);
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,17 +23,30 @@ export default function InternalMembers() {
   ];
 
   useEffect(() => {
-    if (user) {
-      const key = `user_library_${user.id}`;
-      const savedLibrary = localStorage.getItem(key);
-      if (savedLibrary) {
-        const lib = JSON.parse(savedLibrary);
-        setLibrary(lib);
-        loadMembers(lib.id);
+    const loadInitialData = async () => {
+      if (!user) return;
+      
+      // 🔥 Utilise la bibliothèque active du Context
+      if (activeLibrary) {
+        console.log('📚 InternalMembers - Utilisation de la bibliothèque active:', activeLibrary.name);
+        setLibrary(activeLibrary);
+        await loadMembers(activeLibrary.id);
+      } else {
+        // Fallback: charge la bibliothèque possédée
+        const libraries = await api.getUserLibraries();
+        const ownedLib = libraries.find(lib => lib.administrator_id === user.id);
+        if (ownedLib) {
+          setLibrary(ownedLib);
+          await loadMembers(ownedLib.id);
+        }
       }
+      setIsLoading(false);
+    };
+    
+    if (!libraryLoading) {
+      loadInitialData();
     }
-    setIsLoading(false);
-  }, [user]);
+  }, [user, activeLibrary, libraryLoading]);
 
   const loadMembers = async (libraryId) => {
     try {
@@ -75,7 +90,37 @@ export default function InternalMembers() {
     }
   };
 
-  if (isLoading) {
+  // Vérifie si l'utilisateur est admin de cette bibliothèque
+  const isAdmin = library && library.administrator_id === user?.id;
+
+  // Redirige si l'utilisateur n'est pas admin
+  if (!isLoading && !libraryLoading && !isAdmin && library) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <button onClick={() => router.visit('/librarian/dashboard')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">Membres internes</h1>
+        </div>
+        <div className="p-6 text-center">
+          <Shield className="w-16 h-16 text-red-300 dark:text-red-600 mx-auto mb-3" />
+          <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Seuls les administrateurs peuvent accéder à cette page.
+          </p>
+          <button
+            onClick={() => router.visit('/librarian/dashboard')}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || libraryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>

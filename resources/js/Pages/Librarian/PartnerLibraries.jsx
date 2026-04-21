@@ -3,12 +3,15 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Building2, MapPin, Users, BookOpen, Edit2, Trash2, ChevronRight, Loader2, X } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
 import CreatePartnerModal from '@/Components/liberian/CreatePartnerModal';
 import EditPartnerModal from '@/Components/liberian/EditPartnerModal';
 
 export default function PartnerLibraries() {
     const { user } = useAuth();
+    const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
+    const [library, setLibrary] = useState(null);
     const [libraries, setLibraries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -17,8 +20,29 @@ export default function PartnerLibraries() {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        fetchLibraries();
-    }, []);
+        const loadLibraries = async () => {
+            if (!user) return;
+            
+            // 🔥 Récupère la bibliothèque active
+            let lib = activeLibrary;
+            
+            if (!lib) {
+                const allLibraries = await api.getUserLibraries();
+                lib = allLibraries.find(l => l.administrator_id === user.id);
+            }
+            
+            if (lib) {
+                setLibrary(lib);
+                await fetchLibraries();
+            } else {
+                setIsLoading(false);
+            }
+        };
+        
+        if (!libraryLoading) {
+            loadLibraries();
+        }
+    }, [user, activeLibrary, libraryLoading]);
 
     const fetchLibraries = async () => {
         setIsLoading(true);
@@ -31,6 +55,9 @@ export default function PartnerLibraries() {
             setIsLoading(false);
         }
     };
+
+    // Vérifie si l'utilisateur est admin (propriétaire de la bibliothèque)
+    const isAdmin = library && library.administrator_id === user?.id;
 
     const handleCreate = async (formData) => {
         try {
@@ -57,6 +84,7 @@ export default function PartnerLibraries() {
     };
 
     const handleDelete = async (id) => {
+        if (!isAdmin) return;
         if (confirm('Voulez-vous vraiment supprimer cette bibliothèque partenaire ?')) {
             try {
                 const result = await api.deleteLibrary(id);
@@ -74,7 +102,7 @@ export default function PartnerLibraries() {
         lib.adress?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (isLoading) {
+    if (isLoading || libraryLoading) {
         return (
             <MobileLayout>
                 <div className="flex items-center justify-center h-screen">
@@ -104,13 +132,16 @@ export default function PartnerLibraries() {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 dark:bg-orange-500 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Ajouter un partenaire
-                        </button>
+                        {/* 🔥 Bouton Ajouter uniquement pour l'admin */}
+                        {isAdmin && (
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-orange-600 dark:bg-orange-500 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Ajouter un partenaire
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -141,9 +172,9 @@ export default function PartnerLibraries() {
                             </p>
                         </div>
                     ) : (
-                        filteredLibraries.map((library) => (
+                        filteredLibraries.map((libraryItem) => (
                             <div
-                                key={library.id}
+                                key={libraryItem.id}
                                 className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start justify-between">
@@ -151,52 +182,55 @@ export default function PartnerLibraries() {
                                         <div className="flex items-center gap-2 mb-2">
                                             <Building2 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                             <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                                                {library.name}
+                                                {libraryItem.name}
                                             </h3>
                                         </div>
                                         <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-3">
                                             <MapPin className="w-4 h-4" />
-                                            <span>{library.adress}</span>
+                                            <span>{libraryItem.adress}</span>
                                         </div>
                                         <div className="flex items-center gap-4 text-sm">
                                             <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                                                 <BookOpen className="w-4 h-4" />
-                                                <span>{library.books_count || 0} livres</span>
+                                                <span>{libraryItem.books_count || 0} livres</span>
                                             </div>
                                             <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                                                 <Users className="w-4 h-4" />
-                                                <span>{library.members_count || 0} membres</span>
+                                                <span>{libraryItem.members_count || 0} membres</span>
                                             </div>
                                         </div>
-                                        {library.description && (
+                                        {libraryItem.description && (
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 line-clamp-2">
-                                                {library.description}
+                                                {libraryItem.description}
                                             </p>
                                         )}
                                     </div>
-                                    <div className="flex gap-2 ml-4">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedLibrary(library);
-                                                setShowEditModal(true);
-                                            }}
-                                            className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                        >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(library.id)}
-                                            className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => router.visit(`/librarian/library/${library.id}`)}
-                                            className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                        >
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </div>
+                                    {/* 🔥 Boutons d'action uniquement pour l'admin */}
+                                    {isAdmin && (
+                                        <div className="flex gap-2 ml-4">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedLibrary(libraryItem);
+                                                    setShowEditModal(true);
+                                                }}
+                                                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(libraryItem.id)}
+                                                className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => router.visit(`/librarian/library/${libraryItem.id}`)}
+                                                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                            >
+                                                <ChevronRight className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))
@@ -204,21 +238,25 @@ export default function PartnerLibraries() {
                 </div>
             </div>
 
-            {/* Modals */}
-            <CreatePartnerModal
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                onCreate={handleCreate}
-                libraries={libraries}
-            />
+            {/* Modals - uniquement si admin */}
+            {isAdmin && (
+                <>
+                    <CreatePartnerModal
+                        isOpen={showCreateModal}
+                        onClose={() => setShowCreateModal(false)}
+                        onCreate={handleCreate}
+                        libraries={libraries}
+                    />
 
-            <EditPartnerModal
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                onUpdate={handleUpdate}
-                library={selectedLibrary}
-                libraries={libraries}
-            />
+                    <EditPartnerModal
+                        isOpen={showEditModal}
+                        onClose={() => setShowEditModal(false)}
+                        onUpdate={handleUpdate}
+                        library={selectedLibrary}
+                        libraries={libraries}
+                    />
+                </>
+            )}
         </MobileLayout>
     );
 }

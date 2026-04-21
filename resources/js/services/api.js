@@ -23,17 +23,22 @@ class ApiService {
             (error) => Promise.reject(error),
         );
 
-        this.axios.interceptors.response.use(
-            (response) => response,
-            (error) => {
-                if (error.response?.status === 401) {
-                    localStorage.removeItem("auth_token");
-                    localStorage.removeItem("user");
-                    window.location.href = "/login";
-                }
-                return Promise.reject(error);
-            },
-        );
+       this.axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        // 🔥 Évite la redirection si on est déjà sur la page de login
+        const isLoginPage = window.location.pathname === '/login' || 
+                           window.location.pathname === '/register' || 
+                           window.location.pathname === '/verify-otp';
+        
+        if (error.response?.status === 401 && !isLoginPage) {
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    },
+);
     }
 
     // ==================== AUTHENTIFICATION ====================
@@ -276,9 +281,10 @@ async getProfile() {
             return null;
         }
     }
-    async getUserLibraries() {
+   async getUserLibraries() {
     try {
-        const response = await this.axios.get('/libraries');
+       
+        const response = await this.axios.get('/user/libraries');
         return response.data;
     } catch (error) {
         console.error('Error fetching user libraries:', error);
@@ -708,9 +714,11 @@ async getUnpaidPenaltiesCount(libraryId) {
             return { success: false, message: error.response?.data?.message || "Erreur lors du retrait" };
         }
     }
-    // ==================== INCIDENTS ====================
-async getLibraryIncidents() {
+   // ==================== INCIDENTS ====================
+async getLibraryIncidents(libraryId = null) {
     try {
+        // Ne passe pas libraryId en paramètre d'URL, utilise toujours la même route
+        // Le backend filtre déjà par l'utilisateur connecté
         const response = await this.axios.get('/library-incidents');
         return response.data;
     } catch (error) {

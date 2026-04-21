@@ -255,6 +255,10 @@ Route::get('/librarian/incidents/{id}', function ($id) {
 Route::get('/librarian/incidents/create', function () {
     return Inertia::render('Librarian/CreateIncident');
 })->name('librarian.incidents.create');
+Route::post('/set-active-library', function (Request $request) {
+    session(['active_library_id' => $request->library_id]);
+    return response()->json(['success' => true]);
+});
 
 
 

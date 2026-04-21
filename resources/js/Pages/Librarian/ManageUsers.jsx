@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { ArrowLeft, BookOpen, Clock, Search, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useActiveLibrary } from '@/contexts/ActiveLibraryContext';
 import api from '../../services/api';
 import MobileLayout from '@/Layouts/MobileLayout';
 import LoanCard from '@/Components/liberian/LoanCard';
 
 export default function ManageUsers() {
   const { user } = useAuth();
+  const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary();
   const [library, setLibrary] = useState(null);
   const [loans, setLoans] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -31,21 +33,30 @@ export default function ManageUsers() {
       setIsLoading(true);
       
       try {
-        const libraries = await api.getUserLibraries();
-        const userLibrary = libraries.find(lib => lib.administrator_id === user.id);
+        // 🔥 Utilise la bibliothèque active du Context
+        let lib = activeLibrary;
         
-        if (userLibrary) {
-          setLibrary(userLibrary);
+        if (!lib) {
+          // Fallback: cherche la bibliothèque où l'utilisateur est admin
+          const libraries = await api.getUserLibraries();
+          lib = libraries.find(l => l.administrator_id === user.id);
+        }
+        
+        if (lib) {
+          console.log('📚 ManageUsers - Bibliothèque chargée:', lib.name);
+          setLibrary(lib);
           
           // Récupérer TOUS les emprunts (inclut pending_pickup et active)
-          const loansData = await api.getLibraryLoans(userLibrary.id);
+          const loansData = await api.getLibraryLoans(lib.id);
           console.log('📚 Emprunts:', loansData);
           setLoans(loansData);
           
           // Récupérer UNIQUEMENT les réservations actives (en attente)
-          const activeReservationsData = await api.getActiveReservations(userLibrary.id);
+          const activeReservationsData = await api.getActiveReservations(lib.id);
           console.log('📋 Réservations actives:', activeReservationsData);
           setReservations(activeReservationsData.reservations || []);
+        } else {
+          console.log('Aucune bibliothèque trouvée');
         }
       } catch (error) {
         console.error('Erreur chargement données:', error);
@@ -55,8 +66,10 @@ export default function ManageUsers() {
       }
     };
     
-    loadData();
-  }, [user]);
+    if (!libraryLoading) {
+      loadData();
+    }
+  }, [user, activeLibrary, libraryLoading]);
 
   useEffect(() => {
     if (!requiresPenalty) {
@@ -148,7 +161,7 @@ export default function ManageUsers() {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  if (isLoading) {
+  if (isLoading || libraryLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">

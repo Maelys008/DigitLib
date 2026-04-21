@@ -30,11 +30,20 @@ export default function BookDetail() {
     fetchBook();
   }, [id, refreshKey]);
 
+  // 🔥 Vérifie si l'utilisateur est admin (propriétaire de la bibliothèque)
+  const isAdmin = () => {
+    if (!book || !user) return false;
+    return book.library?.administrator_id === user.id;
+  };
+
   const handleEdit = () => {
-    router.visit(`/librarian/books/${id}/edit`);
+    if (isAdmin()) {
+      router.visit(`/librarian/books/${id}/edit`);
+    }
   };
 
   const handleDelete = async () => {
+    if (!isAdmin()) return;
     if (confirm('Voulez-vous vraiment supprimer ce livre ?')) {
       try {
         await api.deleteBook(id);
@@ -50,7 +59,9 @@ export default function BookDetail() {
   };
 
   const handleManageCopies = () => {
-    router.visit(`/librarian/books/${book.id}/copies`);
+    if (isAdmin()) {
+      router.visit(`/librarian/books/${book.id}/copies`);
+    }
   };
 
   const handleRefresh = () => {
@@ -91,27 +102,30 @@ export default function BookDetail() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Détails du livre</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleRefresh}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                title="Recharger"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleEdit}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Modifier
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Supprimer
-              </button>
-            </div>
+            {/* 🔥 Les boutons ne s'affichent que pour l'admin */}
+            {isAdmin() && (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRefresh}
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                  title="Recharger"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleEdit}
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors"
+                >
+                  Modifier
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -123,7 +137,7 @@ export default function BookDetail() {
           <div className="md:flex">
             {/* Image */}
             <div className="md:w-1/3 bg-gray-100 dark:bg-gray-700 p-6 flex items-center justify-center">
-              {(book.cover_url || book.cover_image) ? (
+              {book.cover_image ? (
                 <img 
                   src={`/storage/${book.cover_image}`} 
                   alt={book.title}
@@ -171,13 +185,16 @@ export default function BookDetail() {
                       <p className="text-sm text-gray-500 dark:text-gray-400">Disponibles</p>
                       <p className="text-2xl font-bold text-green-600 dark:text-green-400">{book.nb_available ?? 0}</p>
                     </div>
-                    <button
-                      onClick={handleManageCopies}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 text-purple-700 dark:text-purple-300 rounded-xl transition-colors"
-                    >
-                      <QrCode className="w-4 h-4" />
-                      Gérer les QR codes
-                    </button>
+                    {/* 🔥 Bouton Gérer les QR codes uniquement pour l'admin */}
+                    {isAdmin() && (
+                      <button
+                        onClick={handleManageCopies}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 text-purple-700 dark:text-purple-300 rounded-xl transition-colors"
+                      >
+                        <QrCode className="w-4 h-4" />
+                        Gérer les QR codes
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

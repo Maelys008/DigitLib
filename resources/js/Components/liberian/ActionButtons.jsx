@@ -12,20 +12,22 @@ export default function ActionButtons({
   onManagePenalties,
   onViewCasier
 }) {
+  
+  // 🔥 SUPPRIME TOUTE VÉRIFICATION - AFFICHE TOUS LES BOUTONS
   const actions = [
     { 
       label: 'Gestion des livres', 
       icon: BookOpen, 
       onClick: onManageBooks, 
       gradient: 'from-cyan-500 to-blue-600', 
-      textWhite: true 
+      textWhite: true,
     },
     { 
       label: 'Membres internes',   
       icon: Users, 
       onClick: onManageInternalMembers, 
       gradient: 'from-purple-500 to-pink-500', 
-      textWhite: true 
+      textWhite: true,
     },
     { 
       label: 'Gérer utilisateurs', 
@@ -33,7 +35,7 @@ export default function ActionButtons({
       onClick: onManageUsers, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-purple-600 dark:text-purple-400', 
-      border: true 
+      border: true,
     },
     { 
       label: 'Pénalités', 
@@ -41,7 +43,7 @@ export default function ActionButtons({
       onClick: onManagePenalties, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-red-600 dark:text-red-400', 
-      border: true 
+      border: true,
     },
     { 
       label: 'Voir incidents', 
@@ -49,7 +51,7 @@ export default function ActionButtons({
       onClick: onViewIncidents, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-red-600 dark:text-red-400', 
-      border: true 
+      border: true,
     },
     { 
       label: 'Rapports', 
@@ -57,7 +59,7 @@ export default function ActionButtons({
       onClick: onViewReports, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-blue-600 dark:text-blue-400', 
-      border: true 
+      border: true,
     },
     { 
       label: 'Règles d\'emprunt', 
@@ -65,7 +67,7 @@ export default function ActionButtons({
       onClick: onBorrowingRules, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-gray-600 dark:text-gray-400', 
-      border: true 
+      border: true,
     },
     { 
       label: 'Bibliothèques partenaires', 
@@ -73,18 +75,19 @@ export default function ActionButtons({
       onClick: onPartnerLibraries, 
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-green-600 dark:text-green-400', 
-      border: true 
+      border: true,
     },
     {
-  label: 'Casier bibliothécaire',
-  icon: AlertTriangle,
-  onClick: onViewCasier,
-  bg: 'bg-white dark:bg-gray-800',
-  textColor: 'text-orange-600 dark:text-orange-400',
-  border: true
-}
+      label: 'Casier bibliothécaire',
+      icon: AlertTriangle,
+      onClick: onViewCasier,
+      bg: 'bg-white dark:bg-gray-800',
+      textColor: 'text-orange-600 dark:text-orange-400',
+      border: true,
+    }
   ];
 
+  // 🔥 AFFICHE TOUS LES BOUTONS SANS FILTRE
   return (
     <div className="mb-6">
       <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Actions rapides :</h3>
