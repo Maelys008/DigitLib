@@ -79,35 +79,43 @@ export default function ScannerPage() {
     setCameraActive(false);
   };
 
-  const handleScannedCode = async (code) => {
+ const handleScannedCode = async (code) => {
     setLoading(true);
     setScannedBook(null);
     setError(null);
 
     try {
-      const result = await api.scanQRCode(code);
-      
-      if (result && result.book) {
-        setScannedBook({
-          id: result.book.id,
-          title: result.book.title,
-          author: result.book.author,
-          cover: result.book.cover_image,
-          nb_available: result.book.nb_available,
-          library: result.book.library_name,
-          status: result.status,
-          message: result.message
-        });
-      } else {
-        setError('QR code non reconnu ou livre non trouvé');
-      }
+        const result = await api.scanQRCode(code);
+        console.log('Résultat scan:', result);
+        
+        if (result.success && result.book) {
+            setScannedBook({
+                id: result.book.id,
+                title: result.book.title,
+                author: result.book.author,
+                description: result.book.description,
+                cover: result.book.cover_image,
+                nb_available: result.book.nb_available,
+                nb_copy: result.book.nb_copy,
+                library: result.book.library_name,
+                library_id: result.book.library_id,
+                genre: result.book.genre,
+                year: result.book.year_of_publication,
+                isbn: result.book.isbn,
+                copy_status: result.copy?.status,
+                can_borrow: result.can_borrow,
+                is_member: result.is_member
+            });
+        } else {
+            setError(result.message || 'QR code non reconnu ou livre non trouvé');
+        }
     } catch (err) {
-      console.error('Erreur scan:', err);
-      setError('Erreur lors de la récupération des informations');
+        console.error('Erreur scan:', err);
+        setError('Erreur lors de la récupération des informations');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const goToBookDetail = () => {
     if (scannedBook) {
@@ -210,60 +218,93 @@ export default function ScannerPage() {
           )}
 
           {/* Résultat du scan */}
-          {scannedBook && (
-            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-green-200 dark:border-green-800 overflow-hidden animate-fade-in">
-              <div className="bg-green-50 dark:bg-green-900/20 px-4 py-3 border-b border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-700 dark:text-green-400 font-medium">QR Code détecté !</span>
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="flex gap-4">
-                  <div className="w-20 h-28 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden">
-                    {scannedBook.cover ? (
-                      <img src={`/storage/${scannedBook.cover}`} alt={scannedBook.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                        <BookOpen className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{scannedBook.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{scannedBook.author}</p>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${scannedBook.nb_available > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400'}`}>
-                        {scannedBook.nb_available > 0 ? '✅ Disponible' : '⏳ Indisponible'}
-                      </span>
-                      <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
-                        📚 {scannedBook.library || 'Bibliothèque'}
-                      </span>
-                    </div>
-                    {scannedBook.message && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{scannedBook.message}</p>
-                    )}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={goToBookDetail}
-                        className="flex-1 bg-purple-600 dark:bg-purple-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors"
-                      >
-                        Voir détails
-                      </button>
-                      {scannedBook.nb_available > 0 && (
-                        <button
-                          onClick={borrowBook}
-                          className="flex-1 bg-green-600 dark:bg-green-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
-                        >
-                          Emprunter
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+         {scannedBook && (
+    <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-green-200 dark:border-green-800 overflow-hidden animate-fade-in">
+        <div className="bg-green-50 dark:bg-green-900/20 px-4 py-3 border-b border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-700 dark:text-green-400 font-medium">📖 QR Code détecté !</span>
             </div>
-          )}
+        </div>
+        <div className="p-4">
+            <div className="flex gap-4">
+                <div className="w-24 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden">
+                    {scannedBook.cover ? (
+                        <img 
+                            src={`/storage/${scannedBook.cover}`} 
+                            alt={scannedBook.title} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = '/placeholder-book.jpg'; }}
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                            <BookOpen className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                        </div>
+                    )}
+                </div>
+                <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{scannedBook.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">✍️ {scannedBook.author}</p>
+                    
+                    {/* Description courte */}
+                    {scannedBook.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+                            {scannedBook.description.substring(0, 100)}...
+                        </p>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        {scannedBook.can_borrow ? (
+                            <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                                ✅ Disponible
+                            </span>
+                        ) : scannedBook.copy_status === 'emprunté' ? (
+                            <span className="text-xs px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400">
+                                ⏳ Déjà emprunté
+                            </span>
+                        ) : (
+                            <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+                                ❌ Indisponible
+                            </span>
+                        )}
+                        <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
+                            📚 {scannedBook.library}
+                        </span>
+                        {scannedBook.genre && (
+                            <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
+                                {scannedBook.genre}
+                            </span>
+                        )}
+                    </div>
+                    
+                    {/* Message si non membre */}
+                    {!scannedBook.is_member && (
+                        <p className="text-xs text-red-500 dark:text-red-400 mb-2">
+                            ⚠️ Vous devez être membre de cette bibliothèque pour emprunter
+                        </p>
+                    )}
+                    
+                    <div className="flex gap-2">
+                        <button
+                            onClick={goToBookDetail}
+                            className="flex-1 bg-purple-600 dark:bg-purple-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors"
+                        >
+                            Voir détails complets
+                        </button>
+                        {scannedBook.can_borrow && (
+                            <button
+                                onClick={borrowBook}
+                                className="flex-1 bg-green-600 dark:bg-green-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                            >
+                                📖 Emprunter
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
 
           {/* Bouton activation caméra */}
           {!cameraActive && (

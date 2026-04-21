@@ -1,18 +1,25 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, QrCode, Download, Printer, CheckCircle, Clock, AlertCircle, DownloadCloud, Copy, X } from 'lucide-react';
+import { ArrowLeft, QrCode, Download, Printer, CheckCircle, Clock, AlertCircle, DownloadCloud, Copy, X, ExternalLink } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import api from '../../services/api';
 import JSZip from 'jszip';
 
 export default function ManageCopies() {
   const { props } = usePage();
-  const { bookId, bookTitle, bookAuthor } = props;
+  const { bookId, bookTitle, bookAuthor, bookDescription } = props;
   
   const [copies, setCopies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCopy, setSelectedCopy] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+
+  // 🔥 Fonction pour générer l'URL simple (juste le lien, pas de JSON)
+  const getQRCodeUrl = (copy, size = 250) => {
+    // Le QR code contient UNIQUEMENT l'URL de la page
+    const bookUrl = `${window.location.origin}/book/${bookId}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(bookUrl)}`;
+  };
 
   useEffect(() => {
     loadCopies();
@@ -50,19 +57,35 @@ export default function ManageCopies() {
   };
 
   const handleDownloadQR = (copy) => {
-    api.downloadQRCode(copy.codeQR, `QR_${copy.codeQR}`);
+    const bookUrl = `${window.location.origin}/book/${bookId}`;
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bookUrl)}`;
+    
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const link = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = `QR_${bookTitle.replace(/[^a-z0-9]/gi, '_')}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(objectUrl);
+      })
+      .catch(console.error);
   };
 
   const handleDownloadAllQRCodes = async () => {
     setIsDownloadingAll(true);
     try {
       const zip = new JSZip();
+      const bookUrl = `${window.location.origin}/book/${bookId}`;
       
       for (const copy of copies) {
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(copy.codeQR)}`;
+        const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bookUrl)}`;
         const response = await fetch(url);
         const blob = await response.blob();
-        zip.file(`QR_${copy.codeQR}.png`, blob);
+        zip.file(`QR_${bookTitle.replace(/[^a-z0-9]/gi, '_')}.png`, blob);
       }
       
       const content = await zip.generateAsync({ type: 'blob' });
@@ -83,6 +106,7 @@ export default function ManageCopies() {
   };
 
   const printQRCodes = () => {
+    const bookUrl = `${window.location.origin}/book/${bookId}`;
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
@@ -91,9 +115,12 @@ export default function ManageCopies() {
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             .qr-grid { display: flex; flex-wrap: wrap; gap: 20px; }
-            .qr-item { text-align: center; border: 1px solid #ccc; padding: 15px; border-radius: 8px; width: 180px; }
+            .qr-item { text-align: center; border: 1px solid #ccc; padding: 15px; border-radius: 8px; width: 220px; }
             .qr-code img { width: 150px; height: 150px; }
-            .qr-label { margin-top: 10px; font-family: monospace; font-size: 12px; }
+            .qr-label { margin-top: 10px; font-family: monospace; font-size: 11px; word-break: break-all; }
+            .book-info { margin-top: 8px; font-size: 12px; }
+            .book-title { font-weight: bold; }
+            .book-link { font-size: 10px; color: #0066cc; word-break: break-all; }
             @media print {
               .qr-item { break-inside: avoid; }
             }
@@ -105,9 +132,14 @@ export default function ManageCopies() {
             ${copies.map(copy => `
               <div class="qr-item">
                 <div class="qr-code">
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(copy.codeQR)}" />
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(bookUrl)}" />
                 </div>
-                <div class="qr-label">${copy.codeQR}</div>
+                <div class="book-info">
+                  <div class="book-title">${bookTitle}</div>
+                  <div>${bookAuthor}</div>
+                  <div class="book-link">${bookUrl}</div>
+                </div>
+                <div class="qr-label">Exemplaire #${copy.id}</div>
               </div>
             `).join('')}
           </div>
@@ -118,9 +150,9 @@ export default function ManageCopies() {
     printWindow.document.close();
   };
 
-  const copyToClipboard = (codeQR) => {
-    navigator.clipboard.writeText(codeQR);
-    alert(`QR code "${codeQR}" copié dans le presse-papier !`);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('Lien copié dans le presse-papier !');
   };
 
   const getStatusBadge = (status) => {
@@ -149,6 +181,8 @@ export default function ManageCopies() {
   const handleBack = () => {
     router.visit(`/librarian/books/${bookId}`);
   };
+
+  const bookUrl = `${window.location.origin}/book/${bookId}`;
 
   if (isLoading) {
     return (
@@ -216,14 +250,9 @@ export default function ManageCopies() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-3">
                         <QrCode className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <span className="font-mono text-base font-bold text-gray-800 dark:text-gray-200">{copy.codeQR}</span>
-                        <button
-                          onClick={() => copyToClipboard(copy.codeQR)}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title="Copier le code"
-                        >
-                          <Copy className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        </button>
+                        <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200">
+                          Exemplaire #{copy.id}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {getConditionBadge(copy.condition)}
@@ -262,14 +291,14 @@ export default function ManageCopies() {
                 📌 Total : <strong>{copies.length}</strong> exemplaire(s)
               </p>
               <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                💡 Astuce : Cliquez sur "Télécharger tous les QR" pour obtenir un fichier ZIP avec tous les QR codes.
+                💡 Les QR codes contiennent un lien direct vers la page du livre. Scannez avec votre téléphone pour accéder instantanément à la page !
               </p>
             </div>
           </>
         )}
       </div>
 
-      {/* Modal QR Code agrandi */}
+      {/* Modal QR Code agrandi avec LIEN CLIQUABLE */}
       {showQRModal && selectedCopy && (
         <div className="fixed inset-0 bg-black/70 dark:bg-black/90 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full">
@@ -279,14 +308,46 @@ export default function ManageCopies() {
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
+            
             <div className="flex justify-center mb-4">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(selectedCopy.codeQR)}`}
+                src={getQRCodeUrl(selectedCopy, 250)}
                 alt="QR Code"
                 className="w-64 h-64"
               />
             </div>
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-4 font-mono break-all">{selectedCopy.codeQR}</p>
+
+            {/* 🔥 LIEN CLIQUABLE DIRECTEMENT */}
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">🔗 Lien contenu dans le QR code :</p>
+              <a
+                href={bookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-2 p-2 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors group"
+              >
+                <span className="text-xs text-blue-600 dark:text-blue-400 break-all flex-1">
+                  {bookUrl}
+                </span>
+                <ExternalLink className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              </a>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                📱 Cliquez sur le lien ou scannez le QR code pour accéder à la page du livre
+              </p>
+            </div>
+
+            {/* Infos du livre */}
+            <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">📚 Livre :</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{bookTitle}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{bookAuthor}</p>
+              {bookDescription && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                  {bookDescription.length > 80 ? bookDescription.substring(0, 80) + '...' : bookDescription}
+                </p>
+              )}
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -299,12 +360,12 @@ export default function ManageCopies() {
               </button>
               <button
                 onClick={() => {
-                  copyToClipboard(selectedCopy.codeQR);
+                  copyToClipboard(bookUrl);
                   setShowQRModal(false);
                 }}
                 className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded-xl font-medium flex items-center justify-center gap-2"
               >
-                <Copy className="w-4 h-4" /> Copier
+                <Copy className="w-4 h-4" /> Copier le lien
               </button>
             </div>
           </div>

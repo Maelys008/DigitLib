@@ -933,7 +933,10 @@ async scanQRCode(token) {
         return response.data;
     } catch (error) {
         console.error('Error scanning QR code:', error);
-        return null;
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors du scan du QR code'
+        };
     }
 }
 // ==================== CASIER BIBLIOTHÉCAIRE ====================
