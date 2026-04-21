@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('incident_id')->constrained('incidents');
-            $table->string('message');
-            $table->string('justification');
+            $table->text('message');
+            $table->text('justification');
             $table->string('status')->default('en attente');
             $table->timestamps();
         });

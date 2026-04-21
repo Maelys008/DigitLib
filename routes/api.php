@@ -186,11 +186,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/', [ContestationController::class, 'store']);
         Route::get('/{id}', [ContestationController::class, 'show']);
         Route::post('/{id}/comment', [ContestationController::class, 'addComment']);
-
-        // Pour les bibliothécaires
-        Route::get('/library/all', [ContestationController::class, 'libraryContestations']);
-        Route::get('/library/stats', [ContestationController::class, 'stats']);
-        Route::post('/{id}/process', [ContestationController::class, 'process']);
     });
 });
 
@@ -221,6 +216,14 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
 
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
+
+    // --- Contestations ---
+    Route::prefix('contestations')->group(function () {
+        // Pour les bibliothécaires
+        Route::get('/library/all', [ContestationController::class, 'libraryContestations']);
+        Route::get('/library/stats', [ContestationController::class, 'stats']);
+        Route::post('/{id}/process', [ContestationController::class, 'process']);
+    });
     // Dans la section protégée (middleware auth:sanctum)
     // Dans la section protégée
     // Route::prefix('incidents')->group(function () {
