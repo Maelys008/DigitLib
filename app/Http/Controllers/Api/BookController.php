@@ -18,24 +18,8 @@ class BookController extends Controller
     {
         $query = Book::with(['library', 'genre']);
 
-        // if ($request->has('title')) {
-        //     $query->where('title', 'like', '%' . $request->title . '%');
-        // }
-
-        // if ($request->has('author')) {
-        //     $query->where('author', 'like', '%' . $request->author . '%');
-        // }
-
-        // if ($request->has('genre')) {
-        //     $query->where('genre', 'like', '%' . $request->genre . '%');
-        // }
-
-        // if ($request->has('library_id')) {
-        //     $query->where('library_id', 'like', '%' . $request->library_id . '%');
-        // }
-
         if ($request->has('search') && ! empty($request->search)) {
-            $searchTerm = '%'.$request->search.'%';
+            $searchTerm = '%' . $request->search . '%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('author', 'like', $searchTerm)
@@ -46,7 +30,7 @@ class BookController extends Controller
         }
 
         if ($request->has('library_id')) {
-            $query->where('library_id', $request->library_id);  // Pas de LIKE pour ID numérique
+            $query->where('library_id', $request->library_id);
         }
 
         if ($request->has('year_of_publication')) {
@@ -74,29 +58,32 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
+
+ public function store(Request $request)
+{
+    \Log::info('=== STORE BOOK ===');
+    \Log::info('Données reçues:', $request->all());
+    
+    try {
         $request->validate([
             'title' => 'required|string',
             'author' => 'required|string',
-            'genre_id' => 'required',
+            'genre_id' => 'required|exists:genres,id',
             'isbn' => 'required|string',
             'description' => 'required|string',
-            'year_of_publication' => 'required|date',
+            'year_of_publication' => 'required|integer|min:1000|max:' . now()->year,
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
             'library_id' => 'required|exists:libraries,id',
             'nb_available' => 'required|integer|min:0',
             'nb_copy' => 'required|integer|min:0',
         ]);
-        // $request->validated();
 
         $isbnExists = Book::where('isbn', $request->isbn)
             ->where('library_id', $request->library_id)
             ->exists();
+            
         if ($isbnExists) {
-            return response()->json([
-                'message' => 'Un livre avec cet ISBN existe déjà.',
-            ], 422);
+            return response()->json(['message' => 'Un livre avec cet ISBN existe déjà.'], 422);
         }
 
         $data = $request->all();
@@ -104,17 +91,34 @@ class BookController extends Controller
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('covers', 'public');
             $data['cover_image'] = $path;
+            \Log::info('Image sauvegardée:', ['path' => $path]);
         }
 
-        $data['nb_available'] = $data['nb_copy'];
-        $book = Book::create($data);
-        $this->generateCopies($book, $data['nb_copy']);
+        // 🔥 N'écrase PAS nb_available
+        // $data['nb_available'] = $data['nb_copy'];
 
-        return response()->json([
-            'message' => 'Livre ajouté',
-            'data' => $book,
-        ], 201);
+        \Log::info('Création du livre avec:', $data);
+        
+        $book = Book::create($data);
+        
+        \Log::info('Livre créé avec ID: ' . $book->id);
+        
+        $this->generateCopies($book, $data['nb_copy']);
+        
+        \Log::info('Copies générées');
+
+        return response()->json(['message' => 'Livre ajouté', 'data' => $book], 201);
+        
+    } catch (\Exception $e) {
+        \Log::error('ERREUR STORE BOOK:', [
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['message' => 'Erreur: ' . $e->getMessage()], 500);
     }
+}
 
     private function generateCopies(Book $book, int $count)
     {
@@ -122,7 +126,7 @@ class BookController extends Controller
         for ($i = 0; $i < $count; $i++) {
             $newCopies[] = [
                 'book_id' => $book->id,
-                'codeQR' => 'QR-'.strtoupper(Str::random(8)),
+                'codeQR' => 'QR-' . strtoupper(Str::random(8)),
                 'condition' => 'neuf',
                 'status' => 'disponible',
                 'date_added' => now(),
@@ -164,14 +168,31 @@ class BookController extends Controller
         $request->validate([
             'title' => 'sometimes|string|max:255',
             'author' => 'sometimes|string|max:255',
-            'genre_id' => 'sometimes',
+            'genre_id' => 'sometimes|exists:genres,id',
+            'year_of_publication' => 'sometimes|integer|min:1000|max:' . now()->year,
             'description' => 'sometimes|string',
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        // $request->validated();
+
 
         $data = $request->all();
+
+        // Logique de mise à jour du stock et des copies
+        if ($request->has('nb_copy')) {
+            $newTotal = (int) $request->nb_copy;
+            $oldTotal = (int) $book->nb_copy;
+
+            if ($newTotal > $oldTotal) {
+                $difference = $newTotal - $oldTotal;
+                $data['nb_available'] = $book->nb_available + $difference;
+                $this->generateCopies($book, $difference);
+            } elseif ($newTotal < $oldTotal) {
+                return response()->json([
+                    'message' => 'La réduction du nombre de copies doit être géré manuellement pour éviter de supprimer des livres empruntés.'
+                ], 422);
+            }
+        }
 
         if ($request->hasFile('cover_image')) {
             if ($book->cover_image) {
@@ -185,9 +206,37 @@ class BookController extends Controller
 
         return response()->json([
             'message' => 'Livre mis à jour',
-            'data' => $book,
+            'data' => $book->fresh(),
         ]);
     }
+                /**
+             * Get all copies of a specific book
+             */
+            public function getCopies($bookId)
+            {
+                $book = Book::findOrFail($bookId);
+                
+                $copies = $book->copies()->get()->map(function($copy) {
+                    return [
+                        'id' => $copy->id,
+                        'codeQR' => $copy->codeQR,
+                        'condition' => $copy->condition,
+                        'status' => $copy->status,
+                        'date_added' => $copy->date_added?->format('Y-m-d'),
+                    ];
+                });
+                
+                return response()->json([
+                    'book' => [
+                        'id' => $book->id,
+                        'title' => $book->title,
+                        'author' => $book->author,
+                        'cover_url' => $book->cover_image ? '/storage/' . $book->cover_image : null,
+                    ],
+                    'copies' => $copies,
+                    'total_copies' => $copies->count(),
+                ]);
+            }
 
     /**
      * Remove the specified resource from storage.

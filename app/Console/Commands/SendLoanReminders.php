@@ -38,8 +38,7 @@ class SendLoanReminders extends Command
             ->get();
 
         foreach ($loans as $loan) {
-            $alreadyNotified = Notification::where('object', $loan->id) // Assure-toi que c'est object_id ou object selon ton schéma
-                ->where('type', 'reminder')
+            $alreadyNotified = Notification::where('object', $loan->id)
                 ->whereDate('created_at', now()->toDateString())
                 ->exists();
 
@@ -47,14 +46,13 @@ class SendLoanReminders extends Command
                 Notification::create([
                     'user_id' => $loan->user_id,
                     'type' => 'reminder',
-                    'message' => "Rappel : Le livre '{$loan->copy->book->title}' doit être rendu dans 2 jours (le ".Carbon::parse($loan->expected_return_date)->format('d/m/Y').').',
+                    'message' => "Rappel : Le livre '{$loan->copy->book->title}' doit être rendu dans 2 jours (le " . Carbon::parse($loan->expected_return_date)->format('d/m/Y') . ').',
                     'object_type' => 'loan',
                     'object' => $loan->id,
                     'date_sent' => now(),
                 ]);
             }
-
-            $this->info(count($loans).' notifications de rappel envoyées.');
+            $this->info(count($loans) . ' notifications de rappel envoyées.');
         }
     }
 }

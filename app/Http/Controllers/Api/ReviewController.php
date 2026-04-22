@@ -3,68 +3,90 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReviewController extends Controller
 {
+    private function updateBookRating($bookId)
+    {
+        $averageRating = Review::where('book_id', $bookId)->avg('rating');
+        $book = Book::find($bookId);
+        if ($book) {
+            $book->note = $averageRating ? round($averageRating, 1) : 0;
+            $book->save();
+        }
+    }
+
     public function store(Request $request, $bookId)
     {
-        $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|min:10',
-        ]);
+        try {
+            $request->validate([
+                'rating' => 'required|integer|min:1|max:5',
+                'comment' => 'required|string|min:10',
+            ]);
 
-        /** @var User $user */
-        $user = $request->user();
+            $user = $request->user();
 
-        $review = Review::updateOrCreate(
-            ['user_id' => $user->id, 'book_id' => $bookId],
-            ['rating' => $request->rating, 'comment' => $request->comment]
-        );
+            $review = Review::updateOrCreate(
+                ['user_id' => $user->id, 'book_id' => $bookId],
+                ['rating' => $request->rating, 'comment' => $request->comment]
+            );
 
-        return response()->json(['message' => 'Merci pour votre avis !', 'review' => $review], 201);
+            $this->updateBookRating($bookId);
+
+            return response()->json([
+                'message' => 'Merci pour votre avis !', 
+                'review' => $review->load('user:id,name')
+            ], 201);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur store review: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors de l\'ajout de l\'avis'], 500);
+        }
     }
 
     public function like($reviewId)
     {
-        $review = Review::findOrFail($reviewId);
-        /** @var User $user */
-        $user = auth()->user();
+        try {
+            $review = Review::findOrFail($reviewId);
+            
+            // Version simple sans table review_likes
+            $review->increment('likes_count');
+            $newCount = $review->fresh()->likes_count;
 
-        $alreadyLiked = DB::table('review_likes')
-            ->where('user_id', $user->id)
-            ->where('review_id', $reviewId)
-            ->exists();
-
-        if ($alreadyLiked) {
-            DB::table('review_likes')->where('user_id', $user->id)->where('review_id', $reviewId)->delete();
-            $review->decrement('likes_count');
-
-            return response()->json(['message' => 'Like retiré.']);
+            return response()->json([
+                'message' => 'Vous avez trouvé cet avis utile.',
+                'likes_count' => $newCount,
+                'is_liked' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur like review: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors du like'], 500);
         }
-
-        DB::table('review_likes')->insert([
-            'user_id' => $user->id,
-            'review_id' => $reviewId,
-            'created_at' => now(),
-        ]);
-
-        $review->increment('likes_count');
-
-        return response()->json(['message' => 'Vous avez trouvé cet avis utile.']);
     }
 
     public function index($bookId)
     {
-        $reviews = Review::where('book_id', $bookId)
-            ->with('user:id,name')
-            ->orderBy('likes_count', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        try {
+            $reviews = Review::where('book_id', $bookId)
+                ->with('user:id,name')
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        return response()->json($reviews);
+            return response()->json($reviews);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur index reviews: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur lors du chargement des avis',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

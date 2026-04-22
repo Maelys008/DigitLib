@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\PersonalAccessToken;
+// use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -102,7 +102,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'tel' => 'required|string|unique:users,tel',
+            'tel' => 'required|string|unique:users,tel,',
         ]);
 
         $user = $request->user();
@@ -211,21 +211,5 @@ class AuthController extends Controller
         return response()->json(['message' => __($status)], 422);
     }
 
-    public function status(Request $request)
-    {
-        $user = $request->user()->load('badge');
-        $nextBadge = Badge::where('condition_of_obtaining', '>', $user->score)
-            ->orderBy('condition_of_obtaining', 'asc')
-            ->first();
-
-        return response()->json([
-            'user' => $user,
-            'stats' => [
-                'current_loans' => $user->loans()->whereNull('actual_return_date')->count(),
-                'max_books_allowed' => $user->badge->maximum_book ?? 2,
-                'points_to_next_level' => $nextBadge ? ($nextBadge->condition_of_obtaining - $user->score) : 0,
-                'next_badge_name' => $nextBadge->name ?? 'Niveau Max atteint',
-            ],
-        ]);
-    }
+    
 }

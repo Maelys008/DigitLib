@@ -14,7 +14,7 @@ export default function Genres() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const genresResponse = await api.getGenres(); // tu dois avoir une route API qui renvoie tous les genres
+        const genresResponse = await api.getGenres();
         const genres = genresResponse.data || [];
         let allBooks = [];
         let currentPage = 1;
@@ -45,7 +45,6 @@ export default function Genres() {
       } catch (error) {
         console.error('Erreur chargement genres ou livres:', error);
 
-        // fallback vers mockData 
         const { genres: mockGenres, livres: mockBooks } = await import('../data/mockData');
         const countsMap = {};
         mockBooks.forEach(book => {
@@ -69,7 +68,7 @@ export default function Genres() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -77,11 +76,11 @@ export default function Genres() {
 
   return (
     <MobileLayout>
-      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
-        <Link href="/" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100 dark:border-gray-700">
+        <Link href="/" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Genres</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Genres</h1>
       </div>
 
       <div className="px-4 pb-10 grid grid-cols-2 gap-3">

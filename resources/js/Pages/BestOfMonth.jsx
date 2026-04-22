@@ -6,7 +6,6 @@ import { router } from '@inertiajs/react';
 import api from '../services/api';
 import Pagination from '@/Components/Pagination';
 
-
 const normalizeBook = (book) => ({
   ...book,
   image_couverture: book.cover_url || book.cover_image,
@@ -29,7 +28,6 @@ export default function BestOfMonth() {
     const fetchBooks = async () => {
       setIsLoading(true);
       try {
-       
         const response = await api.getBooks({ 
           per_page: perPage,
           page: currentPage 
@@ -57,22 +55,19 @@ export default function BestOfMonth() {
         }
         
         const normalizedBooks = booksData.map(normalizeBook);
-        const availableBooks = normalizedBooks.filter(l => l.nb_disponibles > 0);
         
-        setLivres(availableBooks);
+        setLivres(normalizedBooks); 
         setTotalPages(paginationData.last_page || 1);
-        setTotalBooks(paginationData.total || availableBooks.length);
+        setTotalBooks(paginationData.total || normalizedBooks.length);
         
       } catch (error) {
         console.error('Erreur chargement livres:', error);
         setError('Impossible de charger les livres');
         
-        // Fallback vers mockData
         const { livres: mockLivres } = await import('../data/mockData');
-        const availableMock = mockLivres.filter(l => l.nb_disponibles > 0);
-        setLivres(availableMock);
+        setLivres(mockLivres);
         setTotalPages(1);
-        setTotalBooks(availableMock.length);
+        setTotalBooks(mockLivres.length);
         
       } finally {
         setIsLoading(false);
@@ -91,7 +86,7 @@ export default function BestOfMonth() {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -99,16 +94,16 @@ export default function BestOfMonth() {
 
   return (
     <MobileLayout>
-      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100">
+      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-100 dark:border-gray-700">
         <button 
           onClick={() => router.visit('/')}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Meilleurs du mois</h1>
-          <p className="text-sm text-gray-500 mt-1">{totalBooks} livres</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Meilleurs du mois</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{totalBooks} livres</p>
         </div>
       </div>
       
@@ -122,11 +117,13 @@ export default function BestOfMonth() {
       </div>
       
       {/* Pagination */}
-      <Pagination 
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      <div className="px-6 pb-20">
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </div>
     </MobileLayout>
   );
 }

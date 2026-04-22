@@ -18,13 +18,11 @@ class Book extends Model
         'nb_copy',
         'nb_available',
         'cover_image',
+          'note', 
     ];
 
 
-    protected $casts =
-        [
-            'year_of_publication' => 'date',
-        ];
+   
 
     protected $appends = ['cover_url', 'average_rating'];
 

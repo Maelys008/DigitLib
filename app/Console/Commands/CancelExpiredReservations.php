@@ -64,8 +64,8 @@ class CancelExpiredReservations extends Command
                     }
                 }
             });
+            $this->info(count($expiredReservations).' réservations expirées traitées.');
         }
 
-        $this->info(count($expiredReservations).' réservations expirées traitées.');
     }
 }

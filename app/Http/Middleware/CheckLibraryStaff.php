@@ -10,67 +10,43 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckLibraryStaff
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        $libraryId = $request->route('library') ?? $request->library_id;
+        
+        // Récupère l'ID de la bibliothèque depuis la session ou la route
+        $libraryId = $request->session()->get('active_library_id') ?? $request->route('library') ?? $request->library_id;
 
-        if (! $libraryId) {
+        if (!$libraryId) {
             return $next($request);
         }
 
         $library = Library::find($libraryId);
-        if (! $library) {
+        if (!$library) {
             return response()->json(['message' => 'Bibliothèque introuvable'], 404);
         }
 
+        // Vérifie si l'utilisateur est admin de la bibliothèque
         $isAdmin = $this->isUserAdminOf($user->id, $library);
 
-        $isLibrarian = Internal_member::where('user_id', $user->id)
+        // Vérifie si l'utilisateur est membre interne (staff)
+        $isStaff = Internal_member::where('user_id', $user->id)
             ->where('library_id', $library->id)
-            ->whereHas('role_assignments.role', function ($query) {
-                $query->where('name_role', 'Librarian');
-            })->exists();
-        $isAdministrator = Internal_member::where('user_id', $user->id)
-            ->where('library_id', $library->id)
-            ->whereHas('role_assignments.role', function ($query) {
-                $query->where('name_role', 'Administrator');
-            })->exists();
+            ->exists();
 
-        if ($isAdmin || $isLibrarian || $isAdministrator) {
+        if ($isAdmin || $isStaff) {
             return $next($request);
         }
 
         return response()->json(['message' => 'Action réservée à l\'équipe de gestion de la bibliothèque.'], 403);
     }
 
-    /**
-     * Check if user is admin of the library.
-     */
-    private function isUserAdminOf($userId, $library): bool
+    private function isUserAdminOf($userId, $library)
     {
-        if ($library->administrator_id === $userId) {
-            return true;
-        }
+        if (!$library) return false;
 
-        if ($library->parent) {
-            return $this->isUserAdminOf($userId, $library->parent);
-        }
+        if ($library->administrator_id == $userId) return true;
 
-        return false;
+        return $this->isUserAdminOf($userId, $library->parent);
     }
-
-    // private function isUserAdminOf($userId, $library)
-    // {
-    //     if (!$library) return false;
-
-    //     if ($library->administrator_id == $userId) return true;
-
-    //     return $this->isUserAdminOf($userId, $library->parent);
-    // }
 }

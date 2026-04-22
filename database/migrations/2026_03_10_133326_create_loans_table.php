@@ -16,9 +16,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('copy_id')->constrained('copies');
             $table->enum('condition_on_return', ['neuf', 'bon', 'abimé', 'très abimé'])->nullable();
-            $table->date('loan_date');
+            $table->date('loan_date')->nullable();
             $table->date('expected_return_date');
             $table->date('actual_return_date')->nullable();
+            $table->foreignId('returned_by')->nullable()->constrained('users');
+            $table->enum('status', ['pending_pickup', 'active', 'returned', 'cancelled', 'lost_settled'])
+                ->default('pending_pickup');
+            $table->timestamp('pickup_deadline')->nullable();
             $table->timestamps();
         });
     }

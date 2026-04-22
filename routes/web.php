@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\KkiapayController;
+use App\Models\Book;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+
 
 // Routes d'authentification
 Route::get('/login', function () {
@@ -87,7 +91,6 @@ Route::get('/profile', function () {
 Route::get('/profile/edit', function () {
     return Inertia::render('EditProfile');
 })->name('profile.edit');
-
 Route::get('/profile/cards', function () {
     return Inertia::render('MyCards');
 })->name('profile.cards');
@@ -158,10 +161,133 @@ Route::get('/librarian/settings', function () {
 })->name('librarian.settings');
 Route::get('/librarian/library/{id}', function ($id) {
     return Inertia::render('Librarian/LibraryDetail', [
-        'id' => (int)$id
+        'id' => (int) $id,
     ]);
 })->name('librarian.library.detail');
 Route::get('/notifications', function () {
     return Inertia::render('Notifications');
 })->name('notifications');
+Route::get('/notifications/{id}', function ($id) {
+    return Inertia::render('NotificationDetail', ['id' => $id]);
+})->name('notifications.show');
+Route::get('/librarian/borrowing-rules', function () {
+    return Inertia::render('Librarian/BorrowingRules');
+})->name('librarian.borrowing-rules');
+Route::get('/librarian/manage-users', function () {
+    return Inertia::render('Librarian/ManageUsers');
+});
+Route::get('/reset-password', function () {
+    return Inertia::render('Auth/ResetPassword');
+})->name('reset-password');
+Route::get('/forgot-password', function () {
+    return Inertia::render('Auth/ForgotPassword');
+})->name('password.forgot');
+Route::get('/libraries/{id}', function ($id) {
+    return Inertia::render('LibraryDetails', ['id' => $id]);
+})->name('library.details');
+Route::get('/libraries', function () {
+    return Inertia::render('AllLibraries');
+})->name('libraries.index');
+Route::get('/librarian/manage-penalties', function () {
+    return Inertia::render('Librarian/ManagePenalties');
+})->name('librarian.manage-penalties');
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->name('profile');
+
+Route::get('/profile/edit', function () {
+    return Inertia::render('EditProfile');
+})->name('profile.edit');
+
+Route::get('/profile/change-password', function () {
+    return Inertia::render('ChangePassword');
+})->name('profile.change-password');
+
+Route::get('/clubs', function () {
+    return Inertia::render('Clubs/Index');
+})->name('clubs.index');
+
+Route::get('/clubs/create', function () {
+    return Inertia::render('Clubs/Create');
+})->name('clubs.create');
+
+Route::get('/clubs/{id}', function ($id) {
+    return Inertia::render('Clubs/Show', ['id' => $id]);
+})->name('clubs.show');
+Route::get('/librarian/incidents', function () {
+    return Inertia::render('Librarian/Incidents');
+})->name('librarian.incidents');
+Route::get('/librarian/partner-libraries', function () {
+    return Inertia::render('Librarian/PartnerLibraries');
+})->name('librarian.partner-libraries');
+Route::get('/auth/{provider}/callback', function ($provider) {
+    // Le backend gère la redirection
+    return Inertia::location('/api/auth/'.$provider.'/callback');
+});
+Route::get('/auth/callback', function () {
+    return Inertia::render('Auth/Callback');
+})->name('auth.callback');
+Route::get('/librarian/books/{book}/copies', function ($bookId) {
+    // Récupère le livre pour avoir son titre et auteur
+    $book = Book::findOrFail($bookId);
+
+    return Inertia::render('Librarian/ManageCopies', [
+        'bookId' => $bookId,
+        'bookTitle' => $book->title,
+        'bookAuthor' => $book->author,
+    ]);
+})->name('librarian.books.copies');
+Route::get('/librarian/library-records', function () {
+    return inertia('Librarian/LibraryRecords');
+})->name('library.records');
+
+Route::get('/librarian/library-records/{id}', function ($id) {
+    return inertia('Librarian/LibraryRecordDetail', ['id' => $id]);
+})->name('library.records.show');
+// Routes pour les incidents (à ajouter dans web.php)
+Route::get('/librarian/incidents', function () {
+    return Inertia::render('Librarian/Incidents');
+})->name('librarian.incidents');
+
+Route::get('/librarian/incidents/{id}', function ($id) {
+    return Inertia::render('Librarian/IncidentDetail', ['id' => $id]);
+})->name('librarian.incidents.show');
+
+Route::get('/librarian/incidents/create', function () {
+    return Inertia::render('Librarian/CreateIncident');
+})->name('librarian.incidents.create');
+Route::post('/set-active-library', function (Request $request) {
+    session(['active_library_id' => $request->library_id]);
+    return response()->json(['success' => true]);
+});
+Route::get('/pay', function () {
+    return view('test-payment');
+});
+
+// 2. Route de retour après succès
+Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+    ->name('payment.success');
+    // ==================== ROUTES POUR LES CONTESTATIONS (CÔTÉ READER) ====================
+// Changement : Profile/ContestationList → Contestations/ContestationList
+Route::get('/profile/contestations', function () {
+    return Inertia::render('Contestations/ContestationList');  // ← MODIFIÉ
+})->name('profile.contestations');
+
+Route::get('/profile/contestations/{id}', function ($id) {
+    return Inertia::render('Contestations/ContestationDetail', ['id' => (int) $id]);  // ← MODIFIÉ
+})->name('profile.contestations.show');
+
+// ==================== ROUTES POUR LES CONTESTATIONS (CÔTÉ BIBLIOTHÉCAIRE) ====================
+// Celles-ci restent identiques car elles pointent vers Librarian/
+Route::get('/librarian/contestations', function () {
+    return Inertia::render('Librarian/ContestationManagement');
+})->name('librarian.contestations');
+
+Route::get('/librarian/contestations/{id}', function ($id) {
+    return Inertia::render('Librarian/ContestationDetail', ['id' => (int) $id]);
+})->name('librarian.contestations.show');
+Route::get('/profile/incidents', function () {
+    return Inertia::render('Contestations/MyIncidents');
+})->name('profile.incidents');
+    
 require __DIR__.'/auth.php';

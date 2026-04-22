@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clubs', function (Blueprint $table) {
-            $table->id()->autoIncrement();
+            $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
+            // $table->string('club_image')->nullable(); 
             $table->timestamps();
         });
     }

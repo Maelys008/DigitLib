@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('copies', function (Blueprint $table) {
-            $table->id()->autoIncrement();
+            $table->id();
+            $table->string('codeQR', 64)->unique()->nullable();
             $table->foreignId('book_id')->constrained('books');
-            $table->string('codeQR');
             $table->enum('condition', ['neuf', 'bon', 'abimé', 'très abimé'])->default('neuf');
             $table->string('status')->default('disponible');
             $table->date('date_added');

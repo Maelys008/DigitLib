@@ -12,7 +12,23 @@ class ClubController extends Controller
 {
     public function index()
     {
-        return response()->json(Club::with('creator')->get());
+        $user = auth('sanctum')->user();
+
+        $clubs = Club::withCount('members')
+            ->with('creator:id,name')
+            ->get()
+            ->map(function ($club) use ($user) {
+                // Ajouter le statut d'adhésion pour l'utilisateur connecté
+                $club->is_joined = $user
+                    ? Club_member::where('user_id', $user->id)
+                        ->where('club_id', $club->id)
+                        ->exists()
+                    : false;
+
+                return $club;
+            });
+
+        return response()->json($clubs);
     }
 
     public function store(Request $request)
@@ -41,6 +57,8 @@ class ClubController extends Controller
     {
         $user = $request->user();
 
+        $club = Club::findOrFail($id);
+
         $alreadyMember = Club_member::where('user_id', $user->id)
             ->where('club_id', $id)
             ->exists();
@@ -55,7 +73,7 @@ class ClubController extends Controller
             'date_joined' => now(),
         ]);
 
-        return response()->json(['message' => 'Vous avez rejoint le club !']);
+        return response()->json(['success' => true, 'message' => 'Vous avez rejoint le club !']);
     }
 
     // Envoyer un message
@@ -81,10 +99,20 @@ class ClubController extends Controller
     }
 
     // Récupérer les messages d'un club
-    public function getMessages($clubId)
+    public function getMessages(Request $request, $clubId)
     {
+        $isMember = Club_member::where('user_id', $request->user()->id)
+            ->where('club_id', $clubId)
+            ->exists();
+
+        if (! $isMember) {
+            return response()->json([
+                'message' => 'Accès refusé.',
+            ], 403);
+        }
+
         $messages = Message::where('club_id', $clubId)
-            ->with('club_member.user')
+            ->with('clubMember.user')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -94,6 +122,8 @@ class ClubController extends Controller
     // Quitter un club
     public function leave(Request $request, $id)
     {
+        $club = Club::findOrFail($id);
+
         $member = Club_member::where('user_id', $request->user()->id)
             ->where('club_id', $id)
             ->first();
@@ -109,18 +139,57 @@ class ClubController extends Controller
 
     public function deleteMessage(Request $request, $messageId)
     {
-        $message = Message::findOrFail($messageId);
+        $message = Message::with('club')->findOrFail($messageId);
+        $user = $request->user();
 
-        $member = Club_member::where('id', $message->member_id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $isAuthor = Club_member::where('id', $message->member_id)
+            ->where('user_id', $user->id)
+            ->exists();
 
-        if (! $member) {
-            return response()->json(['message' => 'Action non autorisée.'], 403);
+        $isAdmin = ($message->club->user_id === $user->id);
+
+        if (! $isAdmin && ! $isAuthor) {
+            return response()->json([
+                'message' => 'Action non authorisée.',
+            ], 403);
         }
-
         $message->delete();
 
         return response()->json(['message' => 'Message supprimé.']);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $club = Club::with(['creator:id,name']) // ← Charger le créateur
+            ->withCount('members') // ← Compter les membres
+            ->findOrFail($id);
+
+        // Vérifier si l'utilisateur connecté est membre
+        $club->is_joined = false;
+        if ($request->user()) {
+            $club->is_joined = Club_member::where('user_id', $request->user()->id)
+                ->where('club_id', $id)
+                ->exists();
+        }
+
+        // Ajouter le nombre de membres (déjà fait par withCount)
+        // $club->members_count est automatiquement ajouté par withCount
+
+        return response()->json(['club' => $club]);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $club = Club::findOrFail($id);
+
+        // Vérification : Seul le créateur peut supprimer
+        if ($club->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Action non autorisée'], 403);
+        }
+
+        // Suppression du club (les relations suivront si onDelete('cascade') est défini)
+        $club->delete();
+
+        return response()->json(['message' => 'Club supprimé avec succès']);
     }
 }

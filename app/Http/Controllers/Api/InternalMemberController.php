@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Inscription;
 use App\Models\Internal_member;
+use App\Models\Library;
 use App\Models\Role_assignment;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -57,6 +58,14 @@ class InternalMemberController extends Controller
 
     public function index($libraryId)
     {
+        $user = auth('sanctum')->user();
+        $library = Library::findOrFail($libraryId);
+        
+        // 🔥 Seul l'admin (propriétaire) peut voir les membres internes
+        if ($library->administrator_id !== $user->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+        
         return Internal_member::with(['user', 'role_assignments.role'])
             ->where('library_id', $libraryId)
             ->get();

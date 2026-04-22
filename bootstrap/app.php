@@ -32,8 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('loans:send-reminders')->dailyAt('08:00');
         $schedule->command('loans:update-penalties')->dailyAt('01:00');
         $schedule->command('reservations:cancel-expired')->hourly();
-    })
+        $schedule->command('loans:cancel-expired-pending')->hourly();
 
+    })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/kkiapay',
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

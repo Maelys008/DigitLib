@@ -122,7 +122,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function socialAccounts()
     {
-        return $this->hasMany(Social_account::class);
+        return $this->hasMany(SocialAccount::class);
     }
 
     public function reviews()
@@ -133,5 +133,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function likedReviews()
     {
         return $this->belongsToMany(Review::class, 'review_likes')->withTimestamps();
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function favoriteBooks()
+    {
+        return $this->belongsToMany(Book::class, 'favorites')
+            ->withTimestamps();
+    }
+
+    public function shelves()
+    {
+        return $this->hasMany(Shelf::class);
     }
 }

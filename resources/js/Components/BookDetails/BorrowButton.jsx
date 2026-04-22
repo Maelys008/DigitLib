@@ -1,26 +1,42 @@
 import { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../../services/api';
 
 export default function BorrowButton({ 
   bookId,
+  bibliothequeNom,
+  isLibraryJoined,
   isAuthenticated,
+  onShowWarning,
+  onReservationCreated,
+  isBookAvailable = true, 
   className = '' 
 }) {
+  const [showWarning, setShowWarning] = useState(false);
   const [isBorrowed, setIsBorrowed] = useState(false);
+  const [isReserved, setIsReserved] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showReservation, setShowReservation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [reservationMessage, setReservationMessage] = useState('');
+  const [maxAllowed, setMaxAllowed] = useState(null);
+  const [currentLoans, setCurrentLoans] = useState(null);
 
-  // Vérifier si le livre est déjà emprunté
+  // Vérifier si le livre est actuellement emprunté (non retourné)
   useEffect(() => {
     const checkIfAlreadyBorrowed = async () => {
       if (!isAuthenticated) return;
       
       try {
         const loans = await api.getLoans();
-        const alreadyBorrowed = loans.some(loan => loan.copy?.book?.id === bookId);
+        const activeLoans = loans.filter(loan => !loan.actual_return_date);
+        const alreadyBorrowed = activeLoans.some(loan => loan.copy?.book?.id === bookId);
+        
+        console.log('Emprunts actifs:', activeLoans.length);
+        console.log('Livre déjà emprunté (actif)?', alreadyBorrowed);
+        
         setIsBorrowed(alreadyBorrowed);
       } catch (error) {
         console.error('Erreur vérification emprunt:', error);
@@ -37,22 +53,57 @@ export default function BorrowButton({
       return;
     }
 
+    // Vérifier si la bibliothèque est rejointe
+    if (!isLibraryJoined) {
+      setShowWarning(true);
+      if (onShowWarning) {
+        onShowWarning(true);
+      }
+      const joinButton = document.getElementById('join-library-button');
+      if (joinButton) {
+        joinButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setTimeout(() => setShowWarning(false), 5000);
+      return;
+    }
+
+    // Vérifier si déjà emprunté (actif)
     if (isBorrowed) {
-      setErrorMessage('Vous avez déjà emprunté ce livre');
-      setTimeout(() => setErrorMessage(''), 3000);
+      setErrorMessage('Vous avez déjà un exemplaire de ce livre en votre possession.');
+      setTimeout(() => setErrorMessage(''), 5000);
       return;
     }
 
     setIsLoading(true);
     setErrorMessage('');
+    setShowReservation(false);
     
     try {
       const result = await api.borrowBook(bookId);
       
       if (result.success) {
-        setIsBorrowed(true);
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        // Emprunt réussi
+        if (!result.isReservation) {
+          setIsBorrowed(true);
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+        } else {
+          // Réservation créée
+          setIsReserved(true);
+          setShowReservation(true);
+          setReservationMessage(result.message || 'Aucun exemplaire disponible. Vous avez été ajouté à la liste d\'attente.');
+          if (onReservationCreated) {
+            onReservationCreated(result.data?.reservation);
+          }
+          setTimeout(() => setShowReservation(false), 5000);
+        }
+      } else if (result.status === 403) {
+        setErrorMessage(result.message);
+        if (result.max_allowed) {
+          setMaxAllowed(result.max_allowed);
+          setCurrentLoans(result.current_loans);
+        }
+        setTimeout(() => setErrorMessage(''), 5000);
       } else {
         setErrorMessage(result.message);
         setTimeout(() => setErrorMessage(''), 5000);
@@ -63,58 +114,108 @@ export default function BorrowButton({
     } finally {
       setIsLoading(false);
     }
-    if (result.status === 403) {
-  setErrorMessage('Vous devez rejoindre la bibliothèque avant d\'emprunter');
-  // Scroll vers le haut pour montrer le message
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+  };
+
+  // Déterminer le texte du bouton
+  const getButtonText = () => {
+    if (isLoading) return 'Traitement...';
+    if (isBorrowed) return 'Déjà emprunté';
+    if (isReserved) return 'En liste d\'attente';
+    
+    if (!isBookAvailable && isLibraryJoined) return 'Réserver';
+    return 'Emprunter ce livre';
+  };
+
+  // Déterminer le style du bouton
+  const getButtonStyle = () => {
+    if (isBorrowed) {
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 cursor-not-allowed';
+    }
+    if (isReserved) {
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 cursor-not-allowed';
+    }
+    if (!isBookAvailable && isLibraryJoined) {
+      return 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95';
+    }
+    if (isLibraryJoined) {
+      return 'bg-gray-900 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 active:scale-95';
+    }
+    return 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer';
+  };
+
+  // Déterminer si le bouton est désactivé
+  const isDisabled = () => {
+    return isBorrowed || isLoading || isReserved;
   };
 
   return (
     <div className="relative mb-6">
-      {errorMessage && (
-        <div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
+      {/* Message d'avertissement (bibliothèque non rejointe) */}
+      {showWarning && (
+        <div className="mb-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <p className="text-sm text-red-600">{errorMessage}</p>
+            <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                Vous devez rejoindre la bibliothèque
+              </p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">
+                "{bibliothequeNom}" avant d'emprunter un livre
+              </p>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Message d'erreur */}
+      {errorMessage && (
+        <div className="mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">Emprunt impossible</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{errorMessage}</p>
+              {maxAllowed && currentLoans && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                  Limite: {maxAllowed} livre(s) | Emprunts en cours: {currentLoans}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message de réservation */}
+      {showReservation && (
+        <div className="mb-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">En liste d'attente</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">{reservationMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message de succès */}
       {showSuccess && (
-        <div className="mb-3 bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
+        <div className="mb-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 animate-fade-in">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <p className="text-sm font-medium text-green-800">Livre emprunté avec succès !</p>
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <p className="text-sm font-medium text-green-800 dark:text-green-300">
+              Livre emprunté avec succès !
+            </p>
           </div>
         </div>
       )}
       
       <button
         onClick={handleClick}
-        disabled={isBorrowed || isLoading}
-        className={`
-          w-full font-semibold py-4 rounded-xl transition-all shadow-md
-          ${isBorrowed 
-            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed' 
-            : 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95'
-          }
-          ${className}
-        `}
+        disabled={isDisabled()}
+        className={`w-full font-semibold py-4 rounded-xl transition-all shadow-md ${getButtonStyle()} ${className}`}
       >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            Traitement...
-          </span>
-        ) : isBorrowed ? (
-          <span className="flex items-center justify-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            Déjà emprunté
-          </span>
-        ) : (
-          'Emprunter ce livre'
-        )}
+        {getButtonText()}
       </button>
     </div>
   );

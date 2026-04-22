@@ -4,7 +4,8 @@ import '../css/app.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext'; 
+import { AuthProvider } from './contexts/AuthContext';
+import { ActiveLibraryProvider } from './contexts/ActiveLibraryContext'; // ← Vérifie le chemin
 
 createInertiaApp({
   resolve: name => {
@@ -14,8 +15,10 @@ createInertiaApp({
   setup({ el, App, props }) {
     createRoot(el).render(
       <AuthProvider>          
-       <ThemeProvider>
-          <App {...props} />
+        <ThemeProvider>
+          <ActiveLibraryProvider>  {/* ← Vérifie que c'est bien écrit */}
+            <App {...props} />
+          </ActiveLibraryProvider>
         </ThemeProvider>
       </AuthProvider>
     )

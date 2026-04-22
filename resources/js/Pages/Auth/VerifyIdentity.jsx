@@ -73,20 +73,20 @@ export default function VerifyIdentity() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <div className="flex items-center px-6 pt-6">
         <button onClick={handleBack} className="p-2 -ml-2">
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <CreditCard className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Vérifiez votre identité</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Vérifiez votre identité</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Pour finaliser votre inscription, veuillez fournir vos informations
           </p>
         </div>
@@ -94,69 +94,69 @@ export default function VerifyIdentity() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Nom complet */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nom complet
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Jean Dupont"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.name ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
 
           {/* Numéro de téléphone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Numéro de téléphone
             </label>
             <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+229 90 12 34 56 78"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.phone ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-            <p className="text-gray-400 text-xs mt-1">Un code sera envoyé à ce numéro</p>
+            {errors.phone && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.phone}</p>}
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Un code sera envoyé à ce numéro</p>
           </div>
 
           {/* Numéro ANIP */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Numéro ANIP
             </label>
             <div className="relative">
-              <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={anipId}
                 onChange={(e) => setAnipId(e.target.value)}
                 placeholder="Numéro sur votre carte ANIP"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-black ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.anipId ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
             </div>
-            {errors.anipId && <p className="text-red-500 text-xs mt-1">{errors.anipId}</p>}
+            {errors.anipId && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.anipId}</p>}
           </div>
 
-          <div className="p-4 bg-blue-50 rounded-xl">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-800">
+              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-blue-800 dark:text-blue-300">
                 <p className="font-semibold mb-1">Pourquoi ces informations ?</p>
                 <p>La vérification garantit la sécurité de tous les utilisateurs et permet une identification fiable pour les emprunts.</p>
               </div>
@@ -166,13 +166,13 @@ export default function VerifyIdentity() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isLoading ? 'Envoi...' : 'Envoyer le code'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-400">
+        <p className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
           Vos données sont sécurisées et ne seront jamais partagées
         </p>
       </div>

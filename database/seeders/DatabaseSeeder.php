@@ -13,12 +13,15 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            DigilibSeeder::class,
-            // RoleSeeder::class,
-            // BadgeSeeder::class,
-            // UserSeeder::class,
+           // DigilibSeeder::class,
+             GenreSeeder::class,
+             RoleSeeder::class,
+             BadgeSeeder::class,
+             //BookSeeder::class,
+             //BadgeSeeder::class,
+            //UserSeeder::class,
             // LibraryAndBookSeeder::class,
-            // ClubSeeder::class,
+            //ClubSeeder::class,
         ]);
     }
 }
