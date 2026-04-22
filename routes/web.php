@@ -263,12 +263,12 @@ Route::post('/set-active-library', function (Request $request) {
 
 
 
-// 1. Afficher la page de test
-Route::get('/pay', function () {
-    return view('test-payment');
-});
+// // 1. Afficher la page de test
+// Route::get('/pay', function () {
+//     return view('test-payment');
+// });
 
-// 2. Route de retour après succès
-Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
-    ->name('payment.success');
+// // 2. Route de retour après succès
+// Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+//     ->name('payment.success');
 require __DIR__.'/auth.php';
