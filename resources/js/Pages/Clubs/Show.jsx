@@ -172,6 +172,10 @@ export default function ClubsShow() {
         }
     };
 
+    const handleGoBack = () => {
+        window.history.back();
+    };
+
     const formatTime = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
@@ -219,11 +223,11 @@ export default function ClubsShow() {
                 {/* Header avec retour */}
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
                     <button
-                        onClick={() => router.visit("/clubs")}
+                        onClick={handleGoBack}
                         className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-4"
                     >
                         <ArrowLeft className="w-5 h-5" />
-                        <span className="font-medium">Retour aux clubs</span>
+                        <span className="font-medium">Retour</span>
                     </button>
 
                     {/* Hero Section */}
@@ -323,11 +327,14 @@ export default function ClubsShow() {
                                                             {formatTime(msg.created_at)}
                                                         </p>
                                                     </div>
+                                                    {/* Bouton supprimer pour mobile - toujours visible ou au survol */}
                                                     {canDelete && (
                                                         <button
                                                             onClick={() => handleDeleteMessage(msg.id)}
                                                             disabled={deletingMessageId === msg.id}
-                                                            className="absolute top-2 -right-10 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg disabled:opacity-50"
+                                                            className={`absolute top-2 ${
+                                                                isCurrentUser ? "-left-10" : "-right-10"
+                                                            } opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg disabled:opacity-50 shadow-md`}
                                                         >
                                                             {deletingMessageId === msg.id ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -157,6 +157,10 @@ export default function NotificationDetail() {
     }
   };
 
+  const handleGoBack = () => {
+    window.history.back();
+  };
+
   const handleGoToContestation = () => {
     router.visit('/profile/contestations');
   };
@@ -178,10 +182,10 @@ export default function NotificationDetail() {
           <Bell className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">Notification non trouvée</p>
           <button 
-            onClick={() => router.visit('/notifications')}
+            onClick={handleGoBack}
             className="mt-4 text-purple-600 dark:text-purple-400 font-medium"
           >
-            Retour aux notifications
+            Retour
           </button>
         </div>
       </MobileLayout>
@@ -197,11 +201,11 @@ export default function NotificationDetail() {
         {/* Header avec bouton retour */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
           <button
-            onClick={() => router.visit('/notifications')}
+            onClick={handleGoBack}
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Retour aux notifications</span>
+            <span className="font-medium">Retour</span>
           </button>
         </div>
 

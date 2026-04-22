@@ -103,7 +103,7 @@ export default function BorrowingRules() {
   // Redirige si l'utilisateur n'est pas admin
   if (!isLoading && !libraryLoading && !isAdmin && library) {
     return (
-      <MobileLayout>
+      <>
         <div className="px-6 py-4">
           <button 
             onClick={() => router.visit('/librarian/dashboard')}
@@ -125,23 +125,23 @@ export default function BorrowingRules() {
             </button>
           </div>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   if (isLoading || libraryLoading) {
     return (
-      <MobileLayout>
+      <>
         <div className="flex items-center justify-center h-screen">
           <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   if (!library) {
     return (
-      <MobileLayout>
+      <>
         <div className="px-6 py-4">
           <button 
             onClick={() => router.visit('/librarian/dashboard')}
@@ -153,12 +153,12 @@ export default function BorrowingRules() {
             <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
           </div>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   return (
-    <MobileLayout>
+    <>
       <div className="px-6 py-4">
         {/* En-tête */}
         <div className="flex items-center gap-4 mb-6">
@@ -270,6 +270,6 @@ export default function BorrowingRules() {
           </button>
         </div>
       </div>
-    </MobileLayout>
+    </>
   );
 }
