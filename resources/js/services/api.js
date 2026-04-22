@@ -10,6 +10,7 @@ class ApiService {
                 Accept: "application/json",
                 "X-Requested-With": "XMLHttpRequest",
             },
+             withCredentials: true,
         });
 
         this.axios.interceptors.request.use(
@@ -726,6 +727,16 @@ async getLibraryIncidents(libraryId = null) {
         return [];
     }
 }
+// Récupérer les incidents de l'utilisateur connecté (reader)
+async getUserIncidents() {
+    try {
+        const response = await this.axios.get('/user/incidents');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user incidents:', error);
+        return [];
+    }
+}
 async resolveIncident(incidentId) {
     try {
         console.log('📤 Résolution incident:', incidentId);
@@ -933,7 +944,10 @@ async scanQRCode(token) {
         return response.data;
     } catch (error) {
         console.error('Error scanning QR code:', error);
-        return null;
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors du scan du QR code'
+        };
     }
 }
 // ==================== CASIER BIBLIOTHÉCAIRE ====================
@@ -984,6 +998,85 @@ async getLibraryRecordDetail(recordId) {
     } catch (error) {
         console.error('Error fetching record detail:', error);
         return null;
+    }
+}
+// ==================== CONTESTATIONS ====================
+
+// Récupérer toutes les contestations de l'utilisateur
+async getUserContestations() {
+    try {
+        const response = await this.axios.get('/contestations');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching contestations:', error);
+        return [];
+    }
+}
+
+// Créer une contestation
+async createContestation(incidentId, message, justification = null) {
+    try {
+        const response = await this.axios.post('/contestations', {
+            incident_id: incidentId,
+            message: message,
+            justification: justification
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la création'
+        };
+    }
+}
+
+// Voir une contestation spécifique
+async getContestation(id) {
+    try {
+        const response = await this.axios.get(`/contestations/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching contestation:', error);
+        return null;
+    }
+}
+
+// Récupérer les contestations d'une bibliothèque (pour bibliothécaire)
+async getLibraryContestations(status = null) {
+    try {
+        const url = status ? `/contestations-library?status=${status}` : '/contestations-library';
+        const response = await this.axios.get(url);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching library contestations:', error);
+        return { data: [] };
+    }
+}
+
+// Traiter une contestation (bibliothécaire)
+async processContestation(contestationId, decision, responseMessage = null) {
+    try {
+        const response = await this.axios.post(`/contestations-process/${contestationId}`, {
+            decision: decision,
+            response_message: responseMessage
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors du traitement'
+        };
+    }
+}
+
+// Statistiques des contestations
+async getContestationStats() {
+    try {
+        const response = await this.axios.get('/contestations-library-stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching contestation stats:', error);
+        return { total: 0, en_attente: 0, acceptees: 0, rejetees: 0 };
     }
 }
 }

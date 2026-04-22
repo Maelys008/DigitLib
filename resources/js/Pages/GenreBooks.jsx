@@ -78,8 +78,9 @@ export default function GenreBooks() {
     fetchBooks();
   }, [genre]);
 
+  // Correction : retour à la page précédente au lieu de /genres
   const handleGoBack = () => {
-    router.visit('/genres');
+    window.history.back();
   };
 
   if (isLoading) {

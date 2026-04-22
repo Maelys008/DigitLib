@@ -87,6 +87,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/library-loans', [LoanController::class, 'libraryDashboard']);
     Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
     
+// ✅ Route pour les incidents du reader (AJOUTE ICI)
+Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
+    
     // ✅ Routes pour les emprunts (déplacées ici pour éviter les problèmes de session)
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
@@ -136,7 +139,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Scan Book
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
     Route::get('/scan-user/{token}', function ($token) {
-        // ... contenu existant
     });
     
     // Incidents
@@ -162,14 +164,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/payments/my-transactions', [KkiapayController::class, 'userTransactions']);
     Route::get('/libraries/{libraryId}/transactions', [KkiapayController::class, 'libraryTransactions']);
 
-    // --- Contestations ---
-    Route::prefix('contestations')->group(function () {
-        // Pour tous les utilisateurs
-        Route::get('/', [ContestationController::class, 'index']);
-        Route::post('/', [ContestationController::class, 'store']);
-        Route::get('/{id}', [ContestationController::class, 'show']);
-        Route::post('/{id}/comment', [ContestationController::class, 'addComment']);
-    });
+ // --- Contestations ---
+// Pour tous les utilisateurs (reader)
+Route::get('/contestations', [ContestationController::class, 'index']);
+Route::post('/contestations', [ContestationController::class, 'store']);
+Route::get('/contestations/{id}', [ContestationController::class, 'show']);
+Route::post('/contestations/{id}/comment', [ContestationController::class, 'addComment']);
+
+// Pour les bibliothécaires
+Route::get('/contestations-library', [ContestationController::class, 'libraryContestations']);
+Route::get('/contestations-library-stats', [ContestationController::class, 'stats']);
+Route::post('/contestations-process/{id}', [ContestationController::class, 'process']);
     
     // ✅ Routes pour les livres (accessibles à tous les utilisateurs authentifiés)
     Route::post('/books', [BookController::class, 'store']);
@@ -197,13 +202,7 @@ Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(functi
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
 
-    // --- Contestations ---
-    Route::prefix('contestations')->group(function () {
-        // Pour les bibliothécaires
-        Route::get('/library/all', [ContestationController::class, 'libraryContestations']);
-        Route::get('/library/stats', [ContestationController::class, 'stats']);
-        Route::post('/{id}/process', [ContestationController::class, 'process']);
-    });
+ 
     // Dans la section protégée (middleware auth:sanctum)
     // Dans la section protégée
     // Route::prefix('incidents')->group(function () {

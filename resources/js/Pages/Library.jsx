@@ -30,27 +30,53 @@ export default function Library() {
         
         console.log('Emprunts actifs:', active.length);
         
-        // Traiter les emprunts actifs
+        // Traiter les emprunts actifs avec progression basée sur le temps
         const activeBooksWithDetails = active.map(loan => {
           const book = loan.copy?.book;
           if (!book) return null;
           
-          const loanDate = new Date(loan.loan_date);
+          // Utiliser loan_date si disponible, sinon created_at
+          let loanDate = loan.loan_date;
           const expectedReturnDate = new Date(loan.expected_return_date);
           const today = new Date();
-          const totalDays = Math.ceil((expectedReturnDate - loanDate) / (1000 * 60 * 60 * 24));
-          const daysPassed = Math.ceil((today - loanDate) / (1000 * 60 * 60 * 24));
-          const progress = Math.min(100, Math.max(0, Math.floor((daysPassed / totalDays) * 100)));
+          
+          // Si loan_date est null (emprunt pas encore récupéré), on utilise la date de création
+          if (!loanDate) {
+            loanDate = loan.created_at;
+          }
+          
+          const startDate = new Date(loanDate);
+          
+          // Calcul de la progression basée sur le temps écoulé
+          const totalDuration = expectedReturnDate.getTime() - startDate.getTime();
+          const elapsedDuration = today.getTime() - startDate.getTime();
+          
+          let progress = 0;
+          
+          // Si la date de début est dans le futur
+          if (today < startDate) {
+            progress = 0;
+          }
+          // Si la date de fin est dépassée
+          else if (today > expectedReturnDate) {
+            progress = 100;
+          }
+          // Calcul normal
+          else {
+            progress = Math.floor((elapsedDuration / totalDuration) * 100);
+            progress = Math.min(99, Math.max(1, progress));
+          }
           
           return {
             id: loan.id,
             ...book,
             progress: progress,
-            loan_date: loan.loan_date,
+            loan_date: loanDate,
             expected_return_date: loan.expected_return_date,
             image_couverture: book.cover_url || book.cover_image,
             auteur: book.author,
-            titre: book.title
+            titre: book.title,
+            status: loan.status
           };
         }).filter(b => b !== null);
         
@@ -70,18 +96,38 @@ export default function Library() {
   useEffect(() => {
     if (!user) return;
 
-    const favorites = JSON.parse(
-      localStorage.getItem(`favorites_${user.id}`) || '[]'
-    );
-    setFavorisCount(favorites.length);
+    const fetchFavorites = async () => {
+      try {
+        const data = await api.getFavorites();
+        setFavorisCount(data.length);
+      } catch (error) {
+        console.error('Erreur chargement favoris:', error);
+        const favorites = JSON.parse(
+          localStorage.getItem(`favorites_${user.id}`) || '[]'
+        );
+        setFavorisCount(favorites.length);
+      }
+    };
+    
+    fetchFavorites();
   }, [user]);
 
   const getDaysRemaining = (dueDate) => {
     const due = new Date(dueDate);
     const today = new Date();
+    due.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
     const diffTime = due.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const getProgressColor = (progress) => {
+    if (progress >= 75) return 'from-red-500 to-orange-500';
+    if (progress >= 50) return 'from-orange-500 to-yellow-500';
+    if (progress >= 25) return 'from-yellow-500 to-green-500';
+    return 'from-green-500 to-emerald-500';
   };
 
   if (isLoading) {
@@ -148,11 +194,13 @@ export default function Library() {
                     const daysRemaining = getDaysRemaining(book.expected_return_date);
                     const isOverdue = daysRemaining < 0;
                     const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
+                    const progressColor = getProgressColor(book.progress);
                     
                     return (
                       <div
                         key={book.id}
-                        className="bg-[#F6F6F6] dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+                        onClick={() => router.visit(`/book/${book.id}`)}
+                        className="bg-[#F6F6F6] dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-md transition-all"
                       >
                         <div className="flex gap-3">
                           <img
@@ -191,18 +239,21 @@ export default function Library() {
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                   <TrendingUp className="w-3 h-3" />
-                                  <span>Progression</span>
+                                  <span>Temps écoulé</span>
                                 </div>
                                 <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
                                   {book.progress}%
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
-                                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-1.5 rounded-full transition-all"
+                                  className={`bg-gradient-to-r ${progressColor} h-2 rounded-full transition-all duration-500`}
                                   style={{ width: `${book.progress}%` }}
                                 />
                               </div>
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                                La barre augmente chaque jour jusqu'à la date de retour
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -222,6 +273,11 @@ export default function Library() {
                 >
                   <Heart className="w-5 h-5 text-gray-700 dark:text-gray-300 mr-3" />
                   <span className="text-gray-900 dark:text-white font-medium">Favoris</span>
+                  {favorisCount > 0 && (
+                    <span className="ml-auto text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full">
+                      {favorisCount}
+                    </span>
+                  )}
                 </button>
                 <button
                   onClick={() => router.visit('/read-books')}

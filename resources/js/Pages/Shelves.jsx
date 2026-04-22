@@ -10,16 +10,19 @@ export default function Shelves() {
     const [shelves, setShelves] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Fonction pour obtenir l'URL complète de l'image
+    // Fonction pour obtenir l'URL complète de l'image avec le port dynamique
     const getImageUrl = (imagePath) => {
         if (!imagePath) return null;
         if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
             return imagePath;
         }
+        const port = window.location.port;
+        const baseUrl = `${window.location.protocol}//${window.location.hostname}${port ? ':' + port : ''}`;
+        
         if (imagePath.startsWith('/storage/')) {
-            return `http://localhost:8000${imagePath}`;
+            return `${baseUrl}${imagePath}`;
         }
-        return `http://localhost:8000/storage/${imagePath}`;
+        return `${baseUrl}/storage/${imagePath}`;
     };
 
     useEffect(() => {
@@ -49,6 +52,10 @@ export default function Shelves() {
         router.visit(`/shelves/${shelfId}`);
     };
 
+    const handleGoBack = () => {
+        window.history.back();
+    };
+
     if (isLoading) {
         return (
             <MobileLayout>
@@ -64,7 +71,7 @@ export default function Shelves() {
             <div className="px-6 py-4">
                 <div className="flex items-center gap-4 mb-6">
                     <button 
-                        onClick={() => router.visit('/library')}
+                        onClick={handleGoBack}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
                         <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -97,6 +104,7 @@ export default function Shelves() {
                                                 alt={shelf.name}
                                                 className="w-full h-full rounded-lg object-cover shadow-sm"
                                                 onError={(e) => {
+                                                    e.target.onerror = null;
                                                     e.target.src = '/placeholder-book.jpg';
                                                 }}
                                             />

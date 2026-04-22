@@ -1,4 +1,4 @@
-import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users, DollarSign } from 'lucide-react';
+import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users, DollarSign,MessageSquare } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 export default function ActionButtons({ 
@@ -10,7 +10,8 @@ export default function ActionButtons({
   onPartnerLibraries,
   onManageInternalMembers,
   onManagePenalties,
-  onViewCasier
+  onViewCasier,
+  onManageContestations
 }) {
   
   // 🔥 SUPPRIME TOUTE VÉRIFICATION - AFFICHE TOUS LES BOUTONS
@@ -84,7 +85,15 @@ export default function ActionButtons({
       bg: 'bg-white dark:bg-gray-800',
       textColor: 'text-orange-600 dark:text-orange-400',
       border: true,
-    }
+    },
+{ 
+  label: 'Contestations', 
+  icon: MessageSquare, 
+  onClick: onManageContestations, 
+  bg: 'bg-white dark:bg-gray-800', 
+  textColor: 'text-orange-600 dark:text-orange-400', 
+  border: true,
+},
   ];
 
   // 🔥 AFFICHE TOUS LES BOUTONS SANS FILTRE

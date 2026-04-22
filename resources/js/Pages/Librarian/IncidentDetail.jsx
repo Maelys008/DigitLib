@@ -21,17 +21,28 @@ export default function IncidentDetail() {
     }, [id]);
 
     const fetchIncident = async () => {
-        setIsLoading(true);
-        try {
-            const data = await api.getLibraryIncidents();
-            const found = data.find(inc => inc.id === parseInt(id));
-            setIncident(found);
-        } catch (error) {
-            console.error('Erreur chargement incident:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    setIsLoading(true);
+    try {
+        const data = await api.getLibraryIncidents();
+        const found = data.find(inc => inc.id === parseInt(id));
+        
+        // 🔥 LOG POUR DEBUG
+        console.log('📋 Structure de l\'incident:', {
+            id: found?.id,
+            user_id: found?.user_id,
+            user: found?.user,
+            library_id: found?.library_id,
+            library: found?.library,
+            description: found?.description
+        });
+        
+        setIncident(found);
+    } catch (error) {
+        console.error('Erreur chargement incident:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     const getSeverityInfo = (severity) => {
         const severities = {
@@ -162,7 +173,7 @@ export default function IncidentDetail() {
                         </p>
                     </div>
 
-                    {/* Section pour signaler un incident grave */}
+                    {/*  Section pour signaler un incident grave - */}
                     <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-5 mb-6 border border-red-200 dark:border-red-800">
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
@@ -175,6 +186,8 @@ export default function IncidentDetail() {
                                     Une notification sera envoyée à TOUS les bibliothécaires de l'application.
                                 </p>
 
+                               
+
                                 <button
                                     onClick={async () => {
                                         if (hasBeenReported) {
@@ -185,37 +198,55 @@ export default function IncidentDetail() {
                                         if (confirm('Confirmer le signalement de cet incident ? Tous les bibliothécaires seront alertés.')) {
                                             setIsSubmitting(true);
                                             try {
-                                                // 🔥 CORRECTION ICI : Récupère le library_id correctement
+                                                // 🔥 CORRECTION : Récupère les IDs correctement
                                                 const libraryId = incident.library_id || incident.library?.id;
+                                                const userId = incident.user?.id;  // ← user est un objet, prend son id
                                                 
                                                 console.log('📤 Envoi du signalement...', {
                                                     title: `Incident grave: ${incident.title || 'Signalement'}`,
                                                     description: incident.description,
                                                     severity: incident.severity || 'critical',
                                                     related_incident_id: incident.id,
-                                                    user_id: incident.user?.id,
+                                                    user_id: userId,
                                                     library_id: libraryId,
                                                 });
                                                 
-                                           const result = await api.createLibraryRecord({
+                                                // Vérifications
+                                                if (!userId) {
+                                                    console.error('❌ user_id manquant ! incident.user:', incident.user);
+                                                    alert('Impossible de signaler : utilisateur non trouvé');
+                                                    setIsSubmitting(false);
+                                                    return;
+                                                }
+                                                
+                                                if (!libraryId) {
+                                                    console.error('❌ library_id manquant !');
+                                                    alert('Impossible de signaler : bibliothèque non trouvée');
+                                                    setIsSubmitting(false);
+                                                    return;
+                                                }
+                                                
+                                                const result = await api.createLibraryRecord({
                                                     title: `Incident grave: ${incident.title || 'Signalement'}`,
                                                     description: incident.description,
                                                     severity: incident.severity || 'critical',
                                                     related_incident_id: incident.id,
-                                                    user_id: incident.user?.id,
-                                                    library_id: libraryId,  
+                                                    user_id: userId,  // ← Maintenant c'est un ID, pas un objet
+                                                    library_id: libraryId,
                                                 });
-                                                                                                
+                                                
+                                                console.log('📥 Réponse:', result);
+                                                
                                                 if (result.success) {
                                                     setHasBeenReported(true);
-                                                    alert('Incident signalé à tous les bibliothécaires !');
+                                                    alert('✅ Incident signalé à tous les bibliothécaires !');
                                                     router.visit('/librarian/library-records');
                                                 } else {
-                                                    alert('Erreur: ' + result.message);
+                                                    alert('❌ Erreur: ' + (result.message || 'Erreur inconnue'));
                                                 }
                                             } catch (error) {
-                                                console.error('❌ Erreur:', error);
-                                                alert('Erreur lors du signalement');
+                                                console.error('❌ Erreur détaillée:', error);
+                                                alert('Erreur lors du signalement: ' + (error.response?.data?.message || error.message));
                                             } finally {
                                                 setIsSubmitting(false);
                                             }

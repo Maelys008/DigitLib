@@ -30,114 +30,132 @@ class ContestationController extends Controller
     /**
      * Créer une contestation pour un incident
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'incident_id' => 'required|exists:incidents,id',
-            'message' => 'required|string|min:10|max:1000',
-            'justification' => 'nullable|string|max:2000',
+/**
+ * Créer une contestation pour un incident
+ */
+public function store(Request $request)
+{
+    \Log::info('=== Contestation store appelée ===');
+    \Log::info('incident_id: ' . $request->incident_id);
+    \Log::info('user_id: ' . $request->user()->id);
+    
+    $request->validate([
+        'incident_id' => 'required|exists:incidents,id',
+        'message' => 'required|string|min:10|max:1000',
+        'justification' => 'nullable|string|max:2000',
+    ]);
+
+    $user = $request->user();
+    $incident = Incident::with('library')->findOrFail($request->incident_id);
+    
+    \Log::info('Incident user_id: ' . $incident->user_id);
+    \Log::info('Current user_id: ' . $user->id);
+    \Log::info('Incident status: ' . $incident->status);
+
+    // Vérifier que l'incident appartient bien à l'utilisateur
+    if ($incident->user_id !== $user->id) {
+        \Log::error('Incident n\'appartient pas à l\'utilisateur');
+        return response()->json([
+            'message' => 'Vous ne pouvez contester que vos propres incidents.'
+        ], 403);
+    }
+
+    // Vérifier si une contestation existe déjà pour cet incident
+    $existingContestation = Contestation::where('user_id', $user->id)
+        ->where('incident_id', $request->incident_id)
+        ->first();
+
+    if ($existingContestation) {
+        return response()->json([
+            'message' => 'Vous avez déjà contesté cet incident.',
+            'contestation' => $existingContestation
+        ], 422);
+    }
+
+    // Vérifier si l'incident peut être contesté (pas déjà résolu)
+    if (in_array($incident->status, ['resolved', 'dismissed'])) {
+        return response()->json([
+            'message' => 'Cet incident ne peut plus être contesté car il est déjà clôturé.'
+        ], 422);
+    }
+
+    return DB::transaction(function () use ($request, $user, $incident) {
+        $contestation = Contestation::create([
+            'user_id' => $user->id,
+            'incident_id' => $request->incident_id,
+            'message' => $request->message,
+            'justification' => $request->justification,
+            'status' => 'en attente',
         ]);
 
-        $user = $request->user();
-        $incident = Incident::with('library')->findOrFail($request->incident_id);
+        // Marquer l'incident comme "en contestation"
+        $incident->update(['status' => 'pending']);
 
-        // Vérifier que l'incident appartient bien à l'utilisateur
-        if ($incident->user_id !== $user->id) {
-            return response()->json([
-                'message' => 'Vous ne pouvez contester que vos propres incidents.'
-            ], 403);
-        }
+        // Notifier les bibliothécaires de la bibliothèque concernée
+        $libraryId = $incident->library_id;
+        
+        if ($libraryId) {
+            $librarianIds = Internal_member::where('library_id', $libraryId)
+                ->pluck('user_id');
 
-        // Vérifier si une contestation existe déjà pour cet incident
-        $existingContestation = Contestation::where('user_id', $user->id)
-            ->where('incident_id', $request->incident_id)
-            ->first();
-
-        if ($existingContestation) {
-            return response()->json([
-                'message' => 'Vous avez déjà contesté cet incident.',
-                'contestation' => $existingContestation
-            ], 422);
-        }
-
-        // Vérifier si l'incident peut être contesté (pas déjà résolu)
-        if (in_array($incident->status, ['resolved', 'dismissed'])) {
-            return response()->json([
-                'message' => 'Cet incident ne peut plus être contesté car il est déjà clôturé.'
-            ], 422);
-        }
-
-        return DB::transaction(function () use ($request, $user, $incident) {
-            $contestation = Contestation::create([
-                'user_id' => $user->id,
-                'incident_id' => $request->incident_id,
-                'message' => $request->message,
-                'justification' => $request->justification,
-                'status' => 'en attente',
-            ]);
-
-            // Marquer l'incident comme "en contestation"
-            $incident->update(['status' => 'pending']);
-
-            // Notifier les bibliothécaires de la bibliothèque concernée
-            $libraryId = $incident->library_id;
-            
-            if ($libraryId) {
-                $librarianIds = Internal_member::where('library_id', $libraryId)
-                    ->pluck('user_id');
-
-                foreach ($librarianIds as $librarianId) {
-                    Notification::create([
-                        'user_id' => $librarianId,
-                        'type' => 'contestation_created',
-                        'message' => "Nouvelle contestation de {$user->name} concernant un incident.",
-                        'object_type' => 'contestation',
-                        'object' => $contestation->id,
-                        'date_sent' => now(),
-                    ]);
-                }
+            foreach ($librarianIds as $librarianId) {
+                Notification::create([
+                    'user_id' => $librarianId,
+                    'type' => 'contestation_created',
+                    'message' => "Nouvelle contestation de {$user->name} concernant un incident.",
+                    'object_type' => 'contestation',
+                    'object' => $contestation->id,
+                    'date_sent' => now(),
+                ]);
             }
+        }
 
-            // Notification à l'utilisateur
-            Notification::create([
-                'user_id' => $user->id,
-                'type' => 'contestation_submitted',
-                'message' => 'Votre contestation a été enregistrée et sera traitée par un bibliothécaire.',
-                'object_type' => 'contestation',
-                'object' => $contestation->id,
-                'date_sent' => now(),
-            ]);
+        // Notification à l'utilisateur
+        Notification::create([
+            'user_id' => $user->id,
+            'type' => 'contestation_submitted',
+            'message' => 'Votre contestation a été enregistrée et sera traitée par un bibliothécaire.',
+            'object_type' => 'contestation',
+            'object' => $contestation->id,
+            'date_sent' => now(),
+        ]);
 
-            return response()->json([
-                'message' => 'Contestation enregistrée avec succès.',
-                'contestation' => $contestation->load('incident')
-            ], 201);
-        });
-    }
+        return response()->json([
+            'message' => 'Contestation enregistrée avec succès.',
+            'contestation' => $contestation->load('incident')
+        ], 201);
+    });
+}
 
     /**
      * Voir une contestation spécifique
      */
     public function show(Request $request, $id)
-    {
+{
+    try {
         $user = $request->user();
 
         $contestation = Contestation::with([
+            'incident',
             'incident.library',
+            'incident.loan',
+            'incident.loan.copy',
             'incident.loan.copy.book',
-            'incident.createdBy',
-            'incident.resolvedBy'
+            'incident.creator',
+            'incident.resolver'
         ])->findOrFail($id);
 
         // Vérifier les permissions
         $isOwner = $contestation->user_id === $user->id;
         $isLibrarian = false;
 
-        if (!$isOwner) {
+        if (!$isOwner && $contestation->incident) {
             $libraryId = $contestation->incident->library_id;
-            $isLibrarian = Internal_member::where('user_id', $user->id)
-                ->where('library_id', $libraryId)
-                ->exists();
+            if ($libraryId) {
+                $isLibrarian = Internal_member::where('user_id', $user->id)
+                    ->where('library_id', $libraryId)
+                    ->exists();
+            }
         }
 
         if (!$isOwner && !$isLibrarian && $user->role !== 'admin') {
@@ -145,8 +163,14 @@ class ContestationController extends Controller
         }
 
         return response()->json($contestation);
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['message' => 'Contestation non trouvée'], 404);
+    } catch (\Exception $e) {
+        \Log::error('Erreur dans ContestationController@show: ' . $e->getMessage());
+        return response()->json(['message' => 'Erreur interne du serveur'], 500);
     }
-
+}
     /**
      * Traiter une contestation (Bibliothécaire/Admin uniquement)
      */

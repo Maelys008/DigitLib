@@ -60,6 +60,10 @@ export default function CreateShelf() {
         });
     };
 
+    const handleGoBack = () => {
+        window.history.back();
+    };
+
     const handleCreate = async () => {
         if (!shelfName.trim()) return;
         
@@ -97,7 +101,7 @@ export default function CreateShelf() {
             <div className="px-6 py-4 pb-24">
                 <div className="flex items-center gap-4 mb-6">
                     <button 
-                        onClick={() => router.visit('/shelves')}
+                        onClick={handleGoBack}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
                         <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />

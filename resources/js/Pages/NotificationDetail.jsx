@@ -1,6 +1,6 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle2, BookOpen, AlertTriangle, Info, Clock, Calendar, MapPin, AlertCircle, Bell } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, BookOpen, AlertTriangle, Info, Clock, Calendar, MapPin, AlertCircle, Bell, MessageSquare } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import api from '../services/api';
 
@@ -53,6 +53,9 @@ export default function NotificationDetail() {
         return 'success';
       case 'book_available':
         return 'reminder';
+      case 'contestation_auto':
+      case 'contestation_created':
+        return 'contestation';
       default:
         return 'info';
     }
@@ -71,6 +74,9 @@ export default function NotificationDetail() {
         return 'Pénalité';
       case 'return_confirmation':
         return 'Retour confirmé';
+      case 'contestation_auto':
+      case 'contestation_created':
+        return 'Contestation disponible';
       default:
         return 'Notification';
     }
@@ -80,6 +86,12 @@ export default function NotificationDetail() {
     const details = {};
     if (notification.message) {
       details.additionalInfo = notification.message;
+    }
+    // 🔥 Ajouter un lien vers la contestation
+    if (notification.type === 'contestation_auto' || notification.type === 'contestation_created') {
+      details.contestationId = notification.object;
+      details.actionLink = '/profile/contestations';
+      details.actionText = 'Voir ma contestation';
     }
     return details;
   };
@@ -124,6 +136,15 @@ export default function NotificationDetail() {
           lightBg: 'bg-blue-100 dark:bg-blue-900/30',
           borderColor: 'border-blue-500'
         };
+      case 'contestation':
+        return {
+          icon: <MessageSquare className="w-10 h-10" />,
+          gradient: 'from-purple-500 to-purple-600',
+          bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+          textColor: 'text-purple-900 dark:text-purple-100',
+          lightBg: 'bg-purple-100 dark:bg-purple-900/30',
+          borderColor: 'border-purple-500'
+        };
       default:
         return {
           icon: <Info className="w-10 h-10" />,
@@ -134,6 +155,14 @@ export default function NotificationDetail() {
           borderColor: 'border-cyan-500'
         };
     }
+  };
+
+  const handleGoBack = () => {
+    window.history.back();
+  };
+
+  const handleGoToContestation = () => {
+    router.visit('/profile/contestations');
   };
 
   if (isLoading) {
@@ -153,10 +182,10 @@ export default function NotificationDetail() {
           <Bell className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">Notification non trouvée</p>
           <button 
-            onClick={() => router.visit('/notifications')}
+            onClick={handleGoBack}
             className="mt-4 text-purple-600 dark:text-purple-400 font-medium"
           >
-            Retour aux notifications
+            Retour
           </button>
         </div>
       </MobileLayout>
@@ -164,6 +193,7 @@ export default function NotificationDetail() {
   }
 
   const style = getIconAndColor(notification.type);
+  const isContestation = notification.type === 'contestation';
 
   return (
     <MobileLayout>
@@ -171,11 +201,11 @@ export default function NotificationDetail() {
         {/* Header avec bouton retour */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
           <button
-            onClick={() => router.visit('/notifications')}
+            onClick={handleGoBack}
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Retour aux notifications</span>
+            <span className="font-medium">Retour</span>
           </button>
         </div>
 
@@ -204,6 +234,19 @@ export default function NotificationDetail() {
               </p>
             </div>
           </div>
+
+          {/* 🔥 Bouton d'action pour contestation */}
+          {isContestation && (
+            <div className="mb-6">
+              <button
+                onClick={handleGoToContestation}
+                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/30"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Voir ma contestation
+              </button>
+            </div>
+          )}
 
           {/* Détails */}
           {notification.details && (

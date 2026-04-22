@@ -1,5 +1,5 @@
 import MobileLayout from '@/Layouts/MobileLayout';
-import { Edit2, Award, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Trophy, BookOpen, Star, User } from 'lucide-react';
+import { Edit2, Award, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Trophy, BookOpen, Star, User , AlertTriangle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useState, useEffect } from 'react'; 
 import BadgeModal from '@/Components/ProfilDetails/BadgeModal'; 
@@ -76,6 +76,8 @@ export default function Profile() {
     { id: 'cards', icon: CreditCard, label: 'Mes cartes', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30', route: '/profile/cards' },
     { id: 'settings', icon: Settings, label: 'Paramètres', color: 'text-gray-600 dark:text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800', route: '/profile/settings' },
     { id: 'support', icon: HelpCircle, label: 'Support', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30', route: '/profile/support' },
+    { id: 'contestations', icon: AlertTriangle, label: 'Mes contestations', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30', route: '/profile/contestations' },
+{ id: 'incidents', icon:  Star, label: 'Mes incidents', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30', route: '/profile/incidents' },
   ];
 
   const handleNavigation = (route) => {
