@@ -14,15 +14,19 @@ export default function ShelfDetail() {
     const [showMenu, setShowMenu] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Fonction pour obtenir l'URL complète de l'image avec le port dynamique
     const getImageUrl = (imagePath) => {
         if (!imagePath) return null;
         if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
             return imagePath;
         }
+        const port = window.location.port;
+        const baseUrl = `${window.location.protocol}//${window.location.hostname}${port ? ':' + port : ''}`;
+        
         if (imagePath.startsWith('/storage/')) {
-            return `http://localhost:8000${imagePath}`;
+            return `${baseUrl}${imagePath}`;
         }
-        return `http://localhost:8000/storage/${imagePath}`;
+        return `${baseUrl}/storage/${imagePath}`;
     };
 
     useEffect(() => {
@@ -60,6 +64,10 @@ export default function ShelfDetail() {
         }
     };
 
+    const handleGoBack = () => {
+        window.history.back();
+    };
+
     if (isLoading) {
         return (
             <MobileLayout>
@@ -90,7 +98,7 @@ export default function ShelfDetail() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                         <button 
-                            onClick={() => router.visit('/shelves')}
+                            onClick={handleGoBack}
                             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                         >
                             <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -118,7 +126,10 @@ export default function ShelfDetail() {
                             src={imageUrl}
                             alt={shelf.name}
                             className="w-full h-72 object-cover rounded-xl shadow-md"
-                            onError={(e) => e.target.src = '/placeholder-book.jpg'}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = '/placeholder-book.jpg';
+                            }}
                         />
                     ) : (
                         <div className="w-full h-72 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/20 flex items-center justify-center">

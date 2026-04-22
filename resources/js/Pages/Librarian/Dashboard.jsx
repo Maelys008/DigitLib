@@ -227,7 +227,9 @@ export default function Dashboard() {
   const handleViewCasier = () => {
     router.visit('/librarian/library-records');
   };
-
+const handleManageContestations = () => {
+  router.visit('/librarian/contestations');
+};
   if (isLoading || libraryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -271,6 +273,7 @@ export default function Dashboard() {
           onBorrowingRules={handleBorrowingRules}
           onPartnerLibraries={handlePartnerLibraries}
           onViewCasier={handleViewCasier}
+            onManageContestations={handleManageContestations}
         />
       </div>
 

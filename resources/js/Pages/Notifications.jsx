@@ -1,6 +1,6 @@
 import MobileLayout from '@/Layouts/MobileLayout';
 import { useState, useEffect } from 'react';
-import { Bell, BookOpen, Clock, AlertCircle, CheckCircle2, Mail, MailOpen, Info, AlertTriangle } from 'lucide-react';
+import { Bell, BookOpen, Clock, AlertCircle, CheckCircle2, Mail, MailOpen, Info, AlertTriangle, MessageSquare, ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
@@ -47,6 +47,9 @@ export default function Notifications() {
         return 'success';
       case 'book_available':
         return 'reminder';
+      case 'contestation_auto':
+      case 'contestation_created':
+        return 'contestation';
       default:
         return 'info';
     }
@@ -65,6 +68,9 @@ export default function Notifications() {
         return 'Pénalité';
       case 'return_confirmation':
         return 'Retour confirmé';
+      case 'contestation_auto':
+      case 'contestation_created':
+        return 'Contestation disponible';
       default:
         return 'Notification';
     }
@@ -78,6 +84,8 @@ export default function Notifications() {
         return <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />;
       case 'reminder':
         return <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />;
+      case 'contestation':
+        return <MessageSquare className="w-6 h-6 text-purple-600 dark:text-purple-400" />;
       default:
         return <Info className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />;
     }
@@ -92,6 +100,8 @@ export default function Notifications() {
         return 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20';
       case 'reminder':
         return 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20';
+      case 'contestation':
+        return 'bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20';
       default:
         return 'bg-gradient-to-r from-cyan-50 to-cyan-100 dark:from-cyan-900/30 dark:to-cyan-800/20';
     }
@@ -106,6 +116,8 @@ export default function Notifications() {
         return 'border-green-200 dark:border-green-800';
       case 'reminder':
         return 'border-blue-200 dark:border-blue-800';
+      case 'contestation':
+        return 'border-purple-200 dark:border-purple-800';
       default:
         return 'border-cyan-200 dark:border-cyan-800';
     }
@@ -133,8 +145,16 @@ export default function Notifications() {
     }
   };
 
+  const handleGoBack = () => {
+    window.history.back();
+  };
+
   const handleNotificationClick = (notification) => {
-    router.visit(`/notifications/${notification.id}`);
+    if (notification.type === 'contestation' || notification.original_type === 'contestation_auto') {
+      router.visit('/profile/contestations');
+    } else {
+      router.visit(`/notifications/${notification.id}`);
+    }
   };
 
   const handleMarkAllAsRead = async () => {
@@ -158,23 +178,23 @@ export default function Notifications() {
   return (
     <MobileLayout>
       <div className="px-6 py-4 pb-24">
-        {/* En-tête */}
+        {/* En-tête avec bouton retour */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => router.visit('/')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-              >
-                <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-              </button>
+          <div className="flex items-center gap-4 mb-2">
+            <button 
+              onClick={handleGoBack}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            </button>
+            <div className="flex items-center justify-between flex-1">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+              {unreadCount > 0 && (
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg shadow-orange-500/30">
+                  {unreadCount} {unreadCount === 1 ? 'nouvelle' : 'nouvelles'}
+                </div>
+              )}
             </div>
-            {unreadCount > 0 && (
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg shadow-orange-500/30">
-                {unreadCount} {unreadCount === 1 ? 'nouvelle' : 'nouvelles'}
-              </div>
-            )}
           </div>
           <p className="text-gray-600 dark:text-gray-400 ml-14">
             {unreadCount > 0
@@ -243,6 +263,11 @@ export default function Notifications() {
                       {!notification.read && (
                         <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded-lg font-semibold animate-pulse">
                           NOUVEAU
+                        </div>
+                      )}
+                      {notification.type === 'contestation' && (
+                        <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded-lg font-semibold">
+                          À contester
                         </div>
                       )}
                     </div>

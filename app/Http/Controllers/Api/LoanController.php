@@ -498,4 +498,18 @@ public function resolveIncident(Request $request, $id)
         'incident' => $incident
     ]);
 }
+/**
+ * Récupérer les incidents de l'utilisateur connecté (reader)
+ */
+public function userIncidents(Request $request)
+{
+    $user = $request->user();
+    
+    $incidents = Incident::where('user_id', $user->id)
+        ->with(['library', 'loan.copy.book'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+    
+    return response()->json($incidents);
+}
 }

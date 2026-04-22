@@ -19,6 +19,21 @@ export default function EditShelf() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef(null);
 
+    // Fonction pour obtenir l'URL complète de l'image avec le port dynamique
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+        const port = window.location.port;
+        const baseUrl = `${window.location.protocol}//${window.location.hostname}${port ? ':' + port : ''}`;
+        
+        if (imagePath.startsWith('/storage/')) {
+            return `${baseUrl}${imagePath}`;
+        }
+        return `${baseUrl}/storage/${imagePath}`;
+    };
+
     useEffect(() => {
         if (isAuthenticated && id) {
             loadShelfAndFavorites();
@@ -31,7 +46,9 @@ export default function EditShelf() {
             const shelfData = await api.getShelf(id);
             setShelfName(shelfData.name);
             setShelfDescription(shelfData.description || '');
-            setShelfImage(shelfData.cover_image);
+            // Utilise getImageUrl pour l'image
+            const imageUrl = getImageUrl(shelfData.shelf_image || shelfData.cover_image);
+            setShelfImage(imageUrl);
             setCurrentBooks(shelfData.books || []);
             setSelectedBooks(shelfData.books || []);
 
@@ -69,6 +86,10 @@ export default function EditShelf() {
                 return [...prev, livre];
             }
         });
+    };
+
+    const handleGoBack = () => {
+        window.history.back();
     };
 
     const handleSave = async () => {
@@ -119,7 +140,7 @@ export default function EditShelf() {
             <div className="px-6 py-4 pb-24">
                 <div className="flex items-center gap-4 mb-6">
                     <button 
-                        onClick={() => router.visit(`/shelves/${id}`)}
+                        onClick={handleGoBack}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
                         <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -140,6 +161,10 @@ export default function EditShelf() {
                                     src={shelfImage} 
                                     alt="Couverture" 
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = '/placeholder-book.jpg';
+                                    }}
                                 />
                             ) : (
                                 <Camera className="w-6 h-6 text-gray-400 dark:text-gray-500" />
@@ -210,7 +235,10 @@ export default function EditShelf() {
                                         src={livre.cover_url || livre.cover_image}
                                         alt={livre.title}
                                         className="w-12 h-16 rounded-lg object-cover"
-                                        onError={(e) => e.target.src = '/placeholder-book.jpg'}
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = '/placeholder-book.jpg';
+                                        }}
                                     />
                                     <div className="flex-1">
                                         <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-1">

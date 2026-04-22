@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\KkiapayController;
 use App\Models\Book;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 
 // Routes d'authentification
@@ -259,11 +260,6 @@ Route::post('/set-active-library', function (Request $request) {
     session(['active_library_id' => $request->library_id]);
     return response()->json(['success' => true]);
 });
-
-
-
-
-// 1. Afficher la page de test
 Route::get('/pay', function () {
     return view('test-payment');
 });
@@ -271,4 +267,27 @@ Route::get('/pay', function () {
 // 2. Route de retour après succès
 Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
     ->name('payment.success');
+    // ==================== ROUTES POUR LES CONTESTATIONS (CÔTÉ READER) ====================
+// Changement : Profile/ContestationList → Contestations/ContestationList
+Route::get('/profile/contestations', function () {
+    return Inertia::render('Contestations/ContestationList');  // ← MODIFIÉ
+})->name('profile.contestations');
+
+Route::get('/profile/contestations/{id}', function ($id) {
+    return Inertia::render('Contestations/ContestationDetail', ['id' => (int) $id]);  // ← MODIFIÉ
+})->name('profile.contestations.show');
+
+// ==================== ROUTES POUR LES CONTESTATIONS (CÔTÉ BIBLIOTHÉCAIRE) ====================
+// Celles-ci restent identiques car elles pointent vers Librarian/
+Route::get('/librarian/contestations', function () {
+    return Inertia::render('Librarian/ContestationManagement');
+})->name('librarian.contestations');
+
+Route::get('/librarian/contestations/{id}', function ($id) {
+    return Inertia::render('Librarian/ContestationDetail', ['id' => (int) $id]);
+})->name('librarian.contestations.show');
+Route::get('/profile/incidents', function () {
+    return Inertia::render('Contestations/MyIncidents');
+})->name('profile.incidents');
+    
 require __DIR__.'/auth.php';

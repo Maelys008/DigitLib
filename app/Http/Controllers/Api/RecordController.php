@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Incident;
+use App\Models\Contestation;
 use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class RecordController extends Controller
@@ -22,7 +24,7 @@ class RecordController extends Controller
 
         // UNIQUEMENT LES SIGNALEMENTS GRAVES NON RÉSOLUS
         $records = Incident::where('is_library_record', 1)
-            ->where('status', '!=', 'resolved')  // ← EXCLURE LES RÉSOLUS
+            ->where('status', '!=', 'resolved')
             ->with(['user', 'library'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -54,12 +56,12 @@ class RecordController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'severity' => 'required|in:info,warning,critical,emergency',
-            'related_incident_id' => 'required|exists:incidents,id',  // ← required
+            'related_incident_id' => 'required|exists:incidents,id',
             'user_id' => 'nullable|exists:users,id',
             'library_id' => 'nullable|exists:libraries,id',
         ]);
 
-        // 🔥 RÉCUPÉRER L'INCIDENT EXISTANT
+        // RÉCUPÉRER L'INCIDENT EXISTANT
         $existingIncident = Incident::findOrFail($request->related_incident_id);
 
         Log::info('Incident trouvé - is_library_record AVANT: '.$existingIncident->is_library_record);
@@ -69,7 +71,7 @@ class RecordController extends Controller
             return response()->json(['message' => 'Cet incident a déjà été signalé au casier'], 422);
         }
 
-        // 🔥 METTRE À JOUR L'INCIDENT EXISTANT (pas en créer un nouveau)
+        // METTRE À JOUR L'INCIDENT EXISTANT
         $existingIncident->update([
             'title' => $request->title,
             'severity' => $request->severity,
@@ -80,16 +82,60 @@ class RecordController extends Controller
 
         Log::info('Incident mis à jour - is_library_record APRÈS: '.$existingIncident->is_library_record);
 
-        Log::info('Incident mis à jour - ID: '.$existingIncident->id.', is_library_record: '.$existingIncident->is_library_record);
+        // ============================================================
+        // CRÉER AUTOMATIQUEMENT UNE CONTESTATION
+        // ============================================================
+       /* $concernedUserId = $request->user_id ?? $existingIncident->user_id;
+        
+        if ($concernedUserId) {
+            // Utiliser DB::transaction correctement
+            DB::beginTransaction();
+            try {
+                // Vérifier si une contestation n'existe pas déjà
+                $existingContestation = Contestation::where('user_id', $concernedUserId)
+                    ->where('incident_id', $existingIncident->id)
+                    ->first();
+                
+                if (!$existingContestation) {
+                    // Créer la contestation automatiquement
+                    $contestation = Contestation::create([
+                        'user_id' => $concernedUserId,
+                        'incident_id' => $existingIncident->id,
+                        'message' => "Incident signalé : {$request->title}",
+                        'justification' => "Vous avez la possibilité de contester cet incident. Expliquez votre version des faits.",
+                        'status' => 'en attente',
+                    ]);
+                    
+                    Log::info('✅ Contestation automatique créée - ID: '.$contestation->id);
+                    
+                    // Mettre à jour l'incident en "pending"
+                    $existingIncident->update(['status' => 'pending']);
+                    
+                    // Notification spéciale pour le reader avec lien direct vers la contestation
+                    Notification::create([
+                        'user_id' => $concernedUserId,
+                        'type' => 'contestation_auto',
+                        'message' => "⚠️ Un incident a été signalé vous concernant : {$request->title}. Cliquez ici pour le contester dans 'Mes contestations'.",
+                        'object_type' => 'contestation',
+                        'object' => $contestation->id,
+                        'date_sent' => now(),
+                    ]);
+                }
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('❌ Erreur création contestation: '.$e->getMessage());
+            }
+        }*/
 
-        // Notifications pour le reader concerné
+        // Notifications pour le reader concerné (notification classique)
         if ($request->user_id) {
             $concernedUser = User::find($request->user_id);
             if ($concernedUser) {
                 Notification::create([
                     'user_id' => $concernedUser->id,
                     'type' => 'incident_reported',
-                    'message' => "Un incident grave vous concernant a été signalé par {$authUser->name}.",
+                    'message' => "Un incident grave vous concernant a été signalé par {$authUser->name}. Rendez-vous dans 'Mes contestations' pour le contester.",
                     'object_type' => 'incident',
                     'object' => $existingIncident->id,
                     'date_sent' => now(),
@@ -118,7 +164,7 @@ class RecordController extends Controller
         }
 
         return response()->json([
-            'message' => 'Incident signalé à tous les bibliothécaires',
+            'message' => 'Incident signalé à tous les bibliothécaires. Le reader peut maintenant contester.',
             'record' => $existingIncident->load(['user', 'library']),
         ], 201);
     }
