@@ -54,9 +54,9 @@ export default function MyIncidents() {
   setSelectedIncident(incident);
   setShowContestationModal(true);
 };
-  const goBack = () => {
-    router.visit('/profile');
-  };
+ const goBack = () => {
+  window.history.back();
+};
 
   if (isLoading) {
     return (

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Library;
 use App\Models\Notification;
 use App\Models\Penalty;
 use App\Models\Transaction;
@@ -24,7 +25,11 @@ class KkiapayController extends Controller
         }
 
         // Appel à l'API KKiaPay pour vérifier la transaction
-        $response = Http::withHeaders([
+        // $response = Http::withHeaders([
+        // $response = Http::timeout(30)->withHeaders([
+        $response = Http::withOptions([
+            'verify' => false, // Désactive la vérification SSL temporairement
+        ])->withHeaders([
             'x-api-key' => config('services.kkiapay.public_key'),
             'x-private-key' => config('services.kkiapay.private_key'),
             'x-secret-key' => config('services.kkiapay.secret_key'),
@@ -39,27 +44,27 @@ class KkiapayController extends Controller
 
             if ($transaction) {
                 $transaction->update(['status' => 'success']);
-                
+
                 // Mettre à jour la pénalité associée
                 $this->processSuccessfulPayment($transaction);
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Paiement validé',
-                    'transaction' => $transaction
+                    'transaction' => $transaction,
                 ]);
             }
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Échec de vérification'
+            'message' => 'Échec de vérification',
         ], 400);
     }
 
     /**
-     * 🆕 WEBHOOK - Appelé automatiquement par KKiaPay après un paiement
-     * 
+     *  WEBHOOK - Appelé automatiquement par KKiaPay après un paiement
+     *
      * Cette route est appelée par les serveurs de KKiaPay
      * pour notifier votre backend qu'un paiement a été effectué.
      */
@@ -68,21 +73,22 @@ class KkiapayController extends Controller
         // 1. LOGGER LA REQUÊTE POUR DÉBOGAGE
         Log::info('KKiaPay Webhook reçu', [
             'payload' => $request->all(),
-            'headers' => $request->headers->all()
+            'headers' => $request->headers->all(),
         ]);
 
         // 2. VÉRIFIER LA SIGNATURE (SÉCURITÉ)
         $signature = $request->header('X-KKiaPay-Signature');
-        
+
         if (! $this->isValidSignature($request->all(), $signature)) {
             Log::warning('KKiaPay Webhook : Signature invalide');
+
             return response()->json(['message' => 'Signature invalide'], 401);
         }
 
         // 3. EXTRAIRE LES DONNÉES
         $event = $request->input('event');      // 'transaction.success' ou 'transaction.failed'
         $data = $request->input('data', []);
-        
+
         $transactionId = $data['transactionId'] ?? null;
         $status = $data['status'] ?? null;
         $amount = $data['amount'] ?? 0;
@@ -90,6 +96,7 @@ class KkiapayController extends Controller
 
         if (! $transactionId) {
             Log::error('KKiaPay Webhook : TransactionId manquant');
+
             return response()->json(['message' => 'TransactionId manquant'], 400);
         }
 
@@ -99,7 +106,7 @@ class KkiapayController extends Controller
         if (! $transaction) {
             // Créer une nouvelle transaction si elle n'existe pas
             $transaction = Transaction::create([
-                'reference' => 'KKIAPAY-' . uniqid(),
+                'reference' => 'KKIAPAY-'.uniqid(),
                 'provider' => 'kkiapay',
                 'external_id' => $transactionId,
                 'amount' => $amount,
@@ -107,7 +114,7 @@ class KkiapayController extends Controller
                 'status' => 'pending',
                 'metadata' => $data,
             ]);
-            
+
             Log::info('Transaction créée via webhook', ['transaction_id' => $transaction->id]);
         }
 
@@ -118,15 +125,15 @@ class KkiapayController extends Controller
                 if ($status === 'SUCCESS' || $status === 'success') {
                     $transaction->update([
                         'status' => 'success',
-                        'metadata' => array_merge((array) $transaction->metadata, $data)
+                        'metadata' => array_merge((array) $transaction->metadata, $data),
                     ]);
-                    
+
                     // Traiter le paiement réussi
                     $this->processSuccessfulPayment($transaction);
-                    
+
                     Log::info('Paiement validé via webhook', [
                         'transaction_id' => $transaction->id,
-                        'external_id' => $transactionId
+                        'external_id' => $transactionId,
                     ]);
                 }
                 break;
@@ -135,11 +142,11 @@ class KkiapayController extends Controller
             case 'TRANSACTION_FAILED':
                 $transaction->update([
                     'status' => 'failed',
-                    'metadata' => array_merge((array) $transaction->metadata, $data)
+                    'metadata' => array_merge((array) $transaction->metadata, $data),
                 ]);
-                
+
                 Log::info('Paiement échoué via webhook', [
-                    'transaction_id' => $transaction->id
+                    'transaction_id' => $transaction->id,
                 ]);
                 break;
 
@@ -150,7 +157,7 @@ class KkiapayController extends Controller
         // 6. RÉPONDRE À KKiaPay (IMPORTANT)
         return response()->json([
             'received' => true,
-            'message' => 'Webhook traité avec succès'
+            'message' => 'Webhook traité avec succès',
         ], 200);
     }
 
@@ -162,10 +169,10 @@ class KkiapayController extends Controller
         // Mettre à jour la pénalité associée si elle existe
         if ($transaction->penalty_id) {
             $penalty = Penalty::find($transaction->penalty_id);
-            
+
             if ($penalty && $penalty->status === 'non payé') {
                 $penalty->update(['status' => 'payé']);
-                
+
                 // Notifier l'utilisateur
                 Notification::create([
                     'user_id' => $penalty->user_id,
@@ -181,7 +188,7 @@ class KkiapayController extends Controller
                 if ($loan && ! $loan->actual_return_date && $penalty->reason && str_contains(strtolower($penalty->reason), 'perdu')) {
                     $loan->update([
                         'actual_return_date' => now(),
-                        'status' => 'lost_settled'
+                        'status' => 'lost_settled',
                     ]);
                 }
             }
@@ -215,19 +222,19 @@ class KkiapayController extends Controller
         }
 
         $secret = config('services.kkiapay.webhook_secret');
-        
         if (! $secret) {
             Log::warning('KKiaPay webhook secret non configuré');
+
             return true; // On accepte quand même en attendant
         }
 
         $computedSignature = hash_hmac('sha256', json_encode($payload), $secret);
-        
+
         return hash_equals($computedSignature, $signature);
     }
 
     /**
-     * 🆕 Créer une transaction pour une pénalité
+     * Créer une transaction pour une pénalité
      */
     public function createPaymentForPenalty(Request $request)
     {
@@ -252,7 +259,7 @@ class KkiapayController extends Controller
         $transaction = Transaction::create([
             'user_id' => $user->id,
             'penalty_id' => $penalty->id,
-            'reference' => 'PENALTY-' . $penalty->id . '-' . time(),
+            'reference' => 'PENALTY-'.$penalty->id.'-'.time(),
             'provider' => 'kkiapay',
             'amount' => $penalty->amount,
             'currency' => 'XOF',
@@ -260,7 +267,7 @@ class KkiapayController extends Controller
             'metadata' => [
                 'penalty_reason' => $penalty->reason,
                 'book_title' => $penalty->loan->copy->book->title ?? 'N/A',
-            ]
+            ],
         ]);
 
         // Retourner les infos pour initialiser KKiaPay côté frontend
@@ -270,7 +277,7 @@ class KkiapayController extends Controller
                 'amount' => $penalty->amount,
                 'currency' => 'XOF',
                 'reference' => $transaction->reference,
-                'description' => 'Paiement pénalité bibliothèque : ' . $penalty->reason,
+                'description' => 'Paiement pénalité bibliothèque : '.$penalty->reason,
                 'email' => $user->email,
                 'phone' => $user->tel,
             ]
@@ -298,9 +305,9 @@ class KkiapayController extends Controller
     public function libraryTransactions(Request $request, $libraryId)
     {
         $user = $request->user();
-        
-        $library = \App\Models\Library::findOrFail($libraryId);
-        
+
+        $library = Library::findOrFail($libraryId);
+
         if ($library->administrator_id !== $user->id && $user->role !== 'admin') {
             return response()->json(['message' => 'Non autorisé'], 403);
         }

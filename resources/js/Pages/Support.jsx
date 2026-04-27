@@ -53,7 +53,7 @@ export default function Support() {
       pointsNeeded: 0,
       maxBooks: 2,
       description: 'Votre premier pas dans l\'aventure DigiLib',
-      perks: ['Emprunter jusqu\'à 2 livres', 'Accès aux clubs de lecture', 'Participation aux événements']
+      perks: ['Emprunter jusqu\'à 2 livres']
     },
     { 
       name: 'Argent', 
@@ -64,7 +64,7 @@ export default function Support() {
       pointsNeeded: 50,
       maxBooks: 4,
       description: 'Vous commencez à devenir un lecteur assidu',
-      perks: ['Emprunter jusqu\'à 4 livres', 'Priorité sur les réservations', 'Accès aux clubs privés']
+      perks: ['Emprunter jusqu\'à 4 livres']
     },
     { 
       name: 'Or', 
@@ -75,7 +75,7 @@ export default function Support() {
       pointsNeeded: 150,
       maxBooks: 6,
       description: 'Lecteur confirmé, vous êtes un pilier de la communauté',
-      perks: ['Emprunter jusqu\'à 6 livres', 'Réduction sur les pénalités', 'Invitation aux événements VIP']
+      perks: ['Emprunter jusqu\'à 6 livres']
     },
     { 
       name: 'Platine', 
@@ -145,15 +145,15 @@ export default function Support() {
     },
     {
       question: "Comment gagner des points ?",
-      answer: "Vous gagnez des points en :\n• Retournant les livres à l'heure (+10 points)\n• Retournant en avance (+10 à +20 points)\n• Participant aux clubs de lecture (+5 points)\n• Recommandant l'app à un ami (+20 points)"
+      answer: "Vous gagnez des points en :\n• Retournant les livres à l'heure (+10 points)\n• Retournant en avance (+10 à +20 points)\n"
     },
     {
       question: "Que se passe-t-il en cas de retard ?",
-      answer: "En cas de retard, vous perdez des points (2 points par jour de retard, max 30 points) et une pénalité financière s'applique selon la bibliothèque."
+      answer: "En cas de retard, vous perdez des points ( max 30 points) et une pénalité financière s'applique selon la bibliothèque."
     },
     {
       question: "Comment fonctionnent les clubs de lecture ?",
-      answer: "Les clubs de lecture sont des groupes de lecteurs partageant les mêmes intérêts. Vous pouvez :\n• Rejoindre un club existant\n• Créer votre propre club (à partir du badge Argent)\n• Participer aux discussions\n• Proposer des lectures communes\n• Organiser des rencontres virtuelles"
+      answer: "Les clubs de lecture sont des groupes de lecteurs partageant les mêmes intérêts. Vous pouvez :\n• Rejoindre un club existant\n• Créer votre propre club \n• Participer aux discussions\n• Proposer des lectures communes\n• Organiser des rencontres virtuelles"
     },
     {
       question: "Comment être averti des retards ?",
@@ -163,7 +163,7 @@ export default function Support() {
 
   // ==================== RÈGLES DES CLUBS ====================
   const clubRules = [
-    { icon: Users, title: "Création de club", desc: "Disponible à partir du badge Argent (50 points)" },
+    { icon: Users, title: "Création de club", desc: "Disponible à partir du premier badge" },
     { icon: BookOpen, title: "Nombre de membres", desc: "Minimum 5 membres, maximum 50 par club" },
     { icon: Calendar, title: "Lectures mensuelles", desc: "1 livre minimum à lire et discuter par mois" },
     { icon: Clock, title: "Inactivité", desc: "Un club inactif pendant 3 mois est automatiquement fermé" },
@@ -303,7 +303,7 @@ export default function Support() {
                         </div>
                         <div className="flex items-center gap-2">
                           {isUnlocked ? (
-                            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-medium">✅ Débloqué</span>
+                            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-medium"> Débloqué</span>
                           ) : (
                             <span className="text-xs bg-black/20 px-2 py-1 rounded-full">{badge.pointsNeeded} pts requis</span>
                           )}
@@ -464,14 +464,6 @@ export default function Support() {
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
                     <span className="text-gray-700 dark:text-gray-300">Lectures exclusives en avant-première</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
-                    <span className="text-gray-700 dark:text-gray-300">Points bonus (5 points par participation)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
-                    <span className="text-gray-700 dark:text-gray-300">Badges exclusifs de club</span>
                   </div>
                 </div>
               </div>

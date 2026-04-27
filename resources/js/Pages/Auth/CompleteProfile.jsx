@@ -157,7 +157,7 @@ export default function CompleteProfile() {
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Jean Dupont"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.name ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -177,7 +177,7 @@ export default function CompleteProfile() {
                 value={formData.tel}
                 onChange={handlePhoneChange}
                 placeholder="+229 90 12 34 56 78"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 font-mono tracking-wide placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 font-mono tracking-wide placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.tel ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -200,7 +200,7 @@ export default function CompleteProfile() {
                 value={formData.identityHash}
                 onChange={(e) => setFormData(prev => ({ ...prev, identityHash: e.target.value }))}
                 placeholder="Numéro sur votre carte ANIP"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.identityHash ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
