@@ -104,19 +104,23 @@ export default function BookDetail() {
         setLivresRecommandes(recommandations);
         setAvisDuLivre([]);
         
-        if (isAuthenticated && normalizedBook.library?.id) {
-          try {
-            const userLibraries = await api.getUserJoinedLibraries();
-            const joined = Array.isArray(userLibraries) && userLibraries.some(lib => lib.id === normalizedBook.library.id);
-            setHasJoinedLibrary(joined);
-            console.log('Bibliothèque rejointe ?', joined);
-          } catch (err) {
-            console.error('Erreur vérification bibliothèque:', err);
-            setHasJoinedLibrary(false);
-          }
-        } else {
-          setHasJoinedLibrary(false);
-        }
+       if (isAuthenticated && normalizedBook.library?.id) {
+  try {
+    const library = await api.getLibrary(normalizedBook.library.id);
+    const joined = library.is_member === true;
+    setHasJoinedLibrary(joined);
+    console.log('📚 Adhésion:', { 
+      libraryId: normalizedBook.library.id, 
+      is_member: library.is_member,
+      joined 
+    });
+  } catch (err) {
+    console.error('Erreur vérification bibliothèque:', err);
+    setHasJoinedLibrary(false);
+  }
+} else {
+  setHasJoinedLibrary(false);
+}
         
       } catch (error) {
         console.error('Erreur chargement livre:', error);

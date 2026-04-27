@@ -48,9 +48,9 @@ export default function ContestationList() {
     router.visit(`/profile/contestations/${id}`);
   };
 
-  const goBack = () => {
-    router.visit('/profile');
-  };
+ const goBack = () => {
+  window.history.back();
+};
 
   if (isLoading) {
     return (

@@ -39,17 +39,29 @@ class LibraryController extends Controller
 
         return Library::where('administrator_id', $user->id)->get();
     }
-
-    public function show(Library $library)
-    {
-        $library->load([
-            'administrator:id,name',
-            'parent:id,name',
-            'internalMembers.user:id,name',
-        ]);
-
-        return response()->json($library);
+public function show(Library $library)
+{
+    $user = auth('sanctum')->user();
+    
+    // Vérifier si l'utilisateur est membre de cette bibliothèque
+    $isMember = false;
+    if ($user) {
+        $isMember = Inscription::where('user_id', $user->id)
+            ->where('library_id', $library->id)
+            ->exists();
     }
+    
+    $library->load([
+        'administrator:id,name',
+        'parent:id,name',
+        'internalMembers.user:id,name',
+    ]);
+    
+    $response = $library->toArray();
+    $response['is_member'] = $isMember;
+    
+    return response()->json($response);
+}
 
     public function update(Request $request, Library $library)
     {
