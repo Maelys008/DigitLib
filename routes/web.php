@@ -260,9 +260,18 @@ Route::post('/set-active-library', function (Request $request) {
     session(['active_library_id' => $request->library_id]);
     return response()->json(['success' => true]);
 });
-Route::get('/pay', function () {
-    return view('test-payment');
-});
+
+
+
+
+// // 1. Afficher la page de test
+// Route::get('/pay', function () {
+//     return view('test-payment');
+// });
+
+// // 2. Route de retour après succès
+// Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+//     ->name('payment.success');
 
 // 2. Route de retour après succès
 Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
