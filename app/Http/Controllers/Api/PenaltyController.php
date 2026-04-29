@@ -7,57 +7,69 @@ use App\Models\Library;
 use App\Models\Penalty;
 use App\Models\Internal_member;  
 use Illuminate\Http\Request;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 
 class PenaltyController extends Controller
 {
-   // Récupérer les pénalités d'une bibliothèque spécifique
-public function index(Request $request, $libraryId = null)
-{
-    $user = $request->user();
-    
-    // Si un libraryId est fourni, on vérifie les permissions
-    if ($libraryId) {
-        $library = Library::findOrFail($libraryId);
+    /**
+     * Récupérer les pénalités de l'utilisateur connecté (pour le lecteur)
+     */
+    public function getUserPenalties(Request $request)
+    {
+        $user = $request->user();
         
-        $isAdmin = $library->administrator_id === $user->id;
-        $isStaff = Internal_member::where('user_id', $user->id)
-            ->where('library_id', $libraryId)
-            ->exists();
-        
-        // Seul l'admin peut voir les pénalités (pas les membres internes)
-        if (!$isAdmin) {
-            return response()->json(['message' => 'Non autorisé'], 403);
-        }
-        
-        $penalties = Penalty::with(['user', 'loan.copy.book'])
-            ->whereHas('loan.copy.book', function($query) use ($libraryId) {
-                $query->where('library_id', $libraryId);
-            })
+        $penalties = Penalty::with(['loan.copy.book', 'loan.copy.book.library'])
+            ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
         
         return response()->json($penalties);
     }
     
-    // Sinon, on récupère la bibliothèque de l'utilisateur (admin)
-    $library = Library::where('administrator_id', $user->id)->first();
-    
-    if (!$library) {
-        return response()->json([]);
+    /**
+     * Récupérer les pénalités d'une bibliothèque (pour admin)
+     */
+    public function index(Request $request, $libraryId = null)
+    {
+        $user = $request->user();
+        
+        // Si un libraryId est fourni, on vérifie les permissions
+        if ($libraryId) {
+            $library = Library::findOrFail($libraryId);
+            
+            $isAdmin = $library->administrator_id === $user->id;
+            $isStaff = Internal_member::where('user_id', $user->id)
+                ->where('library_id', $libraryId)
+                ->exists();
+            
+            // Seul l'admin peut voir les pénalités de la bibliothèque
+            if (!$isAdmin) {
+                return response()->json(['message' => 'Non autorisé'], 403);
+            }
+            
+            $penalties = Penalty::with(['user', 'loan.copy.book'])
+                ->whereHas('loan.copy.book', function($query) use ($libraryId) {
+                    $query->where('library_id', $libraryId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            return response()->json($penalties);
+        }
+        
+        // 🔥 NOUVEAU : Si aucun libraryId, retourner les pénalités de l'utilisateur
+        $penalties = Penalty::with(['loan.copy.book', 'loan.copy.book.library'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return response()->json($penalties);
     }
     
-    $penalties = Penalty::with(['user', 'loan.copy.book'])
-        ->whereHas('loan.copy.book', function($query) use ($library) {
-            $query->where('library_id', $library->id);
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
-    
-    return response()->json($penalties);
-}
-
-    // Nouvelle méthode pour récupérer les pénalités d'une bibliothèque spécifique par ID
+    /**
+     * Nouvelle méthode pour récupérer les pénalités d'une bibliothèque spécifique par ID (admin)
+     */
     public function getLibraryPenalties($libraryId, Request $request)
     {
         $user = $request->user();
@@ -77,46 +89,64 @@ public function index(Request $request, $libraryId = null)
         
         return response()->json($penalties);
     }
-
-    public function payPenalty($penaltyId, Request $request)
+    
+    /**
+     * 🔥 NOUVEAU : Méthode pour que le lecteur voie ses pénalités non payées
+     */
+    public function getMyUnpaidPenalties(Request $request)
     {
         $user = $request->user();
-        $penalty = Penalty::findOrFail($penaltyId);
         
-        // Vérifier que l'utilisateur est admin de la bibliothèque
-        $library = $penalty->loan->copy->book->library;
-        if ($library->administrator_id !== $user->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
-        }
+        $penalties = Penalty::with(['loan.copy.book', 'loan.copy.book.library'])
+            ->where('user_id', $user->id)
+            ->where('status', 'non payé')
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        DB::transaction(function () use ($penalty) {
-            $penalty->update(['status' => 'payé']);
-            
-            // Si c'est une pénalité pour perte, clôturer l'emprunt
-            $loan = $penalty->loan;
-            if ($loan && !$loan->actual_return_date) {
-                $loan->update([
-                    'actual_return_date' => now(),
-                    'status' => 'lost_settled' 
-                ]);
-            }
-        });
-        
-        return response()->json(['message' => 'Pénalité réglée avec succès.']);
+        return response()->json($penalties);
     }
 
-    // Compter les pénalités non payées pour une bibliothèque
+   public function payPenalty($penaltyId, Request $request)
+{
+    $user = $request->user();
+    $penalty = Penalty::findOrFail($penaltyId);
+    
+    if ($penalty->user_id !== $user->id) {
+        return response()->json(['message' => 'Non autorisé'], 403);
+    }
+    
+    if ($penalty->status === 'payé') {
+        return response()->json(['message' => 'Déjà payé'], 422);
+    }
+    
+    $penalty->update(['status' => 'payé']);
+    
+    // Notifier le bibliothécaire
+    if ($penalty->loan && $penalty->loan->copy && $penalty->loan->copy->book && $penalty->loan->copy->book->library) {
+        $librarianId = $penalty->loan->copy->book->library->administrator_id;
+        Notification::create([
+            'user_id' => $librarianId,
+            'type' => 'penalty_paid_notification',
+            'message' => "💰 L'utilisateur {$user->name} a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
+            'object_type' => 'penalty',
+            'object' => $penalty->id,
+            'date_sent' => now(),
+        ]);
+    }
+    
+    return response()->json(['success' => true]);
+}
+
+    // Compter les pénalités non payées pour une bibliothèque (admin)
     public function getUnpaidPenaltiesCount($libraryId, Request $request)
     {
         $library = Library::findOrFail($libraryId);
         $user = $request->user();
         
-        // Vérifier que l'utilisateur est admin
         if ($library->administrator_id !== $user->id) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
         
-        // Compter les pénalités non payées pour cette bibliothèque
         $count = Penalty::whereHas('loan.copy.book', function($query) use ($libraryId) {
             $query->where('library_id', $libraryId);
         })

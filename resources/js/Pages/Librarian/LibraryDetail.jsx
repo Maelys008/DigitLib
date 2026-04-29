@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Edit2, Camera, MapPin, FileText, Users, BookOpen, Save, X, Library as LibraryIcon, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Edit2, Camera, MapPin, FileText, Users, BookOpen, Save, X, Library as LibraryIcon, Clock, AlertCircle, Phone } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -20,6 +20,7 @@ export default function LibraryDetail() {
   const [formData, setFormData] = useState({
     name: '',
     adress: '',
+    library_phone: '', 
     description: '',
     loan_duration: 14,
     daily_penalty_amount: 0
@@ -33,6 +34,7 @@ export default function LibraryDetail() {
         setFormData({
           name: data.name || '',
           adress: data.adress || '',
+          library_phone: data.library_phone || '',
           description: data.description || '',
           loan_duration: data.loan_duration || 14,
           daily_penalty_amount: data.daily_penalty_amount || 0
@@ -53,6 +55,13 @@ export default function LibraryDetail() {
     fetchLibrary();
   }, [id]);
 
+  // 🔥 Mettre à jour l'aperçu quand library change
+  useEffect(() => {
+    if (library?.library_image) {
+      setImagePreview(`/storage/${library.library_image}`);
+    }
+  }, [library]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -71,9 +80,12 @@ export default function LibraryDetail() {
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
     formDataToSend.append('adress', formData.adress);
+    formDataToSend.append('library_phone', formData.library_phone);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('loan_duration', formData.loan_duration);
     formDataToSend.append('daily_penalty_amount', formData.daily_penalty_amount);
+    
+    // Seulement si une nouvelle image est sélectionnée
     if (newImageFile) {
       formDataToSend.append('library_image', newImageFile);
     }
@@ -82,15 +94,28 @@ export default function LibraryDetail() {
     
     if (result.success) {
       setIsEditing(false);
+      // Recharger les données à jour
       const updatedLibrary = await api.getLibrary(id);
       setLibrary(updatedLibrary);
+      
+      // Mettre à jour l'aperçu de l'image
+      if (updatedLibrary.library_image) {
+        setImagePreview(`/storage/${updatedLibrary.library_image}`);
+      } else {
+        setImagePreview(null);
+      }
+      
       setFormData({
         name: updatedLibrary.name || '',
         adress: updatedLibrary.adress || '',
+        library_phone: updatedLibrary.library_phone || '',
         description: updatedLibrary.description || '',
         loan_duration: updatedLibrary.loan_duration || 14,
         daily_penalty_amount: updatedLibrary.daily_penalty_amount || 0
       });
+      
+      // Réinitialiser le fichier sélectionné
+      setNewImageFile(null);
     } else {
       setError(result.message);
     }
@@ -144,7 +169,6 @@ export default function LibraryDetail() {
 
       <div className="p-6 max-w-2xl mx-auto">
         {isEditing ? (
-          /* Formulaire d'édition */
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
@@ -171,6 +195,9 @@ export default function LibraryDetail() {
                     className="text-sm text-gray-500 dark:text-gray-400"
                   />
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">JPG, PNG (max 2MB)</p>
+                  {library.library_image && !newImageFile && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Image actuelle conservée</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -185,6 +212,21 @@ export default function LibraryDetail() {
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-600 text-gray-900 dark:text-white"
                 required
               />
+            </div>
+
+            {/* Téléphone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone *</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <input
+                  type="tel"
+                  value={formData.library_phone}
+                  onChange={(e) => setFormData({ ...formData, library_phone: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-600 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
             </div>
 
             {/* Adresse */}
@@ -212,9 +254,7 @@ export default function LibraryDetail() {
 
             {/* Durée d'emprunt */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Durée d'emprunt (en jours)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Durée d'emprunt (en jours)</label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
@@ -231,9 +271,7 @@ export default function LibraryDetail() {
 
             {/* Pénalité par jour */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Pénalité par jour de retard (FCFA)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pénalité par jour de retard (FCFA)</label>
               <div className="relative">
                 <AlertCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
@@ -268,7 +306,6 @@ export default function LibraryDetail() {
             </div>
           </form>
         ) : (
-          /* Affichage des détails */
           <div className="space-y-6">
             {/* Image */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
@@ -291,12 +328,18 @@ export default function LibraryDetail() {
                 <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                   <LibraryIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">{library.name}</h2>
                   <div className="flex items-center gap-2 mt-1 text-gray-500 dark:text-gray-400">
                     <MapPin className="w-4 h-4" />
                     <span>{library.adress}</span>
                   </div>
+                  {library.library_phone && (
+                    <div className="flex items-center gap-2 mt-1 text-gray-500 dark:text-gray-400">
+                      <Phone className="w-4 h-4" />
+                      <span>{library.library_phone}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

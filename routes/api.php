@@ -106,6 +106,9 @@ Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
     Route::get('/libraries/{libraryId}/pending-pickups', [LibraryController::class, 'pendingPickups']);
     Route::get('/libraries/partners', [LibraryController::class, 'partnerLibraries']);
     Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
+    // Routes pour les pénalités (lecteur)
+    Route::get('/my-penalties', [PenaltyController::class, 'getMyUnpaidPenalties']);  
+    Route::patch('/penalties/{penaltyId}/pay', [PenaltyController::class, 'payPenalty']);
     
     // --- Pénalités ---
     Route::get('/penalties', [PenaltyController::class, 'index']);

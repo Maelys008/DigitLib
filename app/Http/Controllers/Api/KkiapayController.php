@@ -27,15 +27,16 @@ class KkiapayController extends Controller
         // Appel à l'API KKiaPay pour vérifier la transaction
         // $response = Http::withHeaders([
         // $response = Http::timeout(30)->withHeaders([
-        $response = Http::withOptions([
-            'verify' => false, // Désactive la vérification SSL temporairement
-        ])->withHeaders([
-            'x-api-key' => config('services.kkiapay.public_key'),
-            'x-private-key' => config('services.kkiapay.private_key'),
-            'x-secret-key' => config('services.kkiapay.secret_key'),
-        ])->post('https://api.kkiapay.me/api/v0/verify/transaction', [
-            'transactionId' => $transactionId,
-        ]);
+       // À MODIFIER : utiliser HTTPS
+$response = Http::withOptions([
+    'verify' => false,
+])->withHeaders([
+    'x-api-key' => config('services.kkiapay.public_key'),
+    'x-private-key' => config('services.kkiapay.private_key'),
+    'x-secret-key' => config('services.kkiapay.secret_key'),
+])->post('https://api.kkiapay.me/api/v0/verify/transaction', [
+    'transactionId' => $transactionId,
+]);
 
         $data = $response->json();
 
@@ -205,6 +206,19 @@ class KkiapayController extends Controller
                 'date_sent' => now(),
             ]);
         }
+        // Notifier le bibliothécaire
+if ($penalty && $penalty->loan && $penalty->loan->copy->book->library) {
+    $librarianId = $penalty->loan->copy->book->library->administrator_id;
+    
+    Notification::create([
+        'user_id' => $librarianId,
+        'type' => 'penalty_paid_notification',
+        'message' => "💰 Paiement reçu ! L'utilisateur a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
+        'object_type' => 'penalty',
+        'object' => $penalty->id,
+        'date_sent' => now(),
+    ]);
+}
     }
 
     /**
