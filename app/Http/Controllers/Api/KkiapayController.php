@@ -16,38 +16,110 @@ class KkiapayController extends Controller
     /**
      * Vérifier une transaction (appelé par le frontend)
      */
-    public function verify(Request $request)
+    // public function verify(Request $request)
+    // {
+    //     $transactionId = $request->transactionId ?? $request->query('transaction_id');
+
+    //     if (! $transactionId) {
+    //         return response()->json(['message' => 'ID de transaction manquant'], 400);
+    //     }
+
+    //     // Appel à l'API KKiaPay pour vérifier la transaction
+    //     // $response = Http::withHeaders([
+    //     // $response = Http::timeout(30)->withHeaders([
+    //     // À MODIFIER : utiliser HTTPS
+    //     $response = Http::withOptions([
+    //         'verify' => false,
+    //     ])->withHeaders([
+    //         'x-api-key' => config('services.kkiapay.public_key'),
+    //         'x-private-key' => config('services.kkiapay.private_key'),
+    //         'x-secret-key' => config('services.kkiapay.secret_key'),
+    //     ])->post('https://api.kkiapay.me/api/v0/verify/transaction', [
+    //         'transactionId' => $transactionId,
+    //     ]);
+
+    //     $data = $response->json();
+
+    //     if ($response->successful() && isset($data['status']) && $data['status'] === 'SUCCESS') {
+    //         $transaction = Transaction::where('external_id', $transactionId)->first();
+
+    //         if ($transaction) {
+    //             $transaction->update(['status' => 'success']);
+
+    //             // Mettre à jour la pénalité associée
+    //             $this->processSuccessfulPayment($transaction);
+
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'message' => 'Paiement validé',
+    //                 'transaction' => $transaction,
+    //             ]);
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => 'Échec de vérification',
+    //     ], 400);
+    // }
+
+    public function verify(Request $request, $transactionId = null)
     {
-        $transactionId = $request->transactionId ?? $request->query('transaction_id');
+        // Support both route param and query param
+        $transactionId = $transactionId ?? $request->query('transaction_id') ?? $request->input('transactionId');
+
+        Log::info('Vérification paiement', ['transactionId' => $transactionId]);
 
         if (! $transactionId) {
-            return response()->json(['message' => 'ID de transaction manquant'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'ID de transaction manquant',
+            ], 400);
         }
 
-        // Appel à l'API KKiaPay pour vérifier la transaction
-        // $response = Http::withHeaders([
-        // $response = Http::timeout(30)->withHeaders([
-       // À MODIFIER : utiliser HTTPS
-$response = Http::withOptions([
-    'verify' => false,
-])->withHeaders([
-    'x-api-key' => config('services.kkiapay.public_key'),
-    'x-private-key' => config('services.kkiapay.private_key'),
-    'x-secret-key' => config('services.kkiapay.secret_key'),
-])->post('https://api.kkiapay.me/api/v0/verify/transaction', [
-    'transactionId' => $transactionId,
-]);
+        try {
+            // First check if transaction exists in our database
+            $transaction = Transaction::where('external_id', $transactionId)
+                ->orWhere('reference', $transactionId)
+                ->first();
 
-        $data = $response->json();
+            if ($transaction && $transaction->status === 'success') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaction déjà validée',
+                    'transaction' => $transaction,
+                ]);
+            }
 
-        if ($response->successful() && isset($data['status']) && $data['status'] === 'SUCCESS') {
-            $transaction = Transaction::where('external_id', $transactionId)->first();
+            // Appel à l'API KKiaPay
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders([
+                    'x-api-key' => config('services.kkiapay.public_key'),
+                    'x-private-key' => config('services.kkiapay.private_key'),
+                    'x-secret-key' => config('services.kkiapay.secret_key'),
+                ])
+                ->get('https://api.kkiapay.me/api/v0/verify/transaction/'.$transactionId);
 
-            if ($transaction) {
-                $transaction->update(['status' => 'success']);
+            $data = $response->json();
 
-                // Mettre à jour la pénalité associée
-                $this->processSuccessfulPayment($transaction);
+            Log::info('Réponse KKiaPay', ['data' => $data]);
+
+            if ($response->successful() && isset($data['status']) && $data['status'] === 'SUCCESS') {
+                if ($transaction) {
+                    $transaction->update(['status' => 'success']);
+                    $this->processSuccessfulPayment($transaction);
+                } else {
+                    // Create transaction if it doesn't exist
+                    $transaction = Transaction::create([
+                        'reference' => 'EXT-'.$transactionId,
+                        'provider' => 'kkiapay',
+                        'external_id' => $transactionId,
+                        'amount' => $data['amount'] ?? 0,
+                        'currency' => $data['currency'] ?? 'XOF',
+                        'status' => 'success',
+                        'metadata' => $data,
+                    ]);
+                }
 
                 return response()->json([
                     'success' => true,
@@ -55,12 +127,24 @@ $response = Http::withOptions([
                     'transaction' => $transaction,
                 ]);
             }
-        }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Échec de vérification',
-        ], 400);
+            if ($transaction) {
+                $transaction->update(['status' => 'failed']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $data['message'] ?? 'Échec de vérification',
+            ], 400);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur vérification paiement', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la vérification: '.$e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -207,18 +291,18 @@ $response = Http::withOptions([
             ]);
         }
         // Notifier le bibliothécaire
-if ($penalty && $penalty->loan && $penalty->loan->copy->book->library) {
-    $librarianId = $penalty->loan->copy->book->library->administrator_id;
-    
-    Notification::create([
-        'user_id' => $librarianId,
-        'type' => 'penalty_paid_notification',
-        'message' => "💰 Paiement reçu ! L'utilisateur a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
-        'object_type' => 'penalty',
-        'object' => $penalty->id,
-        'date_sent' => now(),
-    ]);
-}
+        if ($penalty && $penalty->loan && $penalty->loan->copy->book->library) {
+            $librarianId = $penalty->loan->copy->book->library->administrator_id;
+
+            Notification::create([
+                'user_id' => $librarianId,
+                'type' => 'penalty_paid_notification',
+                'message' => "💰 Paiement reçu ! L'utilisateur a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
+                'object_type' => 'penalty',
+                'object' => $penalty->id,
+                'date_sent' => now(),
+            ]);
+        }
     }
 
     /**
@@ -294,7 +378,7 @@ if ($penalty && $penalty->loan && $penalty->loan->copy->book->library) {
                 'description' => 'Paiement pénalité bibliothèque : '.$penalty->reason,
                 'email' => $user->email,
                 'phone' => $user->tel,
-            ]
+            ],
         ]);
     }
 

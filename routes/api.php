@@ -18,10 +18,10 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
-use App\Models\Badge;
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Genre;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
+
 
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
@@ -53,7 +53,13 @@ Route::get('/genres', function () {
 });
 
 // Webhook
-Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
+// Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
+// api.php - Assurez-vous que cette route est accessible sans auth
+Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook'])
+    ->withoutMiddleware([VerifyCsrfToken::class]);
+
+Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+    ->middleware('auth:sanctum');
 
 // -------------------------------------------------------------------------
 // ROUTES PROTÉGÉES (Utilisateurs connectés)
@@ -86,10 +92,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/loans', [LoanController::class, 'store']);
     Route::get('/library-loans', [LoanController::class, 'libraryDashboard']);
     Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
-    
-// ✅ Route pour les incidents du reader (AJOUTE ICI)
-Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
-    
+
+    // ✅ Route pour les incidents du reader (AJOUTE ICI)
+    Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
+
     // ✅ Routes pour les emprunts (déplacées ici pour éviter les problèmes de session)
     Route::post('/loans/{loan}/confirm-pickup', [LoanController::class, 'confirmPickup']);
     Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook']);
@@ -107,9 +113,9 @@ Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
     Route::get('/libraries/partners', [LibraryController::class, 'partnerLibraries']);
     Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
     // Routes pour les pénalités (lecteur)
-    Route::get('/my-penalties', [PenaltyController::class, 'getMyUnpaidPenalties']);  
+    Route::get('/my-penalties', [PenaltyController::class, 'getMyUnpaidPenalties']);
     Route::patch('/penalties/{penaltyId}/pay', [PenaltyController::class, 'payPenalty']);
-    
+
     // --- Pénalités ---
     Route::get('/penalties', [PenaltyController::class, 'index']);
     Route::get('/libraries/{libraryId}/penalties', [PenaltyController::class, 'getLibraryPenalties']);
@@ -141,12 +147,11 @@ Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
 
     // Scan Book
     Route::get('/scan/{token}', [ScanController::class, 'handleScan']);
-    Route::get('/scan-user/{token}', function ($token) {
-    });
-    
+    Route::get('/scan-user/{token}', function ($token) {});
+
     // Incidents
     Route::patch('/incidents/{id}/resolve', [LoanController::class, 'resolveIncident']);
-    
+
     // Favoris
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle/{book}', [FavoriteController::class, 'toggle']);
@@ -167,18 +172,18 @@ Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
     Route::get('/payments/my-transactions', [KkiapayController::class, 'userTransactions']);
     Route::get('/libraries/{libraryId}/transactions', [KkiapayController::class, 'libraryTransactions']);
 
- // --- Contestations ---
-// Pour tous les utilisateurs (reader)
-Route::get('/contestations', [ContestationController::class, 'index']);
-Route::post('/contestations', [ContestationController::class, 'store']);
-Route::get('/contestations/{id}', [ContestationController::class, 'show']);
-Route::post('/contestations/{id}/comment', [ContestationController::class, 'addComment']);
+    // --- Contestations ---
+    // Pour tous les utilisateurs (reader)
+    Route::get('/contestations', [ContestationController::class, 'index']);
+    Route::post('/contestations', [ContestationController::class, 'store']);
+    Route::get('/contestations/{id}', [ContestationController::class, 'show']);
+    Route::post('/contestations/{id}/comment', [ContestationController::class, 'addComment']);
 
-// Pour les bibliothécaires
-Route::get('/contestations-library', [ContestationController::class, 'libraryContestations']);
-Route::get('/contestations-library-stats', [ContestationController::class, 'stats']);
-Route::post('/contestations-process/{id}', [ContestationController::class, 'process']);
-    
+    // Pour les bibliothécaires
+    Route::get('/contestations-library', [ContestationController::class, 'libraryContestations']);
+    Route::get('/contestations-library-stats', [ContestationController::class, 'stats']);
+    Route::post('/contestations-process/{id}', [ContestationController::class, 'process']);
+
     // ✅ Routes pour les livres (accessibles à tous les utilisateurs authentifiés)
     Route::post('/books', [BookController::class, 'store']);
     Route::put('/books/{id}', [BookController::class, 'update']);
@@ -200,12 +205,11 @@ Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(functi
 Route::middleware(['auth:sanctum', 'check.lib.staff', 'verified'])->group(function () {
     // Routes spécifiques au staff si nécessaire
     // Note: Les routes de création de livres sont déjà dans la section principale
-    
+
     Route::post('/libraries/{library}/books', [BookController::class, 'store']);
     Route::put('/libraries/{library}/books/{id}', [BookController::class, 'update']);
     Route::delete('/libraries/{library}/books/{id}', [BookController::class, 'destroy']);
 
- 
     // Dans la section protégée (middleware auth:sanctum)
     // Dans la section protégée
     // Route::prefix('incidents')->group(function () {
