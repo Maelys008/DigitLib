@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import api from '../../services/api';
 
 export default function ResetPassword() {
@@ -15,20 +15,32 @@ export default function ResetPassword() {
   const [email, setEmail] = useState('');
 
   useEffect(() => {
-    // Récupérer les paramètres de l'URL
+    // Récupérer les paramètres de l'URL de plusieurs façons
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tokenParam = urlParams.get('token');
-      const emailParam = urlParams.get('email');
+      const pathParts = window.location.pathname.split('/');
       
+      // Essayer de récupérer le token depuis les paramètres GET
+      let tokenParam = urlParams.get('token');
+      let emailParam = urlParams.get('email');
+      
+      // Si le token n'est pas dans les params, essaye de le prendre depuis l'URL (ex: /reset-password/TOKEN_ICI)
+      if (!tokenParam && pathParts.length > 2) {
+        tokenParam = pathParts[pathParts.length - 1];
+      }
+      
+      console.log('URL complète:', window.location.href);
       console.log('Token reçu:', tokenParam);
       console.log('Email reçu:', emailParam);
       
-      if (tokenParam && emailParam) {
+      if (tokenParam) {
         setToken(tokenParam);
-        setEmail(emailParam);
+        // Si l'email n'est pas dans l'URL, on le demande à l'utilisateur
+        if (emailParam) {
+          setEmail(emailParam);
+        }
       } else {
-        setErrors({ general: 'Lien de réinitialisation invalide' });
+        setErrors({ general: 'Lien de réinitialisation invalide. Veuillez refaire une demande.' });
       }
     }
   }, []);
@@ -38,6 +50,12 @@ export default function ResetPassword() {
     setErrors({});
     
     let hasError = false;
+    
+    // Si l'email n'a pas été récupéré de l'URL, on le demande
+    if (!email) {
+      setErrors(prev => ({ ...prev, email: 'Veuillez entrer votre email' }));
+      hasError = true;
+    }
     
     if (!password) {
       setErrors(prev => ({ ...prev, password: 'Le mot de passe est requis' }));
@@ -60,6 +78,7 @@ export default function ResetPassword() {
     setIsLoading(true);
     
     try {
+      console.log('Envoi réinitialisation:', { email, token });
       const result = await api.resetPassword(email, password, passwordConfirmation, token);
       
       if (result.success) {
@@ -82,6 +101,31 @@ export default function ResetPassword() {
     router.visit('/login');
   };
 
+  // Si pas de token du tout
+  if (!token && errors.general) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+        <div className="flex-1 flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Lien invalide</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              {errors.general}
+            </p>
+            <button
+              onClick={() => router.visit('/forgot-password')}
+              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
+            >
+              Nouvelle demande
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
@@ -101,30 +145,6 @@ export default function ResetPassword() {
               className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
             >
               Retour à la connexion
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (errors.general && !token) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
-        <div className="flex-1 flex flex-col justify-center px-6">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Lien invalide</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              {errors.general}
-            </p>
-            <button
-              onClick={() => router.visit('/forgot-password')}
-              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
-            >
-              Nouvelle demande
             </button>
           </div>
         </div>
@@ -158,6 +178,23 @@ export default function ResetPassword() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Champ email visible seulement si non récupéré */}
+          {!email && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Adresse email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="votre@email.com"
+                className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500"
+              />
+              {errors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nouveau mot de passe
@@ -169,6 +206,7 @@ export default function ResetPassword() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Au moins 8 caractères"
+                autoComplete="new-password"
                 className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
@@ -195,6 +233,7 @@ export default function ResetPassword() {
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
                 placeholder="Répétez le mot de passe"
+                autoComplete="new-password"
                 className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
                   errors.passwordConfirmation ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}

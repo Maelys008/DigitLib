@@ -107,23 +107,51 @@ class ApiService {
         }
     }
 
-    async forgotPassword(email) {
-        try {
-            const response = await this.axios.post("/forgot-password", { email });
-            return { success: true, message: response.data.message };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors de l'envoi du lien" };
+   // ==================== MOT DE PASSE OUBLIÉ ====================
+async forgotPassword(email) {
+    try {
+        const response = await this.axios.post("/forgot-password", { email });
+        return { success: true, message: response.data.message };
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        let message = "Erreur lors de l'envoi du lien";
+        
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
         }
+        // Message spécifique pour email non trouvé
+        if (error.response?.status === 422) {
+            message = "Cet email n'existe pas dans notre système";
+        }
+        
+        return { success: false, message: message };
     }
+}
 
-    async resetPassword(email, password, passwordConfirmation, token) {
-        try {
-            const response = await this.axios.post("/reset-password", { email, password, password_confirmation: passwordConfirmation, token });
-            return { success: true, message: response.data.message };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors de la réinitialisation" };
+async resetPassword(email, password, passwordConfirmation, token) {
+    try {
+        const response = await this.axios.post("/reset-password", {
+            email: email,
+            password: password,
+            password_confirmation: passwordConfirmation,
+            token: token
+        });
+        return { success: true, message: response.data.message };
+    } catch (error) {
+        console.error('Reset password error:', error);
+        let message = "Erreur lors de la réinitialisation";
+        
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
         }
+        // Token invalide ou expiré
+        if (error.response?.status === 422) {
+            message = "Ce lien de réinitialisation est invalide ou a expiré";
+        }
+        
+        return { success: false, message: message };
     }
+}
 
     // ==================== PROFIL ====================
    // ==================== PROFIL ====================
