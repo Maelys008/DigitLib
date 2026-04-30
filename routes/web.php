@@ -302,5 +302,8 @@ Route::get('/payment-callback', function () {
     $transactionId = request()->query('transaction_id');
     return Inertia::render('PaymentCallback', ['transactionId' => $transactionId]);
 })->name('payment.callback');
+Route::get('/librarian/reports', function () {
+    return Inertia::render('Librarian/Reports');
+})->name('librarian.reports');
     
 require __DIR__.'/auth.php';

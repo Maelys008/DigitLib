@@ -23,9 +23,9 @@ export default function KkiapayPayment({ penalty, onSuccess, onClose, isOpen }) 
             openKkiapayWidget({
                 amount: penalty.amount,
                 position: "center",
-                callback: `${window.location.origin}/payment-callback`, // Optionnel si vous gérez le succès en JS
+                callback: `${window.location.origin}/payment-callback`, 
                 data: payment_data.description,
-                theme: "#F97316", // Couleur orange de votre thème
+                theme: "#16F9F9", // Couleur orange de votre thème
                 key: import.meta.env.VITE_KKIAPAY_PUBLIC_KEY,
                 sandbox: import.meta.env.VITE_KKIAPAY_SANDBOX === "true",
                 firstname: payment_data.firstname || "",

@@ -8,14 +8,12 @@ import DashboardHeader from '@/Components/liberian/DashboardHeader';
 import LibraryInfoCard from '@/Components/liberian/LibraryInfoCard';
 import StatisticsGrid from '@/Components/liberian/StatisticsGrid';
 import ActionButtons from '@/Components/liberian/ActionButtons';
-import ReportsModal from '@/Components/liberian/ReportsModal'; 
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { activeLibrary, isLoading: libraryLoading } = useActiveLibrary(); 
   const [library, setLibrary] = useState(null);
   const [books, setBooks] = useState([]);
-  const [showReportsModal, setShowReportsModal] = useState(false); 
   const [stats, setStats] = useState({
     totalCopies: 0,
     totalBooks: 0,
@@ -27,11 +25,10 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fonction pour charger les pénalités (sera appelée après que library soit défini)
+  // Fonction pour charger les pénalités
   const loadUnpaidPenalties = async (lib) => {
     if (!lib) return;
     
-    // Vérifier si l'utilisateur est admin
     const isUserAdmin = lib.administrator_id === user?.id;
     if (!isUserAdmin) {
       console.log('Non admin - pas de chargement des pénalités');
@@ -40,14 +37,13 @@ export default function Dashboard() {
     
     try {
       const data = await api.getUnpaidPenaltiesCount(lib.id);
-      console.log('Pénalités non payées:', data);
       const unpaidCount = data.count || 0;
       setStats(prev => ({
         ...prev,
         lateReturns: unpaidCount  
       }));
     } catch (error) {
-      console.error('Erreur chargement pénalités non payées:', error);
+      console.error('Erreur chargement pénalités:', error);
       setStats(prev => ({
         ...prev,
         lateReturns: 0
@@ -114,7 +110,6 @@ export default function Dashboard() {
     if (!lib) return;
     try {
       const reservationsData = await api.getLibraryReservations(lib.id);
-      console.log('Réservations récupérées:', reservationsData);
       const reservationsCount = reservationsData.count || 0;
       setStats(prev => ({
         ...prev,
@@ -140,9 +135,8 @@ export default function Dashboard() {
       console.log('Utilisateur connecté:', user);
       setIsLoading(true);
       
-      // 🔥 PRIORITÉ À LA BIBLIOTHÈQUE ACTIVE DU CONTEXT
       if (activeLibrary) {
-        console.log('🎯 Utilisation de la bibliothèque active du Context:', activeLibrary.name);
+        console.log('🎯 Utilisation de la bibliothèque active:', activeLibrary.name);
         setLibrary(activeLibrary);
         await loadBooks(activeLibrary);
         await loadMembers(activeLibrary);
@@ -152,12 +146,11 @@ export default function Dashboard() {
         return;
       }
       
-      // Fallback: charge la bibliothèque possédée
       const allLibraries = await api.getUserLibraries();
       const owned = allLibraries.find(lib => lib.administrator_id === user?.id);
       
       if (owned) {
-        console.log('📚 Chargement bibliothèque possédée (fallback):', owned.name);
+        console.log('📚 Chargement bibliothèque possédée:', owned.name);
         setLibrary(owned);
         await loadBooks(owned);
         await loadMembers(owned);
@@ -167,15 +160,13 @@ export default function Dashboard() {
         return;
       }
       
-      // Fallback: charge la première bibliothèque membre interne
       const internalLibraries = allLibraries.filter(lib => lib.administrator_id !== user?.id);
       if (internalLibraries.length > 0) {
-        console.log('📚 Chargement première bibliothèque membre interne (fallback):', internalLibraries[0].name);
+        console.log('📚 Chargement bibliothèque membre interne:', internalLibraries[0].name);
         setLibrary(internalLibraries[0]);
         await loadBooks(internalLibraries[0]);
         await loadMembers(internalLibraries[0]);
         await loadReservations(internalLibraries[0]);
-        // Ne pas charger les pénalités pour les membres internes
         setIsLoading(false);
         return;
       }
@@ -183,53 +174,24 @@ export default function Dashboard() {
       setIsLoading(false);
     };
     
-    // Attends que le Context ait fini de charger
     if (!libraryLoading) {
       loadLibrary();
     }
   }, [user, activeLibrary, libraryLoading]);
 
-  // Calcule isAdmin après que library soit défini
   const isAdmin = library && library.administrator_id === user?.id;
 
-  const handleManageBooks = () => {
-    router.visit('/librarian/books');
-  };
+  const handleManageBooks = () => router.visit('/librarian/books');
+  const handleManageInternalMembers = () => router.visit('/librarian/internal-members');
+  const handleManageUsers = () => router.visit('/librarian/manage-users');
+  const handleManagePenalties = () => router.visit('/librarian/manage-penalties');
+  const handleViewIncidents = () => router.visit('/librarian/incidents');
+  const handleViewReports = () => router.visit('/librarian/reports');
+  const handleBorrowingRules = () => router.visit('/librarian/borrowing-rules');
+  const handlePartnerLibraries = () => router.visit('/librarian/partner-libraries');
+  const handleViewCasier = () => router.visit('/librarian/library-records');
+  const handleManageContestations = () => router.visit('/librarian/contestations');
 
-  const handleManageInternalMembers = () => {
-    router.visit('/librarian/internal-members');
-  };
-  
-  const handleManageUsers = () => {
-    router.visit('/librarian/manage-users');
-  };
-  
-  const handleManagePenalties = () => {
-    router.visit('/librarian/manage-penalties');
-  };
-  
-  const handleViewIncidents = () => {
-    router.visit('/librarian/incidents');
-  };
-  
-  const handleViewReports = () => {
-    setShowReportsModal(true);
-  };
-  
-  const handleBorrowingRules = () => {
-    router.visit('/librarian/borrowing-rules');
-  };
-  
-  const handlePartnerLibraries = () => {
-    router.visit('/librarian/partner-libraries');
-  };
-  
-  const handleViewCasier = () => {
-    router.visit('/librarian/library-records');
-  };
-const handleManageContestations = () => {
-  router.visit('/librarian/contestations');
-};
   if (isLoading || libraryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -273,16 +235,9 @@ const handleManageContestations = () => {
           onBorrowingRules={handleBorrowingRules}
           onPartnerLibraries={handlePartnerLibraries}
           onViewCasier={handleViewCasier}
-            onManageContestations={handleManageContestations}
+          onManageContestations={handleManageContestations}
         />
       </div>
-
-      <ReportsModal 
-        isOpen={showReportsModal}
-        onClose={() => setShowReportsModal(false)}
-        libraryId={library?.id}
-        isAdmin={isAdmin}
-      />
     </div>
   );
 }

@@ -171,24 +171,39 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Envoyer le lien de réinitialisation du mot de passe
+     */
     public function forgotPassword(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        // Envoyer le lien de réinitialisation
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
 
         if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => __($status)], 200);
+            return response()->json([
+                'message' => 'Un lien de réinitialisation a été envoyé à votre adresse email.'
+            ], 200);
         }
 
-        return response()->json(['message' => __($status)], 422);
+        return response()->json([
+            'message' => 'Impossible d\'envoyer le lien de réinitialisation.'
+        ], 422);
     }
 
+    /**
+     * Réinitialiser le mot de passe
+     */
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token' => 'required|string',
-            'email' => 'required|email',
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
             'password' => 'required|min:8|confirmed',
         ]);
 
@@ -198,18 +213,19 @@ class AuthController extends Controller
                 $user->forceFill([
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
-                    'email_verified_at' => now(),
-                    'status' => 'active',
                 ])->save();
             }
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return response()->json(['message' => __($status)], 200);
+            return response()->json([
+                'message' => 'Mot de passe réinitialisé avec succès.'
+            ], 200);
         }
 
-        return response()->json(['message' => __($status)], 422);
+        return response()->json([
+            'message' => 'Ce lien de réinitialisation est invalide ou a expiré.'
+        ], 422);
     }
-
     
 }
