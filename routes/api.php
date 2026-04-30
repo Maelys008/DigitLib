@@ -18,10 +18,8 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\ShelfController;
 use App\Http\Controllers\Api\SocialAuthController;
-use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Route;
-
 
 // -------------------------------------------------------------------------
 // ROUTES PUBLIQUES (Authentification & Consultation)
@@ -54,13 +52,9 @@ Route::get('/genres', function () {
 
 // Webhook
 // Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
-// api.php - Assurez-vous que cette route est accessible sans auth
-Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook'])
-    ->withoutMiddleware([VerifyCsrfToken::class]);
+Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
 
-Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
-    ->middleware('auth:sanctum');
-
+Route::middleware('auth:sanctum')->get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])->where('transactionId', '.*');
 // -------------------------------------------------------------------------
 // ROUTES PROTÉGÉES (Utilisateurs connectés)
 // -------------------------------------------------------------------------

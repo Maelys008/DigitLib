@@ -6,31 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    // protected $fillable = [
-    //     'provider',
-    //     'external_id',
-    //     'status',
-    //     'amount',
-    //     'reference',
-    //     'currency'
-    // ];
+    
 
      protected $fillable = [
-        'user_id',           // 🆕 Ajouté
-        'penalty_id',        // 🆕 Ajouté
+        'user_id',           
+        'penalty_id',        
         'reference',
         'provider',
         'external_id',
         'amount',
         'currency',
         'status',
-        'payment_method',    // 🆕 Ajouté
-        'metadata',          // 🆕 Ajouté
+        'payment_method',    
+        'metadata',          
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'metadata' => 'array',  // 🆕 Ajouté
+        'metadata' => 'array',  
     ];
 
     // Relations
