@@ -13,12 +13,17 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->string('reference')->unique(); 
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('penalty_id')->nullable()->constrained('penalties')->nullOnDelete();
+            $table->string('reference')->unique();
             $table->string('provider'); // 'fedapay' ou 'kkiapay'
+            $table->string('payment_method')->nullable();
             $table->string('external_id')->nullable(); // ID renvoyé par le prestataire
             $table->decimal('amount', 15, 2);
             $table->string('currency')->default('XOF');
             $table->enum('status', ['pending', 'success', 'failed', 'canceled'])->default('pending');
+            $table->json('metadata')->nullable();
+
             $table->timestamps();
         });
     }

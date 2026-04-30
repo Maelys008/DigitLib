@@ -9,6 +9,7 @@ class Library extends Model
     protected $fillable = [
         'name',
         'adress',
+        'library_phone',
         'description',
         'parent_id',
         'administrator_id',

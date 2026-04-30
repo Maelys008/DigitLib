@@ -68,6 +68,7 @@ public function show(Library $library)
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'adress' => 'sometimes|required|string',
+            'library_phone' => 'sometimes|required|string',
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
@@ -75,7 +76,7 @@ public function show(Library $library)
             'daily_penalty_amount' => 'sometimes|numeric|min:0',
         ]);
 
-        $data = $request->only('name', 'adress', 'description', 'parent_id');
+        $data = $request->only('name', 'adress', 'library_phone', 'description', 'parent_id');
 
         if ($request->has('loan_duration')) {
             $data['loan_duration'] = $request->loan_duration;
@@ -129,6 +130,7 @@ public function show(Library $library)
         $request->validate([
             'name' => 'required|string|max:255',
             'adress' => 'required|string',
+            'library_phone' => 'required|string',
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:libraries,id',
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
@@ -157,6 +159,7 @@ public function show(Library $library)
                 'library_image' => $imagePath,
                 'parent_id' => $request->parent_id,
                 'adress' => $request->adress,
+                'library_phone' => $request->library_phone,
                 'description' => $request->description,
                 'administrator_id' => $user->id,
                 'loan_duration' => $request->loan_duration ?? 14,

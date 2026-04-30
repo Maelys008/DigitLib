@@ -274,8 +274,8 @@ Route::post('/set-active-library', function (Request $request) {
 //     ->name('payment.success');
 
 // 2. Route de retour après succès
-Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
-    ->name('payment.success');
+// Route::get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])
+//     ->name('payment.success');
     // ==================== ROUTES POUR LES CONTESTATIONS (CÔTÉ READER) ====================
 // Changement : Profile/ContestationList → Contestations/ContestationList
 Route::get('/profile/contestations', function () {
@@ -298,5 +298,9 @@ Route::get('/librarian/contestations/{id}', function ($id) {
 Route::get('/profile/incidents', function () {
     return Inertia::render('Contestations/MyIncidents');
 })->name('profile.incidents');
+Route::get('/payment-callback', function () {
+    $transactionId = request()->query('transaction_id');
+    return Inertia::render('PaymentCallback', ['transactionId' => $transactionId]);
+})->name('payment.callback');
     
 require __DIR__.'/auth.php';

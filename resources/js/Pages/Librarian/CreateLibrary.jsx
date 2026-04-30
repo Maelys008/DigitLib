@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { ArrowLeft, Building, CheckCircle, Camera, X } from 'lucide-react';
+import { ArrowLeft, Building, CheckCircle, Camera, X, Phone } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -9,6 +9,7 @@ export default function CreateLibrary() {
   const [formData, setFormData] = useState({
     name: '',
     adress: '',
+    library_phone: '',
     description: ''
   });
   const [libraryImage, setLibraryImage] = useState(null);
@@ -42,6 +43,7 @@ export default function CreateLibrary() {
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
     formDataToSend.append('adress', formData.adress);
+    formDataToSend.append('library_phone', formData.library_phone);
     formDataToSend.append('description', formData.description);
     if (libraryImage) {
       formDataToSend.append('library_image', libraryImage);
@@ -148,7 +150,7 @@ export default function CreateLibrary() {
             {/* Nom de la bibliothèque */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Nom de la bibliothèque
+                Nom de la bibliothèque *
               </label>
               <input
                 type="text"
@@ -160,10 +162,28 @@ export default function CreateLibrary() {
               />
             </div>
 
+            {/* Téléphone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Téléphone *
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <input
+                  type="tel"
+                  value={formData.library_phone}
+                  onChange={(e) => setFormData({ ...formData, library_phone: e.target.value })}
+                  placeholder="+229 XX XX XX XX"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                  required
+                />
+              </div>
+            </div>
+
             {/* Adresse */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Adresse
+                Adresse *
               </label>
               <input
                 type="text"

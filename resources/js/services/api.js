@@ -312,17 +312,21 @@ async getProfile() {
         }
     }
 
-    async updateLibrary(id, formData) {
-        try {
-            const response = await this.axios.put(`/libraries/${id}`, {
-                loan_duration: parseInt(formData.get("loan_duration")),
-                daily_penalty_amount: parseFloat(formData.get("daily_penalty_amount")),
-            });
-            return { success: true, data: response.data };
-        } catch (error) {
-            return { success: false, message: error.response?.data?.message || "Erreur lors de la modification" };
-        }
+  async updateLibrary(id, formData) {
+    try {
+        // Si c'est FormData, il faut le traiter différemment
+        const response = await this.axios.post(`/libraries/${id}?_method=PUT`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error updating library:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || "Erreur lors de la modification" 
+        };
     }
+}
 
     async joinLibrary(libraryId) {
         try {
@@ -442,6 +446,19 @@ async getActiveReservations(libraryId) {
     }
 
     // ==================== PÉNALITÉS ====================
+
+// Récupérer les pénalités non payées du lecteur connecté (pour afficher dans Mes cartes)
+async getMyUnpaidPenalties() {
+    try {
+        const response = await this.axios.get('/my-penalties');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching my unpaid penalties:", error);
+        return [];
+    }
+}
+
+// Récupérer les pénalités d'une bibliothèque (pour admin)
 async getPenalties(libraryId = null) {
     try {
         let url = '/penalties';
@@ -456,6 +473,7 @@ async getPenalties(libraryId = null) {
     }
 }
 
+// Payer une pénalité (pour admin)
 async payPenalty(penaltyId) {
     try {
         const response = await this.axios.patch(`/penalties/${penaltyId}/pay`);
@@ -465,6 +483,7 @@ async payPenalty(penaltyId) {
     }
 }
 
+// Compter les pénalités non payées d'une bibliothèque (pour admin)
 async getUnpaidPenaltiesCount(libraryId) {
     try {
         const response = await this.axios.get(`/libraries/${libraryId}/unpaid-penalties-count`);
@@ -1077,6 +1096,46 @@ async getContestationStats() {
     } catch (error) {
         console.error('Error fetching contestation stats:', error);
         return { total: 0, en_attente: 0, acceptees: 0, rejetees: 0 };
+    }
+}
+// ==================== PAIEMENTS KKiaPay ====================
+
+// Créer un paiement pour une pénalité
+async createPaymentForPenalty(penaltyId) {
+    try {
+        const response = await this.axios.post('/payments/create-for-penalty', { penalty_id: penaltyId });
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la création du paiement'
+        };
+    }
+}
+
+// Vérifier une transaction
+async verifyPayment(transactionId) {
+    try {
+        const response = await this.axios.get(`/payments/verify?transaction_id=${transactionId}`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        return { 
+            success: false, 
+            message: error.response?.data?.message || 'Erreur lors de la vérification'
+        };
+    }
+}
+
+// Récupérer les transactions de l'utilisateur
+async getUserTransactions() {
+    try {
+        const response = await this.axios.get('/payments/my-transactions');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user transactions:', error);
+        return [];
     }
 }
 }

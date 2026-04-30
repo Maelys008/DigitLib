@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->string('name');
             $table->string('adress');
+            $table->string('library_phone')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('libraries');
             $table->foreignId('administrator_id')->constrained('users')->onDelete('cascade');
