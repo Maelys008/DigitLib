@@ -18,7 +18,7 @@ class Library extends Model
         'daily_penalty_amount',
     ];
 
-    protected $appends = ['library_url', 'members_count'];
+    protected $appends = ['library_url', 'members_count', 'real_books_count'];
 
     public function getLibraryUrlAttribute()
     {
@@ -76,4 +76,8 @@ class Library extends Model
     {
         return $this->inscriptions()->count();
     }
+    public function getRealBooksCountAttribute()
+{
+    return $this->books()->count();
+}
 }

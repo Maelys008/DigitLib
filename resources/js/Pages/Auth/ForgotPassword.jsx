@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../../services/api';
+import logo from '../../../images/logo .png';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -51,9 +52,10 @@ export default function ForgotPassword() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
+        {/* Logo et Titre */}
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+            <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mot de passe oublié ?</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -74,7 +76,7 @@ export default function ForgotPassword() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemple@email.com"
-                  className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
+                  className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 ${
                     errors.email ? 'border border-red-500 ring-1 ring-red-500' : ''
                   }`}
                 />
@@ -85,7 +87,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-orange-500/30"
             >
               {isLoading ? 'Envoi...' : 'Envoyer le lien'}
             </button>
@@ -99,11 +101,11 @@ export default function ForgotPassword() {
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Email envoyé !</h2>
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              Un lien de réinitialisation a été envoyé à <strong>{email}</strong>
+              Un lien de réinitialisation a été envoyé à <strong className="text-orange-600 dark:text-orange-400">{email}</strong>
             </p>
             <button
               onClick={handleBack}
-              className="text-black dark:text-orange-500 font-medium"
+              className="text-orange-600 dark:text-orange-400 font-medium hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
             >
               Retour à la connexion
             </button>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../../services/api';
+import logo from '../../../images/logo .png';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -98,7 +99,11 @@ export default function Register() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
-        <div className="mb-8">
+        {/* Logo et Titre */}
+        <div className="mb-8 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+            <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Créer un compte</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
             Entrez votre email et mot de passe
@@ -122,7 +127,7 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="E-mail"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black  focus:border-transparent dark:focus:ring-orange-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 ${
                   errors.email ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -140,7 +145,7 @@ export default function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Mot de passe"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 ${
                   errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -169,7 +174,7 @@ export default function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirmer le mot de passe"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 ${
                   errors.confirmPassword ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -191,7 +196,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors mt-4 disabled:bg-gray-400 dark:disabled:bg-gray-600"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-orange-500/30 mt-4"
           >
             {isLoading ? 'Création...' : 'Créer un compte'}
           </button>
@@ -203,7 +208,7 @@ export default function Register() {
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        {/* Bouton Google uniquement */}
+        {/* Bouton Google */}
         <div className="flex justify-center mb-8">
           <button 
             onClick={handleGoogleRegister}
@@ -225,7 +230,7 @@ export default function Register() {
         <div className="mt-8 text-center">
           <button 
             onClick={() => router.visit('/login')}
-            className="text-gray-900 dark:text-white font-medium"
+            className="text-orange-600 dark:text-orange-400 font-medium hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
           >
             Déjà un compte ? Se connecter
           </button>

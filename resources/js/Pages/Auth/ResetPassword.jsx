@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import api from '../../services/api';
+import logo from '../../../images/logo .png';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -107,6 +108,9 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6">
           <div className="text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+              <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
+            </div>
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
@@ -116,7 +120,7 @@ export default function ResetPassword() {
             </p>
             <button
               onClick={() => router.visit('/forgot-password')}
-              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-orange-500/30"
             >
               Nouvelle demande
             </button>
@@ -131,6 +135,9 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6">
           <div className="text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+              <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
+            </div>
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -142,7 +149,7 @@ export default function ResetPassword() {
             </p>
             <button
               onClick={handleBack}
-              className="bg-black dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-orange-500/30"
             >
               Retour à la connexion
             </button>
@@ -161,9 +168,10 @@ export default function ResetPassword() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
+        {/* Logo et Titre */}
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+            <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nouveau mot de passe</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -189,7 +197,7 @@ export default function ResetPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="votre@email.com"
-                className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500"
+                className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500"
               />
               {errors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>}
             </div>
@@ -207,7 +215,7 @@ export default function ResetPassword() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Au moins 8 caractères"
                 autoComplete="new-password"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 ${
                   errors.password ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -234,7 +242,7 @@ export default function ResetPassword() {
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
                 placeholder="Répétez le mot de passe"
                 autoComplete="new-password"
-                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-orange-500 ${
+                className={`w-full pl-12 pr-12 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-500 ${
                   errors.passwordConfirmation ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -252,7 +260,7 @@ export default function ResetPassword() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-orange-500/30"
           >
             {isLoading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
           </button>

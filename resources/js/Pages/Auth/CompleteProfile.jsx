@@ -3,6 +3,7 @@ import { User, Phone, CreditCard, AlertCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import logo from '../../../images/logo .png';
 
 export default function CompleteProfile() {
   const { updateUser } = useAuth();
@@ -128,9 +129,10 @@ export default function CompleteProfile() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
+        {/* Logo et Titre */}
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-black dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <User className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
+            <img src={logo} alt="DigiLib Logo" className="w-14 h-14 object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Complétez votre profil</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -157,7 +159,7 @@ export default function CompleteProfile() {
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Jean Dupont"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.name ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -177,7 +179,7 @@ export default function CompleteProfile() {
                 value={formData.tel}
                 onChange={handlePhoneChange}
                 placeholder="+229 90 12 34 56 78"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 font-mono tracking-wide placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 font-mono tracking-wide placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.tel ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -200,7 +202,7 @@ export default function CompleteProfile() {
                 value={formData.identityHash}
                 onChange={(e) => setFormData(prev => ({ ...prev, identityHash: e.target.value }))}
                 placeholder="Numéro sur votre carte ANIP"
-                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:focus:ring-orange-500 placeholder-gray-400 dark:placeholder-gray-500 ${
                   errors.identityHash ? 'border border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
@@ -221,7 +223,7 @@ export default function CompleteProfile() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black dark:bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-gray-800 dark:hover:bg-orange-700 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-orange-500/30"
           >
             {isLoading ? 'Enregistrement...' : 'Terminer'}
           </button>

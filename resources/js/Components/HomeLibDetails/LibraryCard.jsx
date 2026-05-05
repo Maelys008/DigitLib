@@ -23,6 +23,12 @@ export default function LibraryCard({ library }) {
 
   const imageUrl = getImageUrl(library.library_image);
   console.log('LibraryCard - Image URL:', imageUrl); 
+  // Dans LibraryCard, ajoute ce console.log
+console.log('📚 Données bibliothèque reçues:', {
+  name: library.name,
+  books_count: library.books_count,
+  members_count: library.members_count
+});
 
   return (
     <div 
@@ -69,12 +75,6 @@ export default function LibraryCard({ library }) {
         
         {/* Statistiques */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center gap-1">
-            <BookOpen className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              {library.books_count || 0} livres
-            </span>
-          </div>
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4 text-green-500 dark:text-green-400" />
             <span className="text-xs text-gray-600 dark:text-gray-400">

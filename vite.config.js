@@ -10,10 +10,19 @@ export default defineConfig({
         }),
         react(),
     ],
-    resolve: {
-    alias: {
-      "@": "/resources/js",
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        strictPort: true,
+        cors: true,
+        hmr: {
+            host: '10.0.2.2',
+            port: 5173,
+        },
     },
-  },
+    resolve: {
+        alias: {
+            "@": "/resources/js",
+        },
+    },
 });
-
