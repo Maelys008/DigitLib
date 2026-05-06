@@ -5,31 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="064978b8-8b98-4daa-a3cc-7ceae347ebf0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/AndroidProjectSystem.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AndroidProjectSystem.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deviceManager.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/migrations.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/migrations.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/Models/Library.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Models/Library.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../capacitor.config.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Components/HomeLibDetails/LibraryCard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Components/HomeLibDetails/LibraryCard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/Callback.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/Callback.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/CompleteProfile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/CompleteProfile.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/ConfirmPassword.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/ConfirmPassword.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/ForgotPassword.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/ForgotPassword.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/Login.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/Register.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/Register.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/ResetPassword.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/ResetPassword.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyEmail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyEmail.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyIdentity.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyIdentity.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyOtp.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/js/Pages/Auth/VerifyOtp.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../vite.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +15,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\HP\.android\avd\Medium_Phone.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\HP\.android\avd\Pixel_8_Pro.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />

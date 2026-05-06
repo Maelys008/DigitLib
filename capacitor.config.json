@@ -1,10 +1,5 @@
 {
   "appId": "com.digilib.app",
   "appName": "DigiLib",
-  "webDir": "public/build",
-  "server": {
-    "url": "http://172.17.20.110:8000",
-    "cleartext": true,
-    "androidScheme": "http"
-  }
+  "webDir": "public/build"
 }
