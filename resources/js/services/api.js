@@ -2,7 +2,21 @@ import axios from "axios";
 
 class ApiService {
     constructor() {
-        this.baseURL = "/api";
+        const isCapacitor = window.Capacitor?.isNative === true;
+        
+        // URL de base
+        let baseURL;
+        if (isCapacitor) {
+            // En APK, utiliser l'URL complète du backend
+            baseURL = 'https://digitlib-production.up.railway.app/api';
+        } else {
+            // En développement, utiliser l'URL relative
+            baseURL = '/api';
+        }
+        
+        this.baseURL = baseURL;
+        console.log('📡 API Base URL:', this.baseURL);
+        
         this.axios = axios.create({
             baseURL: this.baseURL,
             headers: {
@@ -10,7 +24,7 @@ class ApiService {
                 Accept: "application/json",
                 "X-Requested-With": "XMLHttpRequest",
             },
-             withCredentials: true,
+            withCredentials: true,
         });
 
         this.axios.interceptors.request.use(

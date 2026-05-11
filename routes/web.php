@@ -29,9 +29,9 @@ Route::get('/forgot-password', function () {
 })->name('password.request');
 
 Route::get('/', function () {
-    return Inertia::render('Home');
+    // Toujours retourner du JSON pour l'APK
+    return response()->json(['message' => 'DigiLib API is running', 'status' => 'ok']);
 })->name('home');
-
 Route::get('/best-of-month', function () {
     return Inertia::render('BestOfMonth');
 });

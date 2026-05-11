@@ -33,6 +33,7 @@
         "jspdf": "^4.2.1",
         "jszip": "^3.10.1",
         "lucide-react": "^0.577.0",
-        "qrcode.react": "^4.2.0"
+        "qrcode.react": "^4.2.0",
+        "react-router-dom": "^7.15.0"
     }
 }

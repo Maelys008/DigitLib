@@ -3,7 +3,7 @@
   "appName": "DigiLib",
   "webDir": "public/build",
   "server": {
-    "url": "http://10.0.2.2:8000",
+    "url": "https://digitlib-production.up.railway.app",
     "cleartext": true,
     "androidScheme": "http"
   }
