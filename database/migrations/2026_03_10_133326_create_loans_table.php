@@ -6,30 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('loans', function (Blueprint $table) {
-            $table->id()->autoIncrement();
+            $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('copy_id')->constrained('copies');
-            $table->enum('condition_on_return', ['neuf', 'bon', 'abimé', 'très abimé'])->nullable();
-            $table->date('loan_date')->nullable();
-            $table->date('expected_return_date');
+            $table->enum('status', [
+                'pending_pickup', // exemplaire dispo, en attente retrait (24h)
+                'in_progress',    // retiré, emprunt en cours
+                'returned',       // retourné
+                'cancelled',      // annulé par l'utilisateur avant retrait
+                'expired',        // non retiré dans les 24h
+                'reserved',       // file d'attente, exemplaire indisponible
+            ])->default('pending_pickup');
+            $table->timestamp('pickup_deadline')->nullable(); // deadline retrait 24h
+            $table->date('loan_date')->nullable();            // date retrait physique
+            $table->date('expected_return_date')->nullable(); // calculée à pending_pickup
             $table->date('actual_return_date')->nullable();
             $table->foreignId('returned_by')->nullable()->constrained('users');
-            $table->enum('status', ['pending_pickup', 'active', 'returned', 'cancelled', 'lost_settled'])
-                ->default('pending_pickup');
-            $table->timestamp('pickup_deadline')->nullable();
+            $table->enum('condition_on_return', ['new', 'good', 'damaged', 'very_damaged'])->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('loans');

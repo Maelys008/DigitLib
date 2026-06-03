@@ -29,7 +29,7 @@ class KkiapayController extends Controller
             return response()->json(['message' => 'Cette pénalité ne vous appartient pas.'], 403);
         }
 
-        if ($penalty->status === 'payé') {
+        if ($penalty->status === 'paid') {
             return response()->json(['message' => 'Cette pénalité a déjà été payée.'], 422);
         }
 
@@ -218,15 +218,15 @@ class KkiapayController extends Controller
             if ($transaction->penalty_id) {
                 $penalty = Penalty::find($transaction->penalty_id);
 
-                if ($penalty && $penalty->status !== 'payé') {
-                    $penalty->update(['status' => 'payé']);
+                if ($penalty && $penalty->status !== 'paid') {
+                    $penalty->update(['status' => 'paid']);
 
                     Notification::create([
                         'user_id' => $penalty->user_id,
                         'type' => 'penalty_paid',
                         'message' => "Votre pénalité de {$penalty->amount} FCFA a été réglée avec succès.",
                         'object_type' => 'penalty',
-                        'object' => $penalty->id,
+                        'object_id' => $penalty->id,
                         'date_sent' => now(),
                     ]);
 
@@ -235,7 +235,7 @@ class KkiapayController extends Controller
                     if ($loan && ! $loan->actual_return_date && str_contains(strtolower($penalty->reason ?? ''), 'perdu')) {
                         $loan->update([
                             'actual_return_date' => now(),
-                            'status' => 'lost_settled',
+                            'status' => 'returned',
                         ]);
                     }
                 }

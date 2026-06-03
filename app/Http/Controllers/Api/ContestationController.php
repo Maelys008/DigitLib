@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Contestation;
 use App\Models\Incident;
-use App\Models\Notification;
 use App\Models\Internal_member;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ContestationController extends Controller
 {
@@ -104,7 +105,7 @@ public function store(Request $request)
                     'type' => 'contestation_created',
                     'message' => "Nouvelle contestation de {$user->name} concernant un incident.",
                     'object_type' => 'contestation',
-                    'object' => $contestation->id,
+                    'object_id' => $contestation->id,
                     'date_sent' => now(),
                 ]);
             }
@@ -116,7 +117,7 @@ public function store(Request $request)
             'type' => 'contestation_submitted',
             'message' => 'Votre contestation a été enregistrée et sera traitée par un bibliothécaire.',
             'object_type' => 'contestation',
-            'object' => $contestation->id,
+            'object_id' => $contestation->id,
             'date_sent' => now(),
         ]);
 
@@ -238,7 +239,7 @@ public function store(Request $request)
                 'type' => 'contestation_' . $request->decision,
                 'message' => $message,
                 'object_type' => 'contestation',
-                'object' => $contestation->id,
+                'object_id' => $contestation->id,
                 'date_sent' => now(),
             ]);
 

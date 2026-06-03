@@ -2,32 +2,47 @@
 
 namespace App\Models;
 
-use App\Models\Book;
-use App\Models\Loan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Copy extends Model
 {
-    protected $fillable =
-        [
-            'book_id',
-            'codeQR',
-            'condition',
-            'date_added',
-            'status',
-        ];
+    // Statuts exemplaire
+    const STATUS_AVAILABLE = 'available'; // libre
 
-    protected $casts =
-        [
-            'date_added' => 'date',
-        ];
+    const STATUS_RESERVED = 'reserved';  // en attente retrait (pending_pickup)
+
+    const STATUS_BORROWED = 'borrowed';  // emprunté
+
+    const STATUS_LOST = 'lost';      // perdu (30j de retard)
+
+    const STATUS_PENDING_PICKUP = 'pending_pickup';
+
+    // États physiques
+    const CONDITION_NEW = 'new';
+
+    const CONDITION_GOOD = 'good';
+
+    const CONDITION_DAMAGED = 'damaged';
+
+    const CONDITION_VERY_DAMAGED = 'very_damaged';
+
+    protected $fillable = [
+        'book_id',
+        'codeQR',
+        'condition',
+        'status',
+        'date_added',
+    ];
+
+    protected $casts = [
+        'date_added' => 'date',
+    ];
 
     protected static function boot()
     {
         parent::boot();
         static::creating(function ($copy) {
-            // Génère un token unique de 64 caractères s'il n'est pas définis par le bookcontroller
             if (empty($copy->codeQR)) {
                 $copy->codeQR = Str::random(64);
             }
@@ -42,5 +57,12 @@ class Copy extends Model
     public function loans()
     {
         return $this->hasMany(Loan::class);
+    }
+
+    public function activeLoan()
+    {
+        return $this->hasOne(Loan::class)->whereIn('status', [
+            Loan::STATUS_IN_PROGRESS,Loan::STATUS_PENDING_PICKUP,
+        ]);
     }
 }

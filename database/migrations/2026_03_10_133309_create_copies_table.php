@@ -6,25 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('copies', function (Blueprint $table) {
             $table->id();
             $table->string('codeQR', 64)->unique()->nullable();
             $table->foreignId('book_id')->constrained('books');
-            $table->enum('condition', ['neuf', 'bon', 'abimé', 'très abimé'])->default('neuf');
-            $table->string('status')->default('disponible');
+            $table->enum('condition', ['new', 'good', 'damaged', 'very_damaged'])->default('new');
+            $table->enum('status', [
+                'available', // libre
+                'reserved',  // réservé (en_attente_retrait pour quelqu'un)
+                'borrowed',  // actuellement emprunté
+                'lost',      // déclaré perdu après 30j de retard
+            ])->default('available');
             $table->date('date_added');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('copies');

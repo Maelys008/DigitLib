@@ -99,7 +99,7 @@ class PenaltyController extends Controller
         
         $penalties = Penalty::with(['loan.copy.book', 'loan.copy.book.library'])
             ->where('user_id', $user->id)
-            ->where('status', 'non payé')
+            ->where('status', 'unpaid')
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -115,11 +115,11 @@ class PenaltyController extends Controller
         return response()->json(['message' => 'Non autorisé'], 403);
     }
     
-    if ($penalty->status === 'payé') {
+    if ($penalty->status === 'paid') {
         return response()->json(['message' => 'Déjà payé'], 422);
     }
     
-    $penalty->update(['status' => 'payé']);
+    $penalty->update(['status' => 'paid']);
     
     // Notifier le bibliothécaire
     if ($penalty->loan && $penalty->loan->copy && $penalty->loan->copy->book && $penalty->loan->copy->book->library) {
@@ -129,7 +129,7 @@ class PenaltyController extends Controller
             'type' => 'penalty_paid_notification',
             'message' => "💰 L'utilisateur {$user->name} a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
             'object_type' => 'penalty',
-            'object' => $penalty->id,
+            'object_id' => $penalty->id,
             'date_sent' => now(),
         ]);
     }
@@ -150,7 +150,7 @@ class PenaltyController extends Controller
         $count = Penalty::whereHas('loan.copy.book', function($query) use ($libraryId) {
             $query->where('library_id', $libraryId);
         })
-        ->where('status', 'non payé')
+        ->where('status', 'unpaid')
         ->count();
         
         return response()->json(['count' => $count]);

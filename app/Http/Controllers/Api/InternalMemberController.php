@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Library;
 use App\Models\Role_assignment;
@@ -43,11 +42,6 @@ class InternalMemberController extends Controller
                 'role_id' => $request->role_id,
                 'date_assignment' => now(),
             ]);
-
-            Inscription::firstOrCreate([
-                'user_id' => $userToAdd->id,
-                'library_id' => $request->library_id,
-            ], ['date' => now()]);
 
             return response()->json([
                 'message' => 'Rôle attribué avec succès.',

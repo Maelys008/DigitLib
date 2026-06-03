@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Incident;
 use App\Models\Contestation;
-use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Notification;
 use App\Models\User;
@@ -117,7 +116,7 @@ class RecordController extends Controller
                         'type' => 'contestation_auto',
                         'message' => "⚠️ Un incident a été signalé vous concernant : {$request->title}. Cliquez ici pour le contester dans 'Mes contestations'.",
                         'object_type' => 'contestation',
-                        'object' => $contestation->id,
+                        'object_id' => $contestation->id,
                         'date_sent' => now(),
                     ]);
                 }
@@ -137,7 +136,7 @@ class RecordController extends Controller
                     'type' => 'incident_reported',
                     'message' => "Un incident grave vous concernant a été signalé par {$authUser->name}. Rendez-vous dans 'Mes contestations' pour le contester.",
                     'object_type' => 'incident',
-                    'object' => $existingIncident->id,
+                    'object_id' => $existingIncident->id,
                     'date_sent' => now(),
                 ]);
             }
@@ -158,7 +157,7 @@ class RecordController extends Controller
                 'type' => 'library_record',
                 'message' => "⚠️ NOUVEAU SIGNALEMENT - {$existingIncident->title}",
                 'object_type' => 'incident',
-                'object' => $existingIncident->id,
+                'object_id' => $existingIncident->id,
                 'date_sent' => now(),
             ]);
         }
@@ -211,7 +210,7 @@ class RecordController extends Controller
                     'type' => 'record_resolved',
                     'message' => "Le signalement '{$record->title}' a été marqué comme résolu par {$authUser->name}.",
                     'object_type' => 'incident',
-                    'object' => $record->id,
+                    'object_id' => $record->id,
                     'date_sent' => now(),
                 ]);
             }
@@ -238,17 +237,7 @@ class RecordController extends Controller
         // Cas 2 : Un membre interne veut voir le casier d'un autre membre
         $staffLibraries = Internal_member::where('user_id', $authUser->id)->pluck('library_id');
 
-        // On vérifie si l'utilisateur cible est inscrit dans au moins une de ces bibliothèques
-        $isMember = Inscription::where('user_id', $user->id)
-            ->whereIn('library_id', $staffLibraries)
-            ->exists();
-
-        if (! $isMember) {
-            return response()->json([
-                'message' => 'Accès refusé.',
-            ], 403);
-        }
-
+        // Accès universel : tout utilisateur est accessible au personnel
         return $this->buildRecordResponse($user);
     }
 
@@ -269,11 +258,11 @@ class RecordController extends Controller
             ],
             'stats' => [
                 'total_incidents' => $targetUser->incidents->count(),
-                'unpaid_penalties_sum' => (int) $targetUser->penalties()->where('status', 'non payé')->sum('amount'),
+                'unpaid_penalties_sum' => (int) $targetUser->penalties()->where('status', 'unpaid')->sum('amount'),
                 'total_loans' => $targetUser->loans()->count(),
             ],
             'incident_history' => $targetUser->incidents()->with('library:id,name')->latest()->take(10)->get(),
-            'active_penalties' => $targetUser->penalties()->where('status', 'non payé')->get(),
+            'active_penalties' => $targetUser->penalties()->where('status', 'unpaid')->get(),
         ]);
     }
 }

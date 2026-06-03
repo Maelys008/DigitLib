@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Copy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -127,8 +128,8 @@ class BookController extends Controller
             $newCopies[] = [
                 'book_id' => $book->id,
                 'codeQR' => 'QR-' . strtoupper(Str::random(8)),
-                'condition' => 'neuf',
-                'status' => 'disponible',
+                'condition' => 'new',
+                'status' => 'available',
                 'date_added' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -249,7 +250,7 @@ class BookController extends Controller
             return response()->json(['message' => 'Livre non trouvé'], 404);
         }
 
-        $hasActiveLoans = $book->copies()->where('status', 'emprunté')->exists();
+        $hasActiveLoans = $book->copies()->where('status', 'borrowed')->exists();
 
         if ($hasActiveLoans) {
             return response()->json([
