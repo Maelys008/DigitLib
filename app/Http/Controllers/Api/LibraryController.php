@@ -8,7 +8,6 @@ use App\Models\Internal_member;
 use App\Models\Library;
 use App\Models\Loan;
 use App\Models\Penalty;
-use App\Models\Role_assignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -43,7 +42,7 @@ class LibraryController extends Controller
             'internalMembers.user:id,name',
         ]);
 
-        $response             = $library->toArray();
+        $response = $library->toArray();
         $response['is_member'] = true; // accès universel
 
         return response()->json($response);
@@ -52,13 +51,13 @@ class LibraryController extends Controller
     public function update(Request $request, Library $library)
     {
         $request->validate([
-            'name'                => 'sometimes|required|string|max:255',
-            'adress'              => 'sometimes|required|string',
-            'library_phone'       => 'sometimes|required|string',
-            'description'         => 'nullable|string',
-            'parent_id'           => 'nullable|exists:libraries,id',
-            'library_image'       => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-            'loan_duration'       => 'sometimes|integer|min:1',
+            'name' => 'sometimes|required|string|max:255',
+            'adress' => 'sometimes|required|string',
+            'library_phone' => 'sometimes|required|string',
+            'description' => 'nullable|string',
+            'parent_id' => 'nullable|exists:libraries,id',
+            'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'sometimes|integer|min:1',
             'daily_penalty_amount' => 'sometimes|numeric|min:0',
         ]);
 
@@ -79,13 +78,13 @@ class LibraryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'                => 'required|string|max:255',
-            'adress'              => 'required|string',
-            'library_phone'       => 'required|string',
-            'description'         => 'nullable|string',
-            'parent_id'           => 'nullable|exists:libraries,id',
-            'library_image'       => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-            'loan_duration'       => 'nullable|integer|min:1',
+            'name' => 'required|string|max:255',
+            'adress' => 'required|string',
+            'library_phone' => 'required|string',
+            'description' => 'nullable|string',
+            'parent_id' => 'nullable|exists:libraries,id',
+            'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+            'loan_duration' => 'nullable|integer|min:1',
             'daily_penalty_amount' => 'nullable|numeric|min:0',
         ]);
 
@@ -102,29 +101,30 @@ class LibraryController extends Controller
             $user = $request->user();
 
             $library = Library::create([
-                'name'                => $request->name,
-                'library_image'       => $imagePath,
-                'parent_id'           => $request->parent_id,
-                'adress'              => $request->adress,
-                'library_phone'       => $request->library_phone,
-                'description'         => $request->description,
-                'administrator_id'    => $user->id,
-                'loan_duration'       => $request->loan_duration ?? 14,
+                'name' => $request->name,
+                'library_image' => $imagePath,
+                'parent_id' => $request->parent_id,
+                'adress' => $request->adress,
+                'library_phone' => $request->library_phone,
+                'description' => $request->description,
+                'administrator_id' => $user->id,
+                'loan_duration' => $request->loan_duration ?? 14,
                 'daily_penalty_amount' => $request->daily_penalty_amount ?? 0,
             ]);
 
-            $user->update(['role' => 'admin']);
+            // $user->update(['role' => 'admin']);
 
-            $member = Internal_member::create([
-                'user_id'    => $user->id,
-                'library_id' => $library->id,
-            ]);
+            // $member = Internal_member::create([
+            //     'user_id'    => $user->id,
+            //     'library_id' => $library->id,
+            // ]);
 
-            Role_assignment::create([
-                'internal_member_id' => $member->id,
-                'role_id'            => 1,
-                'date_assignment'    => now(),
-            ]);
+            // Role_assignment::create([
+            //     'internal_member_id' => $member->id,
+            //     'role_id'            => 1,
+            //     'date_assignment'    => now(),
+            // ]);
+            $user->assignRoleToLibrary(1, $library->id); // 1 = id du rôle Administrateur
 
             return response()->json(['message' => 'Bibliothèque créée avec succès !', 'library' => $library], 201);
         });
@@ -132,14 +132,17 @@ class LibraryController extends Controller
 
     public function userLibraries(Request $request)
     {
-        $user       = $request->user();
-        $adminIds   = Library::where('administrator_id', $user->id)->pluck('id')->toArray();
-        $internalIds = Internal_member::where('user_id', $user->id)->pluck('library_id')->toArray();
-        $allIds     = array_unique(array_merge($adminIds, $internalIds));
+        $user = $request->user();
 
-        $libraries = Library::whereIn('id', $allIds)->get()->map(function ($library) use ($adminIds, $internalIds) {
-            $library->is_admin           = in_array($library->id, $adminIds);
-            $library->is_internal_member = in_array($library->id, $internalIds);
+        $adminIds = Library::where('administrator_id', $user->id)->pluck('id')->toArray();
+        $roleLibraryIds = $user->roles()->distinct()->pluck('role_user.library_id')->toArray();
+        $allIds = array_unique(array_merge($adminIds, $roleLibraryIds));
+
+        $libraries = Library::whereIn('id', $allIds)->get()->map(function ($library) use ($user, $adminIds) {
+            $library->is_admin = in_array($library->id, $adminIds);
+            $library->roles = $user->getRolesInLibrary($library->id);
+            $library->is_staff = $library->is_admin || $library->roles->isNotEmpty();
+
             return $library;
         });
 
@@ -149,7 +152,7 @@ class LibraryController extends Controller
     public function loans($libraryId)
     {
         $library = Library::findOrFail($libraryId);
-        $user    = auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
         $isAuthorized = $library->administrator_id === $user->id
             || Internal_member::where('user_id', $user->id)->where('library_id', $libraryId)->exists();
@@ -158,7 +161,7 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $loans = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $loans = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->with(['user', 'copy.book'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -166,11 +169,11 @@ class LibraryController extends Controller
         return response()->json($loans);
     }
 
-    // File d'attente (loans avec status = reserved)
+    // File d'attente (loans avec status = réservée)
     public function waitlist($libraryId)
     {
         $library = Library::findOrFail($libraryId);
-        $user    = auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
         $isAuthorized = $library->administrator_id === $user->id
             || Internal_member::where('user_id', $user->id)->where('library_id', $libraryId)->exists();
@@ -179,7 +182,7 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $waitlist = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $waitlist = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->where('status', Loan::STATUS_RESERVED)
             ->with(['user', 'copy.book'])
             ->orderBy('created_at', 'asc')
@@ -191,7 +194,7 @@ class LibraryController extends Controller
     public function pendingPickups($libraryId)
     {
         $library = Library::findOrFail($libraryId);
-        $user    = auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
         $isAuthorized = $library->administrator_id === $user->id
             || Internal_member::where('user_id', $user->id)->where('library_id', $libraryId)->exists();
@@ -200,13 +203,13 @@ class LibraryController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $pending = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $en_attente = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->where('status', Loan::STATUS_PENDING_PICKUP)
             ->with(['user', 'copy.book'])
             ->orderBy('pickup_deadline', 'asc')
             ->get();
 
-        return response()->json($pending);
+        return response()->json($en_attente);
     }
 
     public function destroy(Library $library)
@@ -227,35 +230,35 @@ class LibraryController extends Controller
     public function reportsStats(Request $request, $libraryId)
     {
         $library = Library::findOrFail($libraryId);
-        $user    = $request->user();
+        $user = $request->user();
 
         if ($library->administrator_id !== $user->id) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $books          = Book::where('library_id', $libraryId)->get();
-        $activeLoans    = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $books = Book::where('library_id', $libraryId)->get();
+        $activeLoans = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->whereIn('status', [Loan::STATUS_IN_PROGRESS, Loan::STATUS_PENDING_PICKUP])
             ->count();
-        $waitlistCount  = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $waitlistCount = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->where('status', Loan::STATUS_RESERVED)
             ->count();
-        $lateReturns    = Loan::whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+        $lateReturns = Loan::whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->where('status', Loan::STATUS_IN_PROGRESS)
             ->where('expected_return_date', '<', now())
             ->count();
-        $unpaidPenalties = Penalty::whereHas('loan.copy.book', fn($q) => $q->where('library_id', $libraryId))
-            ->where('status', 'unpaid')
+        $unpaidPenalties = Penalty::whereHas('loan.copy.book', fn ($q) => $q->where('library_id', $libraryId))
+            ->where('status', 'non_payé')
             ->sum('amount');
 
         return response()->json([
-            'totalBooks'      => $books->count(),
-            'totalCopies'     => $books->sum('nb_copy'),
-            'available'       => $books->sum('nb_available'),
-            'borrowed'        => $activeLoans,
-            'waitlist'        => $waitlistCount,
-            'lateReturns'     => $lateReturns,
-            'totalPenalties'  => $unpaidPenalties,
+            'totalBooks' => $books->count(),
+            'totalCopies' => $books->sum('nb_copy'),
+            'disponible' => $books->sum('nb_available'),
+            'emprunté' => $activeLoans,
+            'waitlist' => $waitlistCount,
+            'lateReturns' => $lateReturns,
+            'totalPenalties' => $unpaidPenalties,
         ]);
     }
 
@@ -283,7 +286,7 @@ class LibraryController extends Controller
 
         $topUsers = Loan::select('users.id', 'users.name', DB::raw('count(*) as total'))
             ->join('users', 'loans.user_id', '=', 'users.id')
-            ->whereHas('copy.book', fn($q) => $q->where('library_id', $libraryId))
+            ->whereHas('copy.book', fn ($q) => $q->where('library_id', $libraryId))
             ->groupBy('users.id', 'users.name')
             ->orderBy('total', 'desc')
             ->limit($limit)
@@ -310,17 +313,17 @@ class LibraryController extends Controller
     {
         Library::findOrFail($libraryId);
 
-        $penalties = Penalty::whereHas('loan.copy.book', fn($q) => $q->where('library_id', $libraryId))
-            ->where('status', 'unpaid')
+        $penalties = Penalty::whereHas('loan.copy.book', fn ($q) => $q->where('library_id', $libraryId))
+            ->where('status', 'non_payé')
             ->with(['user:id,name', 'loan.copy.book:id,title'])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($p) => [
-                'id'         => $p->id,
-                'user_name'  => $p->user->name,
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'user_name' => $p->user->name,
                 'book_title' => $p->loan->copy->book->title,
-                'amount'     => $p->amount,
-                'reason'     => $p->reason,
+                'amount' => $p->amount,
+                'reason' => $p->reason,
             ]);
 
         return response()->json($penalties);
@@ -333,6 +336,7 @@ class LibraryController extends Controller
             ->get()
             ->map(function ($library) {
                 $library->is_member = true;
+
                 return $library;
             });
 

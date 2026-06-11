@@ -13,7 +13,7 @@ export default function Incidents() {
     const [incidents, setIncidents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filter, setFilter] = useState('all'); // all, lost, damaged
+    const [filter, setFilter] = useState('all'); // all, perdue, endommagé
 
     useEffect(() => {
         const loadIncidents = async () => {
@@ -92,8 +92,8 @@ export default function Incidents() {
             incident.loan?.copy?.book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filter === 'all') return matchesSearch;
-        if (filter === 'lost') return matchesSearch && incident.description?.toLowerCase().includes('perdu');
-        if (filter === 'damaged') return matchesSearch && (incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé'));
+        if (filter === 'perdue') return matchesSearch && incident.description?.toLowerCase().includes('perdu');
+        if (filter === 'endommagé') return matchesSearch && (incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé'));
         
         return matchesSearch;
     });
@@ -191,9 +191,9 @@ export default function Incidents() {
                             Tous ({incidents.length})
                         </button>
                         <button
-                            onClick={() => setFilter('lost')}
+                            onClick={() => setFilter('perdue')}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                filter === 'lost'
+                                filter === 'perdue'
                                     ? 'bg-red-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
@@ -201,9 +201,9 @@ export default function Incidents() {
                             Livres perdus ({incidents.filter(i => i.description?.toLowerCase().includes('perdu')).length})
                         </button>
                         <button
-                            onClick={() => setFilter('damaged')}
+                            onClick={() => setFilter('endommagé')}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                filter === 'damaged'
+                                filter === 'endommagé'
                                     ? 'bg-orange-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}

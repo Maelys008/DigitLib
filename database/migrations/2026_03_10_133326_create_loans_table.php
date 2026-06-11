@@ -13,19 +13,19 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('copy_id')->constrained('copies');
             $table->enum('status', [
-                'pending_pickup', // exemplaire dispo, en attente retrait (24h)
-                'in_progress',    // retiré, emprunt en cours
-                'returned',       // retourné
-                'cancelled',      // annulé par l'utilisateur avant retrait
-                'expired',        // non retiré dans les 24h
-                'reserved',       // file d'attente, exemplaire indisponible
-            ])->default('pending_pickup');
+                'en_attente_de_retrait', // exemplaire dispo, en attente retrait (24h)
+                'en_cours',    // retiré, emprunt en cours
+                'retourné',       // retourné
+                'annulé',      // annulé par l'utilisateur avant retrait
+                'expiré',        // non retiré dans les 24h
+                'réservée',       // file d'attente, exemplaire indisponible
+            ])->default('en_attente_de_retrait');
             $table->timestamp('pickup_deadline')->nullable(); // deadline retrait 24h
             $table->date('loan_date')->nullable();            // date retrait physique
-            $table->date('expected_return_date')->nullable(); // calculée à pending_pickup
+            $table->date('expected_return_date')->nullable(); // calculée à en_attente_de_retrait
             $table->date('actual_return_date')->nullable();
             $table->foreignId('returned_by')->nullable()->constrained('users');
-            $table->enum('condition_on_return', ['new', 'good', 'damaged', 'very_damaged'])->nullable();
+            $table->foreignId('return_copy_state_id')->nullable()->constrained('copy_states');
             $table->timestamps();
         });
     }

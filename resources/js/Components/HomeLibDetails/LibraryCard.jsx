@@ -6,29 +6,18 @@ export default function LibraryCard({ library }) {
     router.visit(`/libraries/${library.id}`);
   };
 
-  // 🔥 Version simplifiée - URL relative uniquement
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    
-    // URL relative - le navigateur utilise automatiquement le bon hôte et port
     if (imagePath.startsWith('/storage/')) {
       return imagePath;
     }
-    
     return `/storage/${imagePath}`;
   };
 
   const imageUrl = getImageUrl(library.library_image);
-  console.log('LibraryCard - Image URL:', imageUrl); 
-  // Dans LibraryCard, ajoute ce console.log
-console.log('📚 Données bibliothèque reçues:', {
-  name: library.name,
-  books_count: library.books_count,
-  members_count: library.members_count
-});
 
   return (
     <div 
@@ -73,12 +62,12 @@ console.log('📚 Données bibliothèque reçues:', {
           <span className="line-clamp-1">{library.adress}</span>
         </div>
         
-        {/* Statistiques */}
+        {/* Statistiques - sans membres */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-1">
-            <Users className="w-4 h-4 text-green-500 dark:text-green-400" />
+            <BookOpen className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              {library.members_count || 0} membres
+              {library.books_count || 0} livres
             </span>
           </div>
           <div className="flex items-center gap-1">

@@ -23,8 +23,6 @@ export default function LibraryDetails() {
   const { user, isAuthenticated } = useAuth();
   
   const [library, setLibrary] = useState(null);
-  const [isJoining, setIsJoining] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
   const [allBooks, setAllBooks] = useState([]);
   const [currentPageBooks, setCurrentPageBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +44,6 @@ export default function LibraryDetails() {
   useEffect(() => {
     if (id) {
       fetchLibraryDetails();
-      checkIfJoined();
     }
   }, [id]);
 
@@ -87,43 +84,6 @@ export default function LibraryDetails() {
       console.error('Erreur chargement livres:', error);
     } finally {
       setIsLoadingBooks(false);
-    }
-  };
-
-  const checkIfJoined = async () => {
-    if (!isAuthenticated) return;
-    try {
-      const userLibraries = await api.getUserJoinedLibraries();
-      const joined = userLibraries.some(lib => lib.id === parseInt(id));
-      setHasJoined(joined);
-    } catch (error) {
-      console.error('Erreur vérification adhésion:', error);
-    }
-  };
-
-  const handleJoinLibrary = async () => {
-    if (!isAuthenticated) {
-      localStorage.setItem('redirectAfterLogin', window.location.pathname);
-      router.visit('/login');
-      return;
-    }
-
-    setIsJoining(true);
-    setMessage(null);
-
-    try {
-      const result = await api.joinLibrary(id);
-      if (result.success) {
-        setHasJoined(true);
-        setMessage({ type: 'success', text: 'Vous avez rejoint la bibliothèque avec succès !' });
-        setTimeout(() => setMessage(null), 3000);
-      } else {
-        setMessage({ type: 'error', text: result.message });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Erreur lors de l\'adhésion' });
-    } finally {
-      setIsJoining(false);
     }
   };
 
@@ -265,19 +225,7 @@ export default function LibraryDetails() {
               </div>
             </div>
             
-            {isAuthenticated && (
-              <button
-                onClick={handleJoinLibrary}
-                disabled={isJoining || hasJoined}
-                className={`px-5 py-2 rounded-xl font-medium transition-all ${
-                  hasJoined 
-                    ? 'bg-green-500 text-white cursor-default'
-                    : 'bg-white text-orange-600 hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                {isJoining ? 'Adhésion...' : hasJoined ? 'Membre ✓' : 'Rejoindre'}
-              </button>
-            )}
+            {/* ❌ Bouton "Rejoindre" supprimé - plus de système d'inscriptions */}
           </div>
         </div>
       </div>
@@ -311,8 +259,8 @@ export default function LibraryDetails() {
           <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
             <Users className="w-5 h-5 text-green-500 dark:text-green-400" />
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Membres</p>
-              <p className="font-semibold text-gray-900 dark:text-white">{library.members_count || 0}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Accès</p>
+              <p className="font-semibold text-gray-900 dark:text-white">Universel</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">

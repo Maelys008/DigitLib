@@ -90,10 +90,10 @@ export default function ManagePenalties() {
   const getFilteredPenalties = () => {
     let filtered = allPenalties;
     
-    if (filterStatus === 'paid') {
+    if (filterStatus === 'payé') {
       filtered = filtered.filter(p => p.status === 'payé');
-    } else if (filterStatus === 'unpaid') {
-      filtered = filtered.filter(p => p.status === 'non payé');
+    } else if (filterStatus === 'non_payé') {
+      filtered = filtered.filter(p => p.status === 'non_payé');
     }
     
     if (searchTerm) {
@@ -109,7 +109,7 @@ export default function ManagePenalties() {
 
   const filteredPenalties = getFilteredPenalties();
   
-  const unpaidCount = allPenalties.filter(p => p.status === 'non payé').length;
+  const unpaidCount = allPenalties.filter(p => p.status === 'non_payé').length;
   const paidCount = allPenalties.filter(p => p.status === 'payé').length;
   const totalAmount = filteredPenalties.reduce((sum, p) => sum + (p.amount || 0), 0);
 
@@ -217,9 +217,9 @@ export default function ManagePenalties() {
               Tous ({allPenalties.length})
             </button>
             <button
-              onClick={() => setFilterStatus('unpaid')}
+              onClick={() => setFilterStatus('non_payé')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filterStatus === 'unpaid' 
+                filterStatus === 'non_payé' 
                   ? 'bg-red-600 text-white' 
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
@@ -227,9 +227,9 @@ export default function ManagePenalties() {
               Non payées ({unpaidCount})
             </button>
             <button
-              onClick={() => setFilterStatus('paid')}
+              onClick={() => setFilterStatus('payé')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filterStatus === 'paid' 
+                filterStatus === 'payé' 
                   ? 'bg-green-600 text-white' 
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
@@ -242,17 +242,17 @@ export default function ManagePenalties() {
         {/* Statistiques */}
         <div className="px-6 mt-2">
           <div className={`rounded-2xl p-4 text-white ${
-            filterStatus === 'paid' 
+            filterStatus === 'payé' 
               ? 'bg-gradient-to-r from-green-500 to-green-600'
-              : filterStatus === 'unpaid'
+              : filterStatus === 'non_payé'
                 ? 'bg-gradient-to-r from-red-500 to-red-600'
                 : 'bg-gradient-to-r from-purple-500 to-purple-600'
           }`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-90">
-                  {filterStatus === 'paid' ? 'Total des pénalités payées' : 
-                   filterStatus === 'unpaid' ? 'Total des pénalités impayées' : 
+                  {filterStatus === 'payé' ? 'Total des pénalités payées' : 
+                   filterStatus === 'non_payé' ? 'Total des pénalités impayées' : 
                    'Total général'}
                 </p>
                 <p className="text-2xl font-bold">{totalAmount.toLocaleString()} FCFA</p>
@@ -288,8 +288,8 @@ export default function ManagePenalties() {
               <CheckCircle className="w-16 h-16 text-green-300 dark:text-green-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 font-medium">Aucune pénalité trouvée</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                {filterStatus === 'paid' ? 'Aucune pénalité payée pour cette bibliothèque' :
-                 filterStatus === 'unpaid' ? 'Toutes les pénalités de cette bibliothèque ont été réglées' :
+                {filterStatus === 'payé' ? 'Aucune pénalité payée pour cette bibliothèque' :
+                 filterStatus === 'non_payé' ? 'Toutes les pénalités de cette bibliothèque ont été réglées' :
                  'Aucune pénalité pour cette bibliothèque'}
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function ManagePenalties() {
                   
                   <div className="text-right">
                     <p className="text-lg font-bold text-red-600 dark:text-red-400">{penalty.amount?.toLocaleString()} FCFA</p>
-                    {penalty.status === 'non payé' && (
+                    {penalty.status === 'non_payé' && (
                       <button
                         onClick={() => handlePayPenalty(penalty.id)}
                         disabled={payingId === penalty.id}

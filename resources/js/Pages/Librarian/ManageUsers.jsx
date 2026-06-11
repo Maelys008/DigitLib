@@ -17,14 +17,35 @@ export default function ManageUsers() {
   const [activeTab, setActiveTab] = useState('loans');
   const [searchTerm, setSearchTerm] = useState('');
   const [returningLoan, setReturningLoan] = useState(null);
-  const [returnCondition, setReturnCondition] = useState('bon');
+  const [returnCopyStateId, setReturnCopyStateId] = useState('');
+  const [copyStates, setCopyStates] = useState([]);
   const [penaltyAmount, setPenaltyAmount] = useState('');
   const [penaltyReason, setPenaltyReason] = useState('');
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [message, setMessage] = useState(null);
   const [penaltyError, setPenaltyError] = useState('');
 
-  const requiresPenalty = returnCondition === 'abimé' || returnCondition === 'très abimé';
+  // Charger les états possibles pour les livres
+  useEffect(() => {
+    const loadCopyStates = async () => {
+      try {
+        const response = await api.axios.get('/copy-states');
+        setCopyStates(response.data);
+      } catch (error) {
+        console.error('Erreur chargement états:', error);
+      }
+    };
+    loadCopyStates();
+  }, []);
+
+  const getSelectedState = () => {
+    return copyStates.find(s => s.id === parseInt(returnCopyStateId));
+  };
+
+  const requiresPenalty = () => {
+    const state = getSelectedState();
+    return state && (state.libelle_state === 'endommagé' || state.libelle_state === 'très_endommagé');
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -33,11 +54,9 @@ export default function ManageUsers() {
       setIsLoading(true);
       
       try {
-        // 🔥 Utilise la bibliothèque active du Context
         let lib = activeLibrary;
         
         if (!lib) {
-          // Fallback: cherche la bibliothèque où l'utilisateur est admin
           const libraries = await api.getUserLibraries();
           lib = libraries.find(l => l.administrator_id === user.id);
         }
@@ -46,15 +65,16 @@ export default function ManageUsers() {
           console.log('📚 ManageUsers - Bibliothèque chargée:', lib.name);
           setLibrary(lib);
           
-          // Récupérer TOUS les emprunts (inclut pending_pickup et active)
           const loansData = await api.getLibraryLoans(lib.id);
           console.log('📚 Emprunts:', loansData);
           setLoans(loansData);
           
-          // Récupérer UNIQUEMENT les réservations actives (en attente)
-          const activeReservationsData = await api.getActiveReservations(lib.id);
-          console.log('📋 Réservations actives:', activeReservationsData);
-          setReservations(activeReservationsData.reservations || []);
+          const waitlistResponse = await api.axios.get(`/libraries/${lib.id}/waitlist`);
+          const waitlistData = waitlistResponse.data;
+          console.log('📋 Liste d\'attente (waitlist):', waitlistData);
+          
+          const activeReservations = waitlistData.waitlist || [];
+          setReservations(activeReservations);
         } else {
           console.log('Aucune bibliothèque trouvée');
         }
@@ -72,17 +92,25 @@ export default function ManageUsers() {
   }, [user, activeLibrary, libraryLoading]);
 
   useEffect(() => {
-    if (!requiresPenalty) {
+    if (!requiresPenalty()) {
       setPenaltyAmount('');
       setPenaltyReason('');
       setPenaltyError('');
     }
-  }, [returnCondition]);
+  }, [returnCopyStateId]);
 
   const handleReturnBook = async () => {
     if (!returningLoan) return;
     
-    if (requiresPenalty) {
+    console.log('📤 handleReturnBook - Données:', {
+      loanId: returningLoan.id,
+      return_copy_state_id: returnCopyStateId,
+      requiresPenalty: requiresPenalty(),
+      penaltyAmount: requiresPenalty() ? parseFloat(penaltyAmount) : null,
+      penaltyReason: requiresPenalty() ? penaltyReason : null
+    });
+    
+    if (requiresPenalty()) {
       const amount = parseFloat(penaltyAmount);
       if (!penaltyAmount || isNaN(amount) || amount <= 0) {
         setPenaltyError('La pénalité doit être supérieure à 0 FCFA');
@@ -97,22 +125,26 @@ export default function ManageUsers() {
     setPenaltyError('');
     
     try {
-      const result = await api.returnBook(
+      const result = await api.returnBookWithState(
         returningLoan.id,
-        returnCondition,
-        requiresPenalty ? parseFloat(penaltyAmount) : null,
-        requiresPenalty ? penaltyReason : null
+        returnCopyStateId,
+        requiresPenalty() ? parseFloat(penaltyAmount) : null,
+        requiresPenalty() ? penaltyReason : null
       );
       
       if (result.success) {
         setMessage({ type: 'success', text: result.data.message });
         const loansData = await api.getLibraryLoans(library.id);
         setLoans(loansData);
+        
+        const waitlistResponse = await api.axios.get(`/libraries/${library.id}/waitlist`);
+        setReservations(waitlistResponse.data.waitlist || []);
+        
         setShowReturnModal(false);
         setReturningLoan(null);
         setPenaltyAmount('');
         setPenaltyReason('');
-        setReturnCondition('bon');
+        setReturnCopyStateId('');
         setPenaltyError('');
       } else {
         setMessage({ type: 'error', text: result.message });
@@ -126,7 +158,7 @@ export default function ManageUsers() {
 
   const openReturnModal = (loan) => {
     setReturningLoan(loan);
-    setReturnCondition('bon');
+    setReturnCopyStateId('');
     setPenaltyAmount('');
     setPenaltyReason('');
     setPenaltyError('');
@@ -134,7 +166,9 @@ export default function ManageUsers() {
   };
 
   const filteredLoans = loans.filter(loan => 
-    !loan.actual_return_date && (
+    !loan.actual_return_date && 
+    loan.status !== 'réservée' &&
+    (
       loan.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       loan.copy?.book?.title?.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -142,7 +176,7 @@ export default function ManageUsers() {
 
   const filteredReservations = reservations.filter(res => 
     res.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    res.book?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    res.copy?.book?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleConfirmPickup = async (loan) => {
@@ -152,6 +186,9 @@ export default function ManageUsers() {
         setMessage({ type: 'success', text: 'Retrait confirmé avec succès !' });
         const loansData = await api.getLibraryLoans(library.id);
         setLoans(loansData);
+        
+        const waitlistResponse = await api.axios.get(`/libraries/${library.id}/waitlist`);
+        setReservations(waitlistResponse.data.waitlist || []);
       } else {
         setMessage({ type: 'error', text: result.message });
       }
@@ -247,7 +284,7 @@ export default function ManageUsers() {
             >
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>Réservations ({filteredReservations.length})</span>
+                <span>Liste d'attente ({filteredReservations.length})</span>
               </div>
             </button>
           </div>
@@ -289,7 +326,7 @@ export default function ManageUsers() {
           </div>
         )}
 
-        {/* Liste des réservations */}
+        {/* Liste des réservations (waitlist) */}
         {activeTab === 'reservations' && (
           <div className="px-6 py-4 space-y-3">
             {filteredReservations.length === 0 ? (
@@ -334,18 +371,22 @@ export default function ManageUsers() {
                   État du livre
                 </label>
                 <select
-                  value={returnCondition}
-                  onChange={(e) => setReturnCondition(e.target.value)}
+                  value={returnCopyStateId}
+                  onChange={(e) => setReturnCopyStateId(e.target.value)}
                   className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
-                  <option value="neuf">Neuf</option>
-                  <option value="bon">Bon</option>
-                  <option value="abimé">Abîmé</option>
-                  <option value="très abimé">Très abîmé</option>
+                  <option value="">Sélectionner un état</option>
+                  {copyStates.map(state => (
+                    <option key={state.id} value={state.id}>
+                      {state.libelle_state === 'nouvelle' ? 'Neuf' :
+                       state.libelle_state === 'bon' ? 'Bon' :
+                       state.libelle_state === 'endommagé' ? 'Abîmé' : 'Très abîmé'}
+                    </option>
+                  ))}
                 </select>
               </div>
               
-              {requiresPenalty && (
+              {requiresPenalty() && returnCopyStateId && (
                 <>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -401,7 +442,8 @@ export default function ManageUsers() {
                 </button>
                 <button
                   onClick={handleReturnBook}
-                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium"
+                  disabled={!returnCopyStateId}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirmer le retour
                 </button>

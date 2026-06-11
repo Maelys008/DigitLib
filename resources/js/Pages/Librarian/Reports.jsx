@@ -60,8 +60,8 @@ export default function Reports() {
       setStats({
         totalBooks: 0,
         totalCopies: 0,
-        available: 0,
-        borrowed: 0,
+        disponible: 0,
+        emprunté: 0,
         users: 0,
         reservations: 0,
         lateReturns: 0,
@@ -202,8 +202,8 @@ export default function Reports() {
     const displayStats = stats || {
       totalBooks: 0,
       totalCopies: 0,
-      available: 0,
-      borrowed: 0,
+      disponible: 0,
+      emprunté: 0,
       users: 0,
       reservations: 0,
       lateReturns: 0,
@@ -233,7 +233,7 @@ export default function Reports() {
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Emprunts en cours</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{displayStats.borrowed || 0}</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{displayStats.emprunté || 0}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Réservations</p>
@@ -255,13 +255,13 @@ export default function Reports() {
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-700 dark:text-gray-300">Livres empruntés</span>
                     <span className="font-semibold text-blue-900 dark:text-blue-300">
-                      {displayStats.totalBooks ? Math.round((displayStats.borrowed / displayStats.totalBooks) * 100) : 0}%
+                      {displayStats.totalBooks ? Math.round((displayStats.emprunté / displayStats.totalBooks) * 100) : 0}%
                     </span>
                   </div>
                   <div className="h-3 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500" 
-                      style={{ width: `${displayStats.totalBooks ? (displayStats.borrowed / displayStats.totalBooks) * 100 : 0}%` }}
+                      style={{ width: `${displayStats.totalBooks ? (displayStats.emprunté / displayStats.totalBooks) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -269,13 +269,13 @@ export default function Reports() {
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-700 dark:text-gray-300">Livres disponibles</span>
                     <span className="font-semibold text-green-900 dark:text-green-300">
-                      {displayStats.totalBooks ? Math.round((displayStats.available / displayStats.totalBooks) * 100) : 0}%
+                      {displayStats.totalBooks ? Math.round((displayStats.disponible / displayStats.totalBooks) * 100) : 0}%
                     </span>
                   </div>
                   <div className="h-3 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-green-600 dark:bg-green-500 rounded-full transition-all duration-500" 
-                      style={{ width: `${displayStats.totalBooks ? (displayStats.available / displayStats.totalBooks) * 100 : 0}%` }}
+                      style={{ width: `${displayStats.totalBooks ? (displayStats.disponible / displayStats.totalBooks) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -307,7 +307,7 @@ export default function Reports() {
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Emprunts actifs</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{displayStats.borrowed || 0}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{displayStats.emprunté || 0}</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-500 dark:text-green-400" />
                 </div>
@@ -409,7 +409,7 @@ export default function Reports() {
                       <span className="text-gray-700 dark:text-gray-300">Disponibles</span>
                     </div>
                     <span className="font-semibold text-green-600 dark:text-green-400 text-lg">
-                      {displayStats.available || 0}
+                      {displayStats.disponible || 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -418,7 +418,7 @@ export default function Reports() {
                       <span className="text-gray-700 dark:text-gray-300">Empruntés</span>
                     </div>
                     <span className="font-semibold text-blue-600 dark:text-blue-400 text-lg">
-                      {displayStats.borrowed || 0}
+                      {displayStats.emprunté || 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">

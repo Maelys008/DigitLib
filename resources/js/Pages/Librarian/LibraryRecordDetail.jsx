@@ -87,11 +87,11 @@ export default function LibraryRecordDetail() {
                             {severity.icon} {severity.label}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            record.status === 'resolved' 
+                            record.status === 'résolue' 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-orange-100 text-orange-800'
                         }`}>
-                            {record.status === 'resolved' ? '✅ Résolu' : '⏳ En attente'}
+                            {record.status === 'résolue' ? '✅ Résolu' : '⏳ En attente'}
                         </span>
                         {/* 🔥 PAS DE BOUTON "Marquer comme résolu" ICI */}
                     </div>

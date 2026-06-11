@@ -25,7 +25,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'tel',
         'score',
         'password',
-        'role',
         'identity_hash',
         'email_verified_at',
         'status',
@@ -60,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // ========== RELATIONS ==========
     public function loans()
     {
         return $this->hasMany(Loan::class);
@@ -90,9 +90,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Badge::class, 'badge_id');
     }
 
+    // Bibliothèques dont l'utilisateur est admin (propriétaire)
     public function managedLibraries()
     {
         return $this->hasMany(Library::class, 'administrator_id');
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withPivot('library_id')
+            ->withTimestamps();
     }
 
     public function internalMembers()
@@ -100,6 +108,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Internal_member::class, 'user_id');
     }
 
+     // Clubs
     public function ownerClubs()
     {
         return $this->hasMany(Club::class);
@@ -110,11 +119,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Club_member::class);
     }
 
+        // Social
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
     }
 
+     // Reviews
     public function reviews()
     {
         return $this->hasMany(Review::class);
@@ -125,6 +136,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Review::class, 'review_likes')->withTimestamps();
     }
 
+    // Favoris
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
@@ -135,9 +147,86 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Book::class, 'favorites')
             ->withTimestamps();
     }
-
+ // Étagères
     public function shelves()
     {
         return $this->hasMany(Shelf::class);
     }
+
+    // ========== MÉTHODES UTILITAIRES ==========
+    
+    /**
+     * Vérifie si l'utilisateur a un rôle spécifique dans une bibliothèque
+     */
+    public function hasRoleInLibrary($roleName, $libraryId)
+    {
+        return $this->roles()
+            ->where('role_user.library_id', $libraryId)
+            ->where('name_role', $roleName)
+            ->exists();
+    }
+
+    /**
+     * Vérifie si l'utilisateur est admin (propriétaire) d'une bibliothèque
+     */
+    public function isLibraryAdmin($libraryId)
+    {
+        return $this->managedLibraries()->where('id', $libraryId)->exists();
+    }
+
+    /**
+     * Vérifie si l'utilisateur est staff (interne) d'une bibliothèque
+     * (a un rôle assigné ou est admin)
+     */
+    public function isLibraryStaff($libraryId)
+    {
+        if ($this->isLibraryAdmin($libraryId)) {
+            return true;
+        }
+        
+        return $this->roles()
+            ->where('role_user.library_id', $libraryId)
+            ->exists();
+    }
+
+    /**
+     * Récupère tous les rôles de l'utilisateur dans une bibliothèque
+     */
+    public function getRolesInLibrary($libraryId)
+    {
+        return $this->roles()
+            ->where('role_user.library_id', $libraryId)
+            ->get();
+    }
+
+    /**
+     * Attribue un rôle à l'utilisateur dans une bibliothèque
+     */
+    public function assignRoleToLibrary($roleId, $libraryId)
+    {
+        $exists = $this->roles()
+            ->where('role_user.library_id', $libraryId)
+            ->where('role_user.role_id', $roleId)
+            ->exists();
+            
+        if (!$exists) {
+            $this->roles()->attach($roleId, ['library_id' => $libraryId]);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Supprime un rôle de l'utilisateur dans une bibliothèque
+     */
+    public function removeRoleFromLibrary($roleId, $libraryId)
+    {
+        $this->roles()
+            ->where('role_user.library_id', $libraryId)
+            ->where('role_user.role_id', $roleId)
+            ->detach();
+            
+        return $this;
+    }
+
 }

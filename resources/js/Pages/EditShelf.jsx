@@ -92,38 +92,47 @@ export default function EditShelf() {
         window.history.back();
     };
 
-    const handleSave = async () => {
-        if (!shelfName.trim()) return;
+  const handleSave = async () => {
+    if (!shelfName.trim()) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+        // 🔥 Créer FormData pour gérer l'upload d'image
+        const formData = new FormData();
+        formData.append('name', shelfName);
+        formData.append('description', shelfDescription);
         
-        setIsSubmitting(true);
-        
-        try {
-            await api.updateShelf(id, {
-                name: shelfName,
-                description: shelfDescription,
-                cover_image: shelfImage
-            });
-            
-            const currentBookIds = currentBooks.map(b => b.id);
-            const selectedBookIds = selectedBooks.map(b => b.id);
-            
-            const toRemove = currentBookIds.filter(id => !selectedBookIds.includes(id));
-            for (const bookId of toRemove) {
-                await api.removeBookFromShelf(id, bookId);
-            }
-            
-            const toAdd = selectedBookIds.filter(id => !currentBookIds.includes(id));
-            for (const bookId of toAdd) {
-                await api.addBookToShelf(id, bookId);
-            }
-            
-            router.visit(`/shelves/${id}`);
-        } catch (error) {
-            console.error('Erreur sauvegarde:', error);
-        } finally {
-            setIsSubmitting(false);
+        // 🔥 Si une nouvelle image a été sélectionnée (fichier, pas URL base64)
+        if (fileInputRef.current?.files[0]) {
+            formData.append('shelf_image', fileInputRef.current.files[0]);
         }
-    };
+        
+        // 🔥 Mettre à jour l'étagère
+        await api.updateShelf(id, formData);
+        
+        // Gérer les livres
+        const currentBookIds = currentBooks.map(b => b.id);
+        const selectedBookIds = selectedBooks.map(b => b.id);
+        
+        const toRemove = currentBookIds.filter(bookId => !selectedBookIds.includes(bookId));
+        for (const bookId of toRemove) {
+            await api.removeBookFromShelf(id, bookId);
+        }
+        
+        const toAdd = selectedBookIds.filter(bookId => !currentBookIds.includes(bookId));
+        for (const bookId of toAdd) {
+            await api.addBookToShelf(id, bookId);
+        }
+        
+        router.visit(`/shelves/${id}`);
+    } catch (error) {
+        console.error('Erreur sauvegarde:', error);
+        alert('Erreur lors de la sauvegarde');
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
     if (isLoading) {
         return (

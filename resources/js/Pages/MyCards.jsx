@@ -19,9 +19,9 @@ const fetchUnpaidPenalties = async () => {
   setIsLoading(true);
   try {
     // 🔥 Utilise la nouvelle méthode pour lecteur
-    const unpaid = await api.getMyUnpaidPenalties();
-    console.log('💰 Pénalités non payées:', unpaid);
-    setUnpaidPenalties(unpaid);
+    const non_payé = await api.getMyUnpaidPenalties();
+    console.log('💰 Pénalités non payées:', non_payé);
+    setUnpaidPenalties(non_payé);
   } catch (error) {
     console.error('Erreur chargement pénalités:', error);
   } finally {

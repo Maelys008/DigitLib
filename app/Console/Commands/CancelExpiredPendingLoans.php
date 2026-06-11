@@ -12,7 +12,7 @@ class CancelExpiredPendingLoans extends Command
 {
     protected $signature = 'loans:cancel-expired-pending';
 
-    protected $description = 'Annule les prêts en attente de retrait (pending_pickup) dont la deadline 24h est dépassée';
+    protected $description = 'Annule les prêts en attente de retrait (en_attente_de_retrait) dont la deadline 24h est dépassée';
 
     public function handle()
     {
@@ -31,7 +31,7 @@ class CancelExpiredPendingLoans extends Command
                 $book    = $copy->book;
                 $library = $book->library;
 
-                // Passer le loan en expired
+                // Passer le loan en expiré
                 $loan->update(['status' => Loan::STATUS_EXPIRED]);
 
                 // Y a-t-il quelqu'un en file d'attente pour ce livre ?
@@ -49,7 +49,7 @@ class CancelExpiredPendingLoans extends Command
                         'expected_return_date' => $now->copy()->addDays($library->loan_duration ?? 14),
                     ]);
 
-                    $copy->update(['status' => 'reserved']);
+                    $copy->update(['status' => 'réservée']);
 
                     Notification::create([
                         'user_id'     => $nextInQueue->user_id,
@@ -62,7 +62,7 @@ class CancelExpiredPendingLoans extends Command
                     ]);
                 } else {
                     // Libérer l'exemplaire
-                    $copy->update(['status' => 'available']);
+                    $copy->update(['status' => 'disponible']);
                     $book->increment('nb_available');
                 }
 

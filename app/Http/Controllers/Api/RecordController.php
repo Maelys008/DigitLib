@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Incident;
 use App\Models\Contestation;
+use App\Models\Incident;
 use App\Models\Internal_member;
 use App\Models\Notification;
 use App\Models\User;
@@ -23,7 +23,7 @@ class RecordController extends Controller
 
         // UNIQUEMENT LES SIGNALEMENTS GRAVES NON RÉSOLUS
         $records = Incident::where('is_library_record', 1)
-            ->where('status', '!=', 'resolved')
+            ->where('status', '!=', 'résolue')
             ->with(['user', 'library'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -47,7 +47,7 @@ class RecordController extends Controller
         // Vérifier que l'utilisateur est bibliothécaire
         $isLibrarian = Internal_member::where('user_id', $authUser->id)->exists();
 
-        if (! $isLibrarian && $authUser->role !== 'admin') {
+        if (! $isLibrarian && ! $authUser->managedLibraries()->exists() && ! $authUser->roles()->exists()) {
             return response()->json(['message' => 'Seuls les bibliothécaires peuvent signaler des incidents'], 403);
         }
 
@@ -84,48 +84,48 @@ class RecordController extends Controller
         // ============================================================
         // CRÉER AUTOMATIQUEMENT UNE CONTESTATION
         // ============================================================
-       /* $concernedUserId = $request->user_id ?? $existingIncident->user_id;
-        
-        if ($concernedUserId) {
-            // Utiliser DB::transaction correctement
-            DB::beginTransaction();
-            try {
-                // Vérifier si une contestation n'existe pas déjà
-                $existingContestation = Contestation::where('user_id', $concernedUserId)
-                    ->where('incident_id', $existingIncident->id)
-                    ->first();
-                
-                if (!$existingContestation) {
-                    // Créer la contestation automatiquement
-                    $contestation = Contestation::create([
-                        'user_id' => $concernedUserId,
-                        'incident_id' => $existingIncident->id,
-                        'message' => "Incident signalé : {$request->title}",
-                        'justification' => "Vous avez la possibilité de contester cet incident. Expliquez votre version des faits.",
-                        'status' => 'en attente',
-                    ]);
-                    
-                    Log::info('✅ Contestation automatique créée - ID: '.$contestation->id);
-                    
-                    // Mettre à jour l'incident en "pending"
-                    $existingIncident->update(['status' => 'pending']);
-                    
-                    // Notification spéciale pour le reader avec lien direct vers la contestation
-                    Notification::create([
-                        'user_id' => $concernedUserId,
-                        'type' => 'contestation_auto',
-                        'message' => "⚠️ Un incident a été signalé vous concernant : {$request->title}. Cliquez ici pour le contester dans 'Mes contestations'.",
-                        'object_type' => 'contestation',
-                        'object_id' => $contestation->id,
-                        'date_sent' => now(),
-                    ]);
-                }
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('❌ Erreur création contestation: '.$e->getMessage());
-            }
-        }*/
+        /* $concernedUserId = $request->user_id ?? $existingIncident->user_id;
+
+         if ($concernedUserId) {
+             // Utiliser DB::transaction correctement
+             DB::beginTransaction();
+             try {
+                 // Vérifier si une contestation n'existe pas déjà
+                 $existingContestation = Contestation::where('user_id', $concernedUserId)
+                     ->where('incident_id', $existingIncident->id)
+                     ->first();
+
+                 if (!$existingContestation) {
+                     // Créer la contestation automatiquement
+                     $contestation = Contestation::create([
+                         'user_id' => $concernedUserId,
+                         'incident_id' => $existingIncident->id,
+                         'message' => "Incident signalé : {$request->title}",
+                         'justification' => "Vous avez la possibilité de contester cet incident. Expliquez votre version des faits.",
+                         'status' => 'en attente',
+                     ]);
+
+                     Log::info('✅ Contestation automatique créée - ID: '.$contestation->id);
+
+                     // Mettre à jour l'incident en "en_attente"
+                     $existingIncident->update(['status' => 'en_attente']);
+
+                     // Notification spéciale pour le reader avec lien direct vers la contestation
+                     Notification::create([
+                         'user_id' => $concernedUserId,
+                         'type' => 'contestation_auto',
+                         'message' => "⚠️ Un incident a été signalé vous concernant : {$request->title}. Cliquez ici pour le contester dans 'Mes contestations'.",
+                         'object_type' => 'contestation',
+                         'object_id' => $contestation->id,
+                         'date_sent' => now(),
+                     ]);
+                 }
+                 DB::commit();
+             } catch (\Exception $e) {
+                 DB::rollBack();
+                 Log::error('❌ Erreur création contestation: '.$e->getMessage());
+             }
+         }*/
 
         // Notifications pour le reader concerné (notification classique)
         if ($request->user_id) {
@@ -144,7 +144,7 @@ class RecordController extends Controller
 
         // Notifier tous les bibliothécaires
         $librarianIds = Internal_member::distinct()->pluck('user_id');
-        $adminIds = User::where('role', 'admin')->pluck('id');
+        $adminIds = User::whereHas('managedLibraries')->pluck('id');
         $allLibrarianIds = $librarianIds->merge($adminIds)->unique();
 
         foreach ($allLibrarianIds as $librarianId) {
@@ -191,12 +191,12 @@ class RecordController extends Controller
         // Vérifier que l'utilisateur peut résoudre
         $isLibrarian = Internal_member::where('user_id', $authUser->id)->exists();
 
-        if (! $isLibrarian && $authUser->role !== 'admin') {
+        if (! $isLibrarian && ! $authUser->managedLibraries()->exists() && ! $authUser->roles()->exists()) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
         $record->update([
-            'status' => 'resolved',
+            'status' => 'résolue',
             'resolved_at' => now(),
             'resolved_by' => $authUser->id,
         ]);
@@ -258,11 +258,11 @@ class RecordController extends Controller
             ],
             'stats' => [
                 'total_incidents' => $targetUser->incidents->count(),
-                'unpaid_penalties_sum' => (int) $targetUser->penalties()->where('status', 'unpaid')->sum('amount'),
+                'unpaid_penalties_sum' => (int) $targetUser->penalties()->where('status', 'non_payé')->sum('amount'),
                 'total_loans' => $targetUser->loans()->count(),
             ],
             'incident_history' => $targetUser->incidents()->with('library:id,name')->latest()->take(10)->get(),
-            'active_penalties' => $targetUser->penalties()->where('status', 'unpaid')->get(),
+            'active_penalties' => $targetUser->penalties()->where('status', 'non_payé')->get(),
         ]);
     }
 }

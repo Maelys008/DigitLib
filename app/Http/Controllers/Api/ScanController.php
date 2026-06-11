@@ -9,7 +9,7 @@ class ScanController extends Controller
 {
     public function handleScan($token)
     {
-        $copy = Copy::with(['book.library', 'book.genre'])
+        $copy = Copy::with(['book.library', 'book.genre', 'copyState'])
             ->where('codeQR', $token)
             ->first();
 
@@ -36,9 +36,13 @@ class ScanController extends Controller
                 'isbn'                => $book->isbn,
             ],
             'copy'    => [
-                'id'        => $copy->id,
-                'status'    => $copy->status,
-                'condition' => $copy->condition,
+                'id'          => $copy->id,
+                'status'      => $copy->status,
+                'copy_state'  => $copy->copyState ? [
+                    'id' => $copy->copyState->id,
+                    'libelle_state' => $copy->copyState->libelle_state,
+                    'color' => $copy->copyState->color,
+                ] : null,
             ],
         ]);
     }

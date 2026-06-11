@@ -42,7 +42,7 @@ class UpdatePenalties extends Command
             // Créer ou mettre à jour la pénalité (sauf si déjà payée)
             $penalty = Penalty::where('loan_id', $loan->id)->first();
 
-            if (! $penalty || $penalty->status !== 'paid') {
+            if (! $penalty || $penalty->status !== 'payé') {
                 $wasNew = ! $penalty;
 
                 $penalty = Penalty::updateOrCreate(
@@ -51,7 +51,7 @@ class UpdatePenalties extends Command
                         'user_id' => $loan->user_id,
                         'amount'  => $totalPenalty,
                         'reason'  => "Retard de {$daysLate} jour(s) pour \"{$loan->copy->book->title}\"",
-                        'status'  => 'unpaid',
+                        'status'  => 'non_payé',
                     ]
                 );
 
@@ -70,7 +70,7 @@ class UpdatePenalties extends Command
                 }
             }
 
-            // Livre perdu après 30 jours → incident + copy lost
+            // Livre perdu après 30 jours → incident + copy perdue
             if ($daysLate >= 30) {
                 $incidentExists = Incident::where('loan_id', $loan->id)->exists();
 
@@ -82,11 +82,11 @@ class UpdatePenalties extends Command
                         'title'                => 'Livre perdu',
                         'description'          => "Livre considéré comme perdu après {$daysLate} jours de retard.",
                         'date'                 => now(),
-                        'status'               => 'open',
+                        'status'               => 'ouvert',
                         'notify_all_librarians' => true,
                     ]);
 
-                    $loan->copy->update(['status' => 'lost']);
+                    $loan->copy->update(['status' => 'perdue']);
 
                     $this->warn("Incident créé → loan #{$loan->id} (livre perdu après {$daysLate}j)");
                 }

@@ -27,10 +27,8 @@ Route::get('/complete-profile', function () {
 Route::get('/forgot-password', function () {
     return Inertia::render('Auth/ForgotPassword');
 })->name('password.request');
-
 Route::get('/', function () {
-    // Toujours retourner du JSON pour l'APK
-    return response()->json(['message' => 'DigiLib API is running', 'status' => 'ok']);
+    return Inertia::render('Home');
 })->name('home');
 Route::get('/best-of-month', function () {
     return Inertia::render('BestOfMonth');

@@ -40,8 +40,8 @@ useEffect(() => {
   const fetchActiveIncidents = async () => {
     try {
       const incidents = await api.getLibraryIncidents();
-      const pending = incidents.filter(inc => inc.status === 'pending' && inc.severity !== 'info');
-      setActiveIncidents(pending);
+      const en_attente = incidents.filter(inc => inc.status === 'en_attente' && inc.severity !== 'info');
+      setActiveIncidents(en_attente);
     } catch (error) {
       console.error('Erreur chargement incidents:', error);
     }

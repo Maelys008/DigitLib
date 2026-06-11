@@ -18,6 +18,7 @@ class Library extends Model
         'daily_penalty_amount',
     ];
 
+    // membres_count basé sur internal_members (plus d'Inscription)
     protected $appends = ['library_url', 'members_count', 'real_books_count'];
 
     public function getLibraryUrlAttribute()
@@ -25,26 +26,19 @@ class Library extends Model
         return $this->library_image ? asset('storage/'.$this->library_image) : null;
     }
 
-    public function allChildrenIds()
+    public function getMembersCountAttribute()
     {
-        $ids = collect();
+        return $this->internalMembers()->count();
+    }
 
-        foreach ($this->children as $child) {
-            $ids->push($child->id);
-            $ids = $ids->merge($child->allChildrenIds());
-        }
-
-        return $ids;
+    public function getRealBooksCountAttribute()
+    {
+        return $this->books()->count();
     }
 
     public function books()
     {
         return $this->hasMany(Book::class);
-    }
-
-    public function inscriptions()
-    {
-        return $this->hasMany(Inscription::class);
     }
 
     public function incidents()
@@ -72,12 +66,28 @@ class Library extends Model
         return $this->belongsTo(Library::class, 'parent_id');
     }
 
-    public function getMembersCountAttribute()
+    public function allChildrenIds()
     {
-        return $this->inscriptions()->count();
+        $ids = collect();
+        foreach ($this->children as $child) {
+            $ids->push($child->id);
+            $ids = $ids->merge($child->allChildrenIds());
+        }
+
+        return $ids;
     }
-    public function getRealBooksCountAttribute()
-{
-    return $this->books()->count();
-}
+
+    public function userRoles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withPivot('user_id')
+            ->withTimestamps();
+    }
+
+    public function usersWithRoles()
+    {
+        return $this->belongsToMany(User::class, 'role_user')
+            ->withPivot('role_id')
+            ->withTimestamps();
+    }
 }

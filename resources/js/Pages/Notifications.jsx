@@ -24,7 +24,7 @@ export default function Notifications() {
         type: getNotificationType(notif.type),
         title: getNotificationTitle(notif.type),
         time: formatDate(notif.created_at || notif.date_sent),
-        read: notif.status === 'lu'
+      read: notif.status === 'read'
       }));
       setNotifications(formattedNotifications);
       const unread = formattedNotifications.filter(n => !n.read).length;
@@ -149,13 +149,35 @@ export default function Notifications() {
     window.history.back();
   };
 
-  const handleNotificationClick = (notification) => {
-    if (notification.type === 'contestation' || notification.original_type === 'contestation_auto') {
-      router.visit('/profile/contestations');
-    } else {
-      router.visit(`/notifications/${notification.id}`);
-    }
-  };
+const markAsRead = async (notificationId) => {
+  try {
+    await api.markNotificationAsRead(notificationId);
+    // Mettre à jour l'état local
+    setNotifications(prev => prev.map(n => 
+      n.id === notificationId ? { ...n, read: true } : n
+    ));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    // 🔥 Rafraîchir le compteur dans TopBar
+    window.dispatchEvent(new Event('notifications-updated'));
+  } catch (error) {
+    console.error('Erreur marquage notification:', error);
+  }
+};
+
+const handleNotificationClick = async (notification) => {
+  // 🔥 Marquer comme lue si elle ne l'est pas
+  if (!notification.read) {
+    await markAsRead(notification.id);
+  }
+  
+  // Redirection
+  if (notification.type === 'contestation' || notification.original_type === 'contestation_auto') {
+    router.visit('/profile/contestations');
+  } else {
+    router.visit(`/notifications/${notification.id}`);
+  }
+};
 
   const handleMarkAllAsRead = async () => {
     const result = await api.markAllNotificationsAsRead();

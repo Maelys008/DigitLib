@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('loan_id')->constrained('loans');
             $table->integer('amount');
             $table->string('reason');
-            $table->enum('status', ['unpaid', 'paid'])->default('unpaid');
+            $table->enum('status', ['non_payé', 'payé'])->default('non_payé');
             $table->timestamps();
         });
     }

@@ -19,7 +19,6 @@ return new class extends Migration
             $table->integer('score')->default(0);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('role')->default('reader');
             $table->string('identity_hash')->nullable();
             $table->string('status')->default('active');
             $table->foreignId('badge_id')->nullable()->constrained('badges')->nullOnDelete();

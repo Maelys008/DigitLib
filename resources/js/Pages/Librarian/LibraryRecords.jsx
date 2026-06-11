@@ -67,7 +67,7 @@ export default function LibraryRecords() {
     // Ne montrer que les signalements NON résolus dans le casier
     const filteredRecords = records.filter(record => {
         // Ne pas afficher les signalements résolus dans le casier
-        if (record.status === 'resolved') return false;
+        if (record.status === 'résolue') return false;
         
         const matchesSearch = 
             record.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,8 +75,8 @@ export default function LibraryRecords() {
             record.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filter === 'all') return matchesSearch;
-        if (filter === 'pending') return matchesSearch && record.status === 'pending';
-        if (filter === 'resolved') return matchesSearch && record.status === 'resolved';
+        if (filter === 'en_attente') return matchesSearch && record.status === 'en_attente';
+        if (filter === 'résolue') return matchesSearch && record.status === 'résolue';
         
         return matchesSearch;
     });
@@ -156,12 +156,12 @@ export default function LibraryRecords() {
                             Tous ({filteredRecords.length})
                         </button>
                         <button
-                            onClick={() => setFilter('pending')}
+                            onClick={() => setFilter('en_attente')}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                filter === 'pending' ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                filter === 'en_attente' ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                         >
-                            En attente ({filteredRecords.filter(r => r.status === 'pending').length})
+                            En attente ({filteredRecords.filter(r => r.status === 'en_attente').length})
                         </button>
                     </div>
                 </div>

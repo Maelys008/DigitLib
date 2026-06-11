@@ -18,8 +18,8 @@ export default function Dashboard() {
     totalCopies: 0,
     totalBooks: 0,
     membersCount: 0,  
-    available: 0,
-    borrowed: 0,
+    disponible: 0,
+    emprunté: 0,
     reservations: 0,
     lateReturns: 0  
   });
@@ -84,8 +84,8 @@ export default function Dashboard() {
         ...prev,
         totalCopies: totalCopies,
         totalBooks: allBooks.length,
-        available: totalAvailable,
-        borrowed: totalCopies - totalAvailable
+        disponible: totalAvailable,
+        emprunté: totalCopies - totalAvailable
       }));
       
     } catch (error) {
@@ -93,24 +93,32 @@ export default function Dashboard() {
     }
   };
 
+  // ✅ MODIFIÉ : Plus d'inscriptions (accès universel)
   const loadMembers = async (lib) => {
     if (!lib) return;
     try {
-      const members = await api.getLibraryInscriptions(lib.id);
+      // La route inscriptions n'existe plus dans le nouveau backend
+      // Tous les utilisateurs ont accès à toutes les bibliothèques
       setStats(prev => ({
         ...prev,
-        membersCount: members.length
+        membersCount: 0  // Valeur par défaut
       }));
     } catch (error) {
       console.error('Erreur chargement membres:', error);
+      setStats(prev => ({
+        ...prev,
+        membersCount: 0
+      }));
     }
   };
 
+  // ✅ MODIFIÉ : Utiliser la nouvelle route waitlist
   const loadReservations = async (lib) => {
     if (!lib) return;
     try {
-      const reservationsData = await api.getLibraryReservations(lib.id);
-      const reservationsCount = reservationsData.count || 0;
+      // Nouvelle route pour les réservations/waitlist
+      const response = await api.axios.get(`/libraries/${lib.id}/waitlist`);
+      const reservationsCount = response.data?.count || 0;
       setStats(prev => ({
         ...prev,
         reservations: reservationsCount

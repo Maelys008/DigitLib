@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     // Statuts possibles
-    const STATUS_PENDING_PICKUP = 'pending_pickup'; // exemplaire dispo, attente retrait 24h
-    const STATUS_IN_PROGRESS    = 'in_progress';    // retiré, emprunt actif
-    const STATUS_RETURNED       = 'returned';        // retourné
-    const STATUS_CANCELLED      = 'cancelled';       // annulé avant retrait
-    const STATUS_EXPIRED        = 'expired';         // non retiré dans les 24h
-    const STATUS_RESERVED       = 'reserved';        // file d'attente (exemplaire indispo)
+    const STATUS_PENDING_PICKUP = 'en_attente_de_retrait';
+    const STATUS_IN_PROGRESS    = 'en_cours';
+    const STATUS_RETURNED       = 'retourné';
+    const STATUS_CANCELLED      = 'annulé';
+    const STATUS_EXPIRED        = 'expiré';
+    const STATUS_RESERVED       = 'réservée';
 
     protected $fillable = [
         'user_id',
@@ -23,7 +23,7 @@ class Loan extends Model
         'expected_return_date',
         'actual_return_date',
         'returned_by',
-        'condition_on_return',
+        'return_copy_state_id',
     ];
 
     protected $casts = [
@@ -46,6 +46,11 @@ class Loan extends Model
     public function returnedBy()
     {
         return $this->belongsTo(User::class, 'returned_by');
+    }
+
+    public function returnCopyState()
+    {
+        return $this->belongsTo(CopyState::class, 'return_copy_state_id');
     }
 
     public function penalty()

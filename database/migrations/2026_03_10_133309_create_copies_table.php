@@ -11,14 +11,14 @@ return new class extends Migration
         Schema::create('copies', function (Blueprint $table) {
             $table->id();
             $table->string('codeQR', 64)->unique()->nullable();
-            $table->foreignId('book_id')->constrained('books');
-            $table->enum('condition', ['new', 'good', 'damaged', 'very_damaged'])->default('new');
+            $table->foreignId('book_id')->constrained('books')->onDelete('cascade');
+            $table->foreignId('copy_state_id')->constrained('copy_states'); 
             $table->enum('status', [
-                'available', // libre
-                'reserved',  // réservé (en_attente_retrait pour quelqu'un)
-                'borrowed',  // actuellement emprunté
-                'lost',      // déclaré perdu après 30j de retard
-            ])->default('available');
+                'disponible', // libre
+                'réservée',  // réservé (en_attente_retrait pour quelqu'un)
+                'emprunté',  // actuellement emprunté
+                'perdue',      // déclaré perdu après 30j de retard
+            ])->default('disponible');
             $table->date('date_added');
             $table->timestamps();
         });

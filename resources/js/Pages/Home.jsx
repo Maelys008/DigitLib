@@ -133,15 +133,18 @@ export default function Home() {
           .slice(0, 20);
         setLivresRomans(romans.slice(0, 17));
 
-        // Bibliothèques
+        // ========== 5. BIBLIOTHÈQUES ==========
+        // ✅ Version corrigée sans getLibraryInscriptions
         const librariesData = await api.getLibraries();
         const librariesWithStats = await Promise.all(librariesData.map(async (lib) => {
           const books = await api.getBooks({ library_id: lib.id });
-          const members = await api.getLibraryInscriptions(lib.id);
+          // 🔥 L'appel à getLibraryInscriptions a été supprimé
+          // const members = await api.getLibraryInscriptions(lib.id);
+          
           return {
             ...lib,
             books_count: books.data?.data?.length || 0,
-            members_count: members.length || 0
+            members_count: 0  // Plus de système d'inscriptions (accès universel)
           };
         }));
         setLibraries(librariesWithStats);

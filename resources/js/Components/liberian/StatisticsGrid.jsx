@@ -18,14 +18,14 @@ export default function StatisticsGrid({ stats }) {
     },
     { 
       label: 'Disponibles', 
-      value: stats.available || 0,  
+      value: stats.disponible || 0,  
       icon: BookOpen, 
       bg: 'bg-green-50 dark:bg-green-900/20', 
       iconColor: 'text-green-600 dark:text-green-400' 
     },
     { 
       label: 'Empruntés', 
-      value: stats.borrowed || 0, 
+      value: stats.emprunté || 0, 
       icon: Calendar, 
       bg: 'bg-orange-50 dark:bg-orange-900/20', 
       iconColor: 'text-orange-600 dark:text-orange-400' 

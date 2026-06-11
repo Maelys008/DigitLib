@@ -25,23 +25,17 @@ class CheckLibraryAdmin
 
         $library = Library::find($libraryId);
 
-        if ($this->isUserAdminOf($user->id, $library)) {
+        if ($library && $library->administrator_id == $user->id) {
             return $next($request);
         }
 
-        return response()->json(['message' => 'Accès refusé : Vous n\'êtes pas l\'administrateur.'], 403);
-    }
-
-    private function isUserAdminOf($userId, $library)
-    {
-        if (! $library) {
-            return false;
+        // Vérifie aussi si l'utilisateur a le rôle "Administrateur" dans cette bibliothèque
+        if ($library && $user->hasRoleInLibrary('Administrateur', $libraryId)) {
+            return $next($request);
         }
 
-        if ($library->administrator_id == $userId) {
-            return true;
-        }
-
-        return $this->isUserAdminOf($userId, $library->parent);
+        return response()->json([
+            'message' => 'Accès refusé : Vous n\'êtes pas l\'administrateur.',
+        ], 403);
     }
 }

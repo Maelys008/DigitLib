@@ -34,9 +34,10 @@ Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirectT
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'handleProviderCallback']);
 
 Route::get('/libraries', [LibraryController::class, 'index']);
+Route::get('/libraries/{library}', [LibraryController::class, 'show']);
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/books/{id}', [BookController::class, 'show']);
-Route::get('/genres', fn() => response()->json(Genre::all()));
+Route::get('/genres', fn () => response()->json(Genre::all()));
 
 Route::post('/webhooks/kkiapay', [KkiapayController::class, 'handleWebhook']);
 Route::middleware('auth:sanctum')->get('/verify-payment/{transactionId}', [KkiapayController::class, 'verify'])->where('transactionId', '.*');
@@ -76,16 +77,28 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/library-incidents', [LoanController::class, 'libraryIncidents']);
     Route::get('/user/incidents', [LoanController::class, 'userIncidents']);
     Route::patch('/incidents/{id}/resolve', [LoanController::class, 'resolveIncident']);
+      Route::get('/copy-states', function () {
+        return response()->json(\App\Models\CopyState::all());
+    });
 
-    // Bibliothèques
-    Route::apiResource('libraries', LibraryController::class)->except(['index']);
+    // Bibliothèques — routes statiques AVANT apiResource pour éviter les conflits
+    Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
+    Route::apiResource('libraries', LibraryController::class)->except(['index', 'show']);
     Route::get('/my-managed-libraries', [LibraryController::class, 'myManagedLibraries']);
     Route::get('/user/libraries', [LibraryController::class, 'userLibraries']);
     Route::get('/libraries/{libraryId}/loans', [LibraryController::class, 'loans']);
-    Route::get('/libraries/{libraryId}/waitlist', [LibraryController::class, 'waitlist']);         // remplace reservations
+    Route::get('/libraries/{libraryId}/waitlist', [LibraryController::class, 'waitlist']);
     Route::get('/libraries/{libraryId}/pending-pickups', [LibraryController::class, 'pendingPickups']);
-    Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']);
 
+    Route::get('/user/roles/{libraryId}', function ($libraryId) {
+        $user = auth("sanctum")->user();
+
+        return response()->json([
+            'roles' => $user->getRolesInLibrary($libraryId),
+            'is_admin' => $user->isLibraryAdmin($libraryId),
+            'is_staff' => $user->isLibraryStaff($libraryId),
+        ]);
+    });
     // Pénalités
     Route::get('/my-penalties', [PenaltyController::class, 'getMyUnpaidPenalties']);
     Route::get('/penalties', [PenaltyController::class, 'index']);
