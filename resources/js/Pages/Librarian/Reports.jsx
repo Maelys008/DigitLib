@@ -3,9 +3,8 @@ import { router } from '@inertiajs/react';
 import { 
   Download, Calendar, TrendingUp, Users, BookOpen, 
   BarChart3, FileText, PieChart, Loader2, ChevronLeft,
-  AlertCircle, CheckCircle
+  AlertCircle, CheckCircle, ArrowLeft
 } from 'lucide-react';
-import DashboardHeader from '@/Components/liberian/DashboardHeader';
 import { useActiveLibrary } from '@/contexts/ActiveLibraryContext';
 import api from '../../services/api';
 import html2canvas from 'html2canvas';
@@ -133,7 +132,6 @@ export default function Reports() {
   if (libraryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <DashboardHeader />
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
         </div>
@@ -144,7 +142,6 @@ export default function Reports() {
   if (!libraryId) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <DashboardHeader />
         <div className="flex items-center justify-center p-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md p-6 shadow-2xl">
             <div className="text-center">
@@ -522,15 +519,14 @@ export default function Reports() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <DashboardHeader />
-      
       <div className="p-6 max-w-7xl mx-auto">
+        {/* Bouton de retour uniquement - pas de DashboardHeader */}
         <div className="mb-6">
           <button
             onClick={() => router.visit('/librarian/dashboard')}
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-4"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" />
             Retour au tableau de bord
           </button>
           

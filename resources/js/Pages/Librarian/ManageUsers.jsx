@@ -6,6 +6,7 @@ import { useActiveLibrary } from '@/contexts/ActiveLibraryContext';
 import api from '../../services/api';
 import MobileLayout from '@/Layouts/MobileLayout';
 import LoanCard from '@/Components/liberian/LoanCard';
+import BottomNav from '@/Components/BottomNav';
 
 export default function ManageUsers() {
   const { user } = useAuth();
@@ -200,26 +201,26 @@ export default function ManageUsers() {
 
   if (isLoading || libraryLoading) {
     return (
-      <MobileLayout>
+      <>
         <div className="flex items-center justify-center h-screen">
           <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   if (!library) {
     return (
-      <MobileLayout>
+      <>
         <div className="p-6 text-center">
           <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque trouvée</p>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   return (
-    <MobileLayout>
+    <>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
@@ -452,6 +453,7 @@ export default function ManageUsers() {
           </div>
         )}
       </div>
-    </MobileLayout>
+      <BottomNav active="users" />
+    </>
   );
 }

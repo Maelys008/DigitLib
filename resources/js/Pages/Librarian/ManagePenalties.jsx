@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; // ← AJOUTE CETTE LIGNE
 import api from '../../services/api';
 import MobileLayout from '@/Layouts/MobileLayout';
+import BottomNav from '@/Components/BottomNav';
 
 export default function ManagePenalties() {
   const { user } = useAuth();
@@ -119,7 +120,7 @@ export default function ManagePenalties() {
   // Redirige si l'utilisateur n'est pas admin
   if (!isLoading && !libraryLoading && !isAdmin) {
     return (
-      <MobileLayout>
+      <>
         <div className="p-6 text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
@@ -133,23 +134,23 @@ export default function ManagePenalties() {
             Retour au tableau de bord
           </button>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   if (isLoading || libraryLoading) {
     return (
-      <MobileLayout>
+      <>
         <div className="flex items-center justify-center h-screen">
           <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   if (!library) {
     return (
-      <MobileLayout>
+      <>
         <div className="p-6 text-center">
           <p className="text-gray-500 dark:text-gray-400">Vous n'êtes administrateur d'aucune bibliothèque</p>
           <button
@@ -159,12 +160,12 @@ export default function ManagePenalties() {
             Retour au tableau de bord
           </button>
         </div>
-      </MobileLayout>
+      </>
     );
   }
 
   return (
-    <MobileLayout>
+    <>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
@@ -354,6 +355,7 @@ export default function ManagePenalties() {
           )}
         </div>
       </div>
-    </MobileLayout>
+      <BottomNav active="penalties" />
+    </>
   );
 }

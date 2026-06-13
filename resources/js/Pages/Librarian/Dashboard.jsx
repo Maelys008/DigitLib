@@ -8,6 +8,7 @@ import DashboardHeader from '@/Components/liberian/DashboardHeader';
 import LibraryInfoCard from '@/Components/liberian/LibraryInfoCard';
 import StatisticsGrid from '@/Components/liberian/StatisticsGrid';
 import ActionButtons from '@/Components/liberian/ActionButtons';
+import BottomNav from '@/Components/BottomNav';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -97,11 +98,9 @@ export default function Dashboard() {
   const loadMembers = async (lib) => {
     if (!lib) return;
     try {
-      // La route inscriptions n'existe plus dans le nouveau backend
-      // Tous les utilisateurs ont accès à toutes les bibliothèques
       setStats(prev => ({
         ...prev,
-        membersCount: 0  // Valeur par défaut
+        membersCount: 0
       }));
     } catch (error) {
       console.error('Erreur chargement membres:', error);
@@ -116,7 +115,6 @@ export default function Dashboard() {
   const loadReservations = async (lib) => {
     if (!lib) return;
     try {
-      // Nouvelle route pour les réservations/waitlist
       const response = await api.axios.get(`/libraries/${lib.id}/waitlist`);
       const reservationsCount = response.data?.count || 0;
       setStats(prev => ({
@@ -222,12 +220,13 @@ export default function Dashboard() {
             Créer une bibliothèque
           </button>
         </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <DashboardHeader />
       
       <div className="p-6">
@@ -246,6 +245,8 @@ export default function Dashboard() {
           onManageContestations={handleManageContestations}
         />
       </div>
+      
+      <BottomNav />
     </div>
   );
 }

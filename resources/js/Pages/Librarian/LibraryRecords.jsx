@@ -5,6 +5,7 @@ import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
+import BottomNav from '@/Components/BottomNav';
 
 export default function LibraryRecords() {
     const { user } = useAuth();
@@ -83,27 +84,27 @@ export default function LibraryRecords() {
 
     if (isLoading || libraryLoading) {
         return (
-            <MobileLayout>
+            <>
                 <div className="flex items-center justify-center h-screen">
                     <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
                 </div>
-            </MobileLayout>
+            </>
         );
     }
 
     if (!library) {
         return (
-            <MobileLayout>
+            <>
                 <div className="p-6 text-center">
                     <AlertTriangle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-500 font-medium">Aucune bibliothèque trouvée</p>
                 </div>
-            </MobileLayout>
+            </>
         );
     }
 
     return (
-        <MobileLayout>
+        <>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
@@ -246,6 +247,7 @@ export default function LibraryRecords() {
                     )}
                 </div>
             </div>
-        </MobileLayout>
+            <BottomNav />
+        </>
     );
 }

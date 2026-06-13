@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
 import LibraryCard from '@/Components/HomeLibDetails/LibraryCard';
 import { Building2 } from 'lucide-react';
+import QuickActions from '@/Components/Web/QuickActions';
 
 const normalizeBook = (book) => ({
   ...book,
@@ -60,6 +61,7 @@ const fetchAllBooks = async () => {
 
 export default function Home() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
   
   const [allBooks, setAllBooks] = useState([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
@@ -72,6 +74,16 @@ export default function Home() {
 
   const [libraries, setLibraries] = useState([]);
   const [isLoadingLibraries, setIsLoadingLibraries] = useState(true);
+
+  // Détection mobile/web
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,17 +146,13 @@ export default function Home() {
         setLivresRomans(romans.slice(0, 17));
 
         // ========== 5. BIBLIOTHÈQUES ==========
-        // ✅ Version corrigée sans getLibraryInscriptions
         const librariesData = await api.getLibraries();
         const librariesWithStats = await Promise.all(librariesData.map(async (lib) => {
           const books = await api.getBooks({ library_id: lib.id });
-          // 🔥 L'appel à getLibraryInscriptions a été supprimé
-          // const members = await api.getLibraryInscriptions(lib.id);
-          
           return {
             ...lib,
             books_count: books.data?.data?.length || 0,
-            members_count: 0  // Plus de système d'inscriptions (accès universel)
+            members_count: 0
           };
         }));
         setLibraries(librariesWithStats);
@@ -177,16 +185,134 @@ export default function Home() {
     );
   }
 
+  // Version WEB (QuickActions + sections normales)
+  if (!isMobile) {
+    return (
+      <MobileLayout>
+        {/* Quick Actions uniquement sur web */}
+        <QuickActions />
+
+        {/* SECTION 1: Meilleurs du mois */}
+        <div className="mt-8">
+          <SectionHeader titre="Meilleurs du mois" voirToutLien="/best-of-month" />
+          <HorizontalScroll>
+            {livresMembres.slice(0, 12).map((livre) => (
+              <BookCard
+                key={livre.id}
+                livre={livre}
+                variant="horizontal"
+              />
+            ))}
+          </HorizontalScroll>
+        </div>
+
+        {/* SECTION 2: Genres */}
+        <div className="mt-10">
+          <SectionHeader titre="Genres" voirToutLien="/genres" />
+         <div className="grid grid-cols-2 gap-4">
+            {genresList.map((genre, index) => {
+              const IconComponent = genreIcons[genre.name]; 
+              return (
+                <GenreCard
+                  key={index}
+                  genre={genre.name}
+                  icon={IconComponent}
+                  bookCount={getBookCountByGenre(genre.name, allBooks)}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SECTION 3: Nouveautés */}
+        <div className="mt-10">
+          <SectionHeader titre="Nouveautés" voirToutLien="/nouveautes" />
+           <div className="space-y-3">
+            {livresNouveaux.map((livre) => (
+              <NewBookCard
+                key={livre.id}
+                livre={livre}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 4: Populaires */}
+        <div className="mt-10">
+          <SectionHeader titre="Populaires" voirToutLien="/populaires" />
+          <HorizontalScroll>
+            {livresPopulaires.slice(0, 12).map((livre) => (
+              <BookCard
+                key={livre.id}
+                livre={livre}
+                variant="horizontal"
+              />
+            ))}
+          </HorizontalScroll>
+        </div>
+
+        {/* SECTION 5: Bibliothèques disponibles */}
+        <div className="mt-10">
+          <SectionHeader titre="Bibliothèques disponibles" voirToutLien="/libraries" />
+          {isLoadingLibraries ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
+            </div>
+          ) : libraries.length > 0 ? (
+            <HorizontalScroll>
+              {libraries.map((library) => (
+                <LibraryCard 
+                  key={library.id} 
+                  library={library} 
+                  isAuthenticated={isAuthenticated}
+                />
+              ))}
+            </HorizontalScroll>
+          ) : (
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <Building2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400">Aucune bibliothèque disponible</p>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 6: Romans */}
+        <div className="mt-10 mb-20">
+          <SectionHeader titre="Romans" voirToutLien="/romans" />
+          <HorizontalScroll>
+            {livresRomans.length > 0 ? (
+              livresRomans.map((livre) => (
+                <BookCard
+                  key={livre.id}
+                  livre={livre}
+                  variant="horizontal"
+                />
+              ))
+            ) : (
+              livresPopulaires.slice(0, 6).map((livre) => (
+                <BookCard
+                  key={livre.id}
+                  livre={livre}
+                  variant="horizontal"
+                />
+              ))
+            )}
+          </HorizontalScroll>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  // Version MOBILE (avec TopBar)
   return (
     <>
       <TopBar />
-      
       <MobileLayout noPadding>
         {/* SECTION 1: Meilleurs du mois */}
         <div className="px-6 mt-8">
           <SectionHeader titre="Meilleurs du mois" voirToutLien="/best-of-month" />
           <HorizontalScroll>
-            {livresMembres.slice(0, 12).map((livre, index) => (
+            {livresMembres.slice(0, 12).map((livre) => (
               <BookCard
                 key={livre.id}
                 livre={livre}
@@ -231,7 +357,7 @@ export default function Home() {
         <div className="px-6 mt-6">
           <SectionHeader titre="Populaires" voirToutLien="/populaires" />
           <HorizontalScroll>
-            {livresPopulaires.slice(0, 12).map((livre, index) => (
+            {livresPopulaires.slice(0, 12).map((livre) => (
               <BookCard
                 key={livre.id}
                 livre={livre}
@@ -271,7 +397,7 @@ export default function Home() {
           <SectionHeader titre="Romans" voirToutLien="/romans" />
           <HorizontalScroll>
             {livresRomans.length > 0 ? (
-              livresRomans.map((livre, index) => (
+              livresRomans.map((livre) => (
                 <BookCard
                   key={livre.id}
                   livre={livre}
@@ -279,7 +405,7 @@ export default function Home() {
                 />
               ))
             ) : (
-              livresPopulaires.slice(0, 6).map((livre, index) => (
+              livresPopulaires.slice(0, 6).map((livre) => (
                 <BookCard
                   key={livre.id}
                   livre={livre}
