@@ -8,6 +8,8 @@ use App\Models\Internal_member;
 use App\Models\Library;
 use App\Models\Loan;
 use App\Models\Penalty;
+use App\Models\User;
+use App\Notifications\LibraryCreationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -17,10 +19,10 @@ class LibraryController extends Controller
     public function index()
     {
         $user = auth('sanctum')->user();
-        $libraries = Library::withCount('books')->get();
+        // Ne montrer que les bibliothèques approuvées
+        $libraries = Library::where('status', 'approved')->withCount('books')->get();
 
         foreach ($libraries as $library) {
-            // Plus d'inscription : tous les utilisateurs ont accès à toutes les bibliothèques
             $library->is_member = true;
         }
 
@@ -36,6 +38,11 @@ class LibraryController extends Controller
 
     public function show(Library $library)
     {
+        // Seul un Super Admin peut voir une bibliothèque non approuvée
+        $user = auth('sanctum')->user();
+        if ($library->status !== 'approved' && (! $user || ! $user->is_super_admin)) {
+            return response()->json(['message' => 'Bibliothèque non trouvée.'], 404);
+        }
         $library->load([
             'administrator:id,name',
             'parent:id,name',
@@ -43,7 +50,7 @@ class LibraryController extends Controller
         ]);
 
         $response = $library->toArray();
-        $response['is_member'] = true; // accès universel
+        $response['is_member'] = true;
 
         return response()->json($response);
     }
@@ -86,6 +93,7 @@ class LibraryController extends Controller
             'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
             'loan_duration' => 'nullable|integer|min:1',
             'daily_penalty_amount' => 'nullable|numeric|min:0',
+            // 'status' => 'pending',
         ]);
 
         $exists = Library::where('name', $request->name)->where('adress', $request->adress)->exists();
@@ -110,6 +118,7 @@ class LibraryController extends Controller
                 'administrator_id' => $user->id,
                 'loan_duration' => $request->loan_duration ?? 14,
                 'daily_penalty_amount' => $request->daily_penalty_amount ?? 0,
+                'status' => 'pending',
             ]);
 
             // $user->update(['role' => 'admin']);
@@ -124,9 +133,14 @@ class LibraryController extends Controller
             //     'role_id'            => 1,
             //     'date_assignment'    => now(),
             // ]);
-            $user->assignRoleToLibrary(1, $library->id); // 1 = id du rôle Administrateur
+            $user->assignRoleToLibrary(2, $library->id); // 2 = id du rôle Administrateur biblio
 
-            return response()->json(['message' => 'Bibliothèque créée avec succès !', 'library' => $library], 201);
+            $superAdmins = User::where('is_super_admin', true)->get();
+            foreach ($superAdmins as $superAdmin) {
+                $superAdmin->notify(new LibraryCreationRequest($library));
+            }
+
+            return response()->json(['message' => 'Demande de création envoyée. En attente d\'approbation par un Super Administrateur.', 'library' => $library], 201);
         });
     }
 
