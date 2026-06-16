@@ -1,11 +1,10 @@
-import MobileLayout from '@/Layouts/MobileLayout';
-import { Edit2, Award, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Trophy, BookOpen, Star, User , AlertTriangle } from 'lucide-react';
+import { Edit2, Award, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Trophy, BookOpen, Star, User, AlertTriangle, Mail } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useState, useEffect } from 'react'; 
 import BadgeModal from '@/Components/ProfilDetails/BadgeModal'; 
 import { useAuth } from '@/contexts/AuthContext';
 import api from '../services/api';
-
+import MobileLayout from '@/Layouts/MobileLayout';
 
 export default function Profile() {
   const { user: authUser, logout } = useAuth();
@@ -34,7 +33,6 @@ export default function Profile() {
         setProfile(profileData.user);
         setStats(profileData.stats);
         
-        // Vérifier si le profil est complété
         const isComplete = profileData.user.name && profileData.user.name.trim() !== '';
         setHasCompletedProfile(isComplete);
       }
@@ -44,7 +42,6 @@ export default function Profile() {
         setStatus(statusData);
       }
       
-      // Récupérer la photo avec l'ID de l'utilisateur
       if (authUser?.id) {
         const savedPhoto = localStorage.getItem(`userPhoto_${authUser.id}`);
         if (savedPhoto) {
@@ -71,20 +68,19 @@ export default function Profile() {
   };
 
   const menuItems = [
-    { id: 'edit', icon: Edit2, label: 'Éditer le profil', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/30', route: '/profile/edit' },
-    { id: 'badge', icon: Award, label: 'Badge', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-100 dark:bg-purple-900/30', onClick: () => setShowBadgeModal(true) },
-    { id: 'cards', icon: CreditCard, label: 'Mes cartes', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30', route: '/profile/cards' },
-    { id: 'settings', icon: Settings, label: 'Paramètres', color: 'text-gray-600 dark:text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800', route: '/profile/settings' },
-    { id: 'support', icon: HelpCircle, label: 'Support', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30', route: '/profile/support' },
-    { id: 'contestations', icon: AlertTriangle, label: 'Mes contestations', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30', route: '/profile/contestations' },
-{ id: 'incidents', icon:  Star, label: 'Mes incidents', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30', route: '/profile/incidents' },
+    { id: 'edit', icon: Edit2, label: 'Éditer le profil', description: 'Modifier vos informations personnelles', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/30', route: '/profile/edit' },
+    { id: 'badge', icon: Award, label: 'Badge', description: 'Voir votre progression et vos récompenses', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30', onClick: () => setShowBadgeModal(true) },
+    { id: 'cards', icon: CreditCard, label: 'Mes cartes', description: 'Gérer vos cartes de bibliothèque', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/30', route: '/profile/cards' },
+    { id: 'settings', icon: Settings, label: 'Paramètres', description: 'Préférences de l\'application', color: 'text-gray-600 dark:text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800', route: '/profile/settings' },
+    { id: 'support', icon: HelpCircle, label: 'Support', description: 'Aide et assistance', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30', route: '/profile/support' },
+    { id: 'contestations', icon: AlertTriangle, label: 'Mes contestations', description: 'Suivre vos contestations', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30', route: '/profile/contestations' },
+    { id: 'incidents', icon: Star, label: 'Mes incidents', description: 'Historique des incidents', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-900/30', route: '/profile/incidents' },
   ];
 
   const handleNavigation = (route) => {
     if (route) router.visit(route);
   };
 
-  // Déterminer l'affichage de l'avatar
   const renderAvatar = () => {
     if (userPhoto) {
       return (
@@ -103,14 +99,13 @@ export default function Profile() {
     return <User className="w-12 h-12 text-white" />;
   };
 
-  // Déterminer le nom affiché
   const displayName = hasCompletedProfile && profile?.name ? profile.name : 'Invité';
 
   if (isLoading) {
     return (
       <MobileLayout>
         <div className="flex items-center justify-center h-screen">
-          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-orange-500 rounded-full animate-spin"></div>
         </div>
       </MobileLayout>
     );
@@ -119,7 +114,7 @@ export default function Profile() {
   if (!profile) {
     return (
       <MobileLayout>
-        <div className="px-6 py-4 text-center">
+        <div className="flex items-center justify-center h-screen">
           <p className="text-gray-500 dark:text-gray-400">Erreur de chargement du profil</p>
         </div>
       </MobileLayout>
@@ -128,88 +123,128 @@ export default function Profile() {
 
   return (
     <MobileLayout>	
-      <div className="px-6 py-4">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white text-3xl font-bold shadow-lg mb-3 overflow-hidden">
-            {renderAvatar()}
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center">{displayName}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm text-center">{profile.email}</p>
-          
-          {/* Message d'invitation à compléter le profil si ce n'est pas fait */}
-          {!hasCompletedProfile && (
-            <button
-              onClick={() => router.visit('/profile/edit')}
-              className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
-            >
-              Compléter mon profil
-            </button>
-          )}
-        </div>
-        
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 text-center">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-1">
-              <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Badge</p>
-            <p className="font-semibold text-gray-900 dark:text-white text-sm">{profile.badge?.name || 'Débutant'}</p>
-          </div>
-
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 text-center">
-            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-1">
-              <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Points</p>
-            <p className="font-semibold text-gray-900 dark:text-white text-sm">{profile.score || 0}</p>
-          </div>
-
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 text-center">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-1">
-              <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Empruntés</p>
-            <p className="font-semibold text-gray-900 dark:text-white text-sm">{stats.total_loans || 0}</p>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-10">
+        {/* En-tête avec titre - responsive */}
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Mon Profil</h1>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">Gérez vos informations et vos activités</p>
         </div>
 
-        <div className="space-y-2 mb-8">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.onClick) {
-                    item.onClick();
-                  } else {
-                    handleNavigation(item.route);
-                  }
-                }}
-                className="w-full flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-xl transition-all hover:shadow-lg hover:-translate-y-1 active:scale-95"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full ${item.bgColor} flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${item.color}`} />
+        {/* Layout responsive: 1 colonne sur mobile, 3 colonnes sur desktop */}
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+          {/* Colonne de gauche - Infos utilisateur (sur desktop: 1/3, sur mobile: pleine largeur) */}
+          <div className="lg:w-1/3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden sticky lg:top-24">
+              {/* Banner */}
+              <div className="h-20 md:h-24 bg-gradient-to-r from-orange-500 to-orange-600"></div>
+              
+              {/* Avatar */}
+              <div className="flex justify-center -mt-10 md:-mt-12 mb-3 md:mb-4">
+                <div className="relative">
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg ring-4 ring-white dark:ring-gray-800 overflow-hidden">
+                    {renderAvatar()}
                   </div>
-                  <span className="font-medium text-gray-900 dark:text-white">{item.label}</span>
+                  <button 
+                    onClick={() => router.visit('/profile/edit')}
+                    className="absolute -bottom-2 -right-2 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md hover:scale-110 transition-transform"
+                  >
+                    <Edit2 className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-600 dark:text-gray-300" />
+                  </button>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-        
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-        >
-          <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
-          <span className="font-medium text-red-600 dark:text-red-400">Déconnexion</span>
-        </button>
+              </div>
 
-        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
-          Déconnecté de tous les appareils
-        </p>
+              {/* Infos */}
+              <div className="text-center px-4 md:px-6 pb-4 md:pb-6">
+                <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{displayName}</h2>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
+                </div>
+                
+                {!hasCompletedProfile && (
+                  <button
+                    onClick={() => router.visit('/profile/edit')}
+                    className="mt-3 md:mt-4 w-full py-2 md:py-2.5 bg-orange-500 text-white rounded-xl text-xs md:text-sm font-semibold hover:bg-orange-600 transition-colors"
+                  >
+                    Compléter mon profil
+                  </button>
+                )}
+
+                {/* Stats rapides */}
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-100 dark:border-gray-700">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="text-center">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-1 md:mb-2">
+                        <Trophy className="w-4 h-4 md:w-5 md:h-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Badge</p>
+                      <p className="font-semibold text-xs md:text-sm text-gray-900 dark:text-white truncate">{profile.badge?.name || 'Débutant'}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-1 md:mb-2">
+                        <Award className="w-4 h-4 md:w-5 md:h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Points</p>
+                      <p className="font-semibold text-xs md:text-sm text-gray-900 dark:text-white">{profile.score || 0}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-1 md:mb-2">
+                        <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Empruntés</p>
+                      <p className="font-semibold text-xs md:text-sm text-gray-900 dark:text-white">{stats.total_loans || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Déconnexion */}
+              <div className="px-4 md:px-6 pb-4 md:pb-6">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 md:py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl font-medium text-sm md:text-base hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Déconnexion
+                </button>
+                <p className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 text-center mt-3 md:mt-4">
+                  Déconnecté de tous les appareils
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne de droite - Menu des actions (sur desktop: 2/3, sur mobile: pleine largeur) */}
+          <div className="lg:w-2/3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (item.onClick) {
+                        item.onClick();
+                      } else {
+                        handleNavigation(item.route);
+                      }
+                    }}
+                    className="group flex items-start gap-3 md:gap-4 p-3 md:p-5 bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md hover:border-orange-200 dark:hover:border-orange-800 transition-all text-left"
+                  >
+                    <div className={`p-2 md:p-3 rounded-xl ${item.bgColor} group-hover:scale-110 transition-transform`}>
+                      <Icon className={`w-4 h-4 md:w-6 md:h-6 ${item.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white">{item.label}</h3>
+                      <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{item.description}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:translate-x-1 transition-transform mt-1 flex-shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       <BadgeModal 

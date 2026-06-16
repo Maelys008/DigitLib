@@ -61,6 +61,10 @@ export default function Favorites() {
     }
   };
 
+  const handleGoBack = () => {
+    window.history.back(); // Retour à la page précédente
+  };
+
   if (isLoading) {
     return (
       <MobileLayout>
@@ -76,7 +80,7 @@ export default function Favorites() {
       <div className="px-6 py-4 pb-24">
         <div className="flex items-center gap-4 mb-6">
           <button 
-            onClick={() => router.visit('/library')}
+            onClick={handleGoBack}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />

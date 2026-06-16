@@ -49,6 +49,10 @@ export default function Settings() {
     fetchUserLibraries();
   }, [user]);
 
+  const handleGoBack = () => {
+    window.history.back(); // Retour à la page précédente
+  };
+
   const handleNavigateToNotifications = () => {
     router.visit('/notifications');
   };
@@ -106,7 +110,7 @@ export default function Settings() {
       <div className="px-6 py-4 dark:bg-gray-900 min-h-screen">
         <div className="flex items-center gap-4 mb-6">
           <button 
-            onClick={() => router.visit('/profile')}
+            onClick={handleGoBack}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -220,7 +224,6 @@ export default function Settings() {
                 )}
 
                 {/* 3. BOUTON POUR CRÉER UNE BIBLIOTHÈQUE (si pas de bibliothèque possédée) */}
-                {/* 🔥 MODIFICATION ICI : Afficher le bouton "Créer une bibliothèque" même si l'utilisateur a des membres internes */}
                 {!ownedLibrary && (
                   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-4">
                     <div className="flex items-start gap-3">
