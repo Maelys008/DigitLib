@@ -167,6 +167,27 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 });
 
 // -------------------------------------------------------------------------
+// ROUTES SUPER ADMIN
+// -------------------------------------------------------------------------
+Route::middleware(['auth:sanctum', 'super.admin', 'verified'])->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('/dashboard/stats', [App\Http\Controllers\Api\SuperAdminController::class, 'dashboardStats']);
+
+    // Gestion des utilisateurs
+    Route::get('/users', [App\Http\Controllers\Api\SuperAdminController::class, 'users']);
+    Route::post('/users/make-super-admin', [App\Http\Controllers\Api\SuperAdminController::class, 'makeSuperAdmin']);
+    Route::delete('/users/{id}/remove-super-admin', [App\Http\Controllers\Api\SuperAdminController::class, 'removeSuperAdmin']);
+
+    // Gestion des demandes de bibliothèques
+    Route::get('/library-requests', [App\Http\Controllers\Api\SuperAdminController::class, 'libraryRequests']);
+    Route::post('/library-requests/{id}/approve', [App\Http\Controllers\Api\SuperAdminController::class, 'approveLibraryRequest']);
+    Route::post('/library-requests/{id}/reject', [App\Http\Controllers\Api\SuperAdminController::class, 'rejectLibraryRequest']);
+
+    // Suppression de bibliothèque (même déjà approuvée)
+    Route::delete('/libraries/{id}', [App\Http\Controllers\Api\SuperAdminController::class, 'destroyLibrary']);
+});
+
+// -------------------------------------------------------------------------
 // ROUTES ADMIN (Propriétaire de bibliothèque)
 // -------------------------------------------------------------------------
 Route::middleware(['auth:sanctum', 'check.lib.admin', 'verified'])->group(function () {

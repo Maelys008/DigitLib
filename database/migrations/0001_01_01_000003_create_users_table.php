@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -43,6 +44,19 @@ return new class extends Migration
         //     $table->longText('payload');
         //     $table->integer('last_activity')->index();
         // });
+  DB::table('users')->insert([
+    [
+                'name'              => 'Super Admin',
+                'email'             => 'super.admin@digilib.test',
+                'tel'               => '+22997000002',
+                'score'             => 0,
+                'email_verified_at' => now(),
+                'password'          => bcrypt('password'),
+                'identity_hash'     => bcrypt('ANIP-ASST-002'),
+                'status'            => 'active',
+                'badge_id'          => 'Bronze',
+            ],
+        ]);
     }
 
     /**

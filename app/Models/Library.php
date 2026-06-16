@@ -16,6 +16,7 @@ class Library extends Model
         'library_image',
         'loan_duration',
         'daily_penalty_amount',
+         'status',
     ];
 
     // membres_count basé sur internal_members (plus d'Inscription)

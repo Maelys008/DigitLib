@@ -19,9 +19,9 @@ return new class extends Migration
         });
 
          DB::table('roles')->insert([
-            ['name_role' => 'Administrateur', 'created_at' => now(), 'updated_at' => now()],
+            ['name_role' => 'Super Admin', 'created_at' => now(), 'updated_at' => now()],
+            ['name_role' => 'Administrateur biblio', 'created_at' => now(), 'updated_at' => now()],
             ['name_role' => 'Bibliothécaire', 'created_at' => now(), 'updated_at' => now()],
-            ['name_role' => 'Assistant', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
