@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->string('identity_hash')->nullable();
             $table->string('status')->default('active');
+            $table->boolean('is_super_admin')->default(false);
             $table->foreignId('badge_id')->nullable()->constrained('badges')->nullOnDelete();
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expires_at')->nullable();
