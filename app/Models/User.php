@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'badge_id',
         'otp_code',
         'otp_expires_at',
+          'is_super_admin',
 
     ];
 

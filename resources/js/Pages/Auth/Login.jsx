@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Lock, Eye, EyeOff, ShieldCheck, Home } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -14,6 +14,32 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [isSocialLoading, setIsSocialLoading] = useState(false);
+  
+  // 🔥 États pour le modal de choix Super Admin
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null);
+
+  // 🔥 Vérifier si on vient du callback Google avec Super Admin
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSuperAdmin = urlParams.get('super_admin') === 'true';
+    
+    if (isSuperAdmin) {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.is_super_admin) {
+            setPendingUser(user);
+            setShowChoiceModal(true);
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } catch (e) {
+          console.error('Erreur parsing user:', e);
+        }
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,12 +62,32 @@ export default function Login() {
     const result = await login(email, password);
     setIsLoading(false);
     
+    console.log('🔍 Result complet:', result);
+    console.log('🔍 is_super_admin:', result.user?.is_super_admin);
+    
     if (result.success) {
-      const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      localStorage.removeItem('redirectAfterLogin');
-      router.visit(redirectUrl || '/');
+      if (result.user && result.user.is_super_admin === true) {
+        setPendingUser(result.user);
+        setShowChoiceModal(true);
+      } else {
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        localStorage.removeItem('redirectAfterLogin');
+        router.visit(redirectUrl || '/');
+      }
     } else {
       setApiError(result.message);
+    }
+  };
+  
+  const handleChoice = (choice) => {
+    setShowChoiceModal(false);
+    localStorage.removeItem('redirectAfterLogin');
+    
+    if (choice === 'super-admin') {
+        const token = localStorage.getItem('auth_token');
+        window.location.href = `/super-admin/dashboard?token=${token}`;
+    } else {
+        router.visit('/');
     }
   };
 
@@ -205,6 +251,50 @@ export default function Login() {
           </button>
         </div>
       </div>
+
+      {/* 🔥 Modal de choix pour Super Admin */}
+      {showChoiceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                🎯 Mode de connexion
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Vous êtes connecté en tant que <strong>Super Admin</strong>.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Où souhaitez-vous aller ?
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleChoice('super-admin')}
+                className="w-full py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/30 flex items-center justify-center gap-3"
+              >
+                <ShieldCheck className="w-5 h-5" />
+                Dashboard Super Admin
+              </button>
+              
+              <button
+                onClick={() => handleChoice('reader')}
+                className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-3"
+              >
+                <Home className="w-5 h-5" />
+                Interface Lecteur
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">
+              Vous pouvez changer de mode à tout moment depuis les paramètres
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

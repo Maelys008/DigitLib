@@ -54,7 +54,8 @@ return new class extends Migration
                 'password'          => bcrypt('password'),
                 'identity_hash'     => bcrypt('ANIP-ASST-002'),
                 'status'            => 'active',
-                'badge_id'          => 'Bronze',
+                'badge_id'          => null,
+                 'is_super_admin'    => true, 
             ],
         ]);
     }

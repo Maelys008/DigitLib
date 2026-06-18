@@ -1483,6 +1483,184 @@ class ApiService {
             return [];
         }
     }
+    // ==================== SUPER ADMIN ====================
+
+/**
+ * Récupérer les statistiques du dashboard Super Admin
+ */
+async getSuperAdminStats() {
+    try {
+        const response = await this.axios.get('/admin/dashboard/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching super admin stats:', error);
+        return {
+            total_users: 0,
+            total_libraries: 0,
+            pending_libraries: 0,
+            approved_libraries: 0,
+            rejected_libraries: 0,
+            super_admins: 0
+        };
+    }
+}
+
+/**
+ * Récupérer la liste des utilisateurs (Super Admin)
+ * @param {Object} params - { search, role, is_super_admin, per_page, page }
+ */
+async getSuperAdminUsers(params = {}) {
+    try {
+        const response = await this.axios.get('/admin/users', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return { data: [], current_page: 1, last_page: 1, total: 0 };
+    }
+}
+
+/**
+ * Récupérer les demandes de création de bibliothèques en attente
+ */
+async getSuperAdminLibraryRequests(params = {}) {
+    try {
+        const response = await this.axios.get('/admin/library-requests', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching library requests:', error);
+        return { data: [], current_page: 1, last_page: 1, total: 0 };
+    }
+}
+
+/**
+ * Approuver une demande de bibliothèque
+ * @param {number} libraryId - ID de la bibliothèque
+ */
+async approveLibraryRequest(libraryId) {
+    try {
+        const response = await this.axios.post(`/admin/library-requests/${libraryId}/approve`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Erreur lors de l\'approbation'
+        };
+    }
+}
+
+/**
+ * Rejeter une demande de bibliothèque
+ * @param {number} libraryId - ID de la bibliothèque
+ * @param {string} reason - Raison du rejet
+ */
+async rejectLibraryRequest(libraryId, reason) {
+    try {
+        const response = await this.axios.post(`/admin/library-requests/${libraryId}/reject`, { reason });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Erreur lors du rejet'
+        };
+    }
+}
+
+/**
+ * Supprimer une bibliothèque (Super Admin)
+ * @param {number} libraryId - ID de la bibliothèque
+ * @param {string} reason - Raison de la suppression
+ */
+async deleteLibraryBySuperAdmin(libraryId, reason) {
+    try {
+        const response = await this.axios.delete(`/admin/libraries/${libraryId}`, {
+            data: { reason }
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Erreur lors de la suppression'
+        };
+    }
+}
+
+/**
+ * Ajouter un Super Admin
+ * @param {string} email - Email de l'utilisateur
+ */
+async makeSuperAdmin(email) {
+    try {
+        const response = await this.axios.post('/admin/users/make-super-admin', { email });
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Erreur lors de l\'ajout du Super Admin'
+        };
+    }
+}
+
+/**
+ * Retirer un Super Admin
+ * @param {number} userId - ID de l'utilisateur
+ */
+async removeSuperAdmin(userId) {
+    try {
+        const response = await this.axios.delete(`/admin/users/${userId}/remove-super-admin`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Erreur lors du retrait du Super Admin'
+        };
+    }
+}
+// ==================== NOTIFICATIONS SUPER ADMIN ====================
+
+/**
+ * Récupérer les notifications du Super Admin
+ */
+// Récupérer les notifications du Super Admin
+async getSuperAdminNotifications() {
+    try {
+        const response = await this.axios.get('/notifications');
+        // 🔥 S'assurer que chaque notification a un message
+        return response.data.map(n => ({
+            ...n,
+            message: n.message || n.data?.message || 'Nouvelle notification',
+            title: n.title || n.data?.title || 'Notification',
+        }));
+    } catch (error) {
+        console.error('Error fetching super admin notifications:', error);
+        return [];
+    }
+}
+
+/**
+ * Marquer une notification comme lue (Super Admin)
+ */
+async markSuperAdminNotificationAsRead(notificationId) {
+    try {
+        const response = await this.axios.patch(`/notifications/${notificationId}/read`);
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+        return { success: false };
+    }
+}
+
+/**
+ * Marquer toutes les notifications comme lues (Super Admin)
+ */
+async markAllSuperAdminNotificationsAsRead() {
+    try {
+        const response = await this.axios.post('/notifications/read-all');
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error);
+        return { success: false };
+    }
+}
 }
 
 export default new ApiService();

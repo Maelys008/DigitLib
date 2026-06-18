@@ -12,11 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->string('type');
-            $table->string('message');
+            $table->json('data')->nullable(); 
+            $table->string('message')->nullable();
             $table->string('object_type')->nullable();
-            $table->unsignedBigInteger('object_id')->nullable(); // renommé: object → object_id
+            $table->unsignedBigInteger('object_id')->nullable();
             $table->string('status')->default('unread');
-            $table->dateTime('date_sent');
+            $table->dateTime('date_sent')->nullable();
             $table->timestamps();
         });
     }

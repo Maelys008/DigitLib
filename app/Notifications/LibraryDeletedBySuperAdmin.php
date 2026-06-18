@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Models\Library;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -27,9 +26,15 @@ class LibraryDeletedBySuperAdmin extends Notification
     public function toArray($notifiable): array
     {
         return [
-            'type' => 'library_deleted_by_super_admin',
             'title' => 'Votre bibliothèque a été supprimée',
             'message' => "La bibliothèque \"{$this->libraryName}\" a été supprimée par un Super Administrateur. Raison : {$this->reason}",
+            'library_name' => $this->libraryName,
+            'reason' => $this->reason,
         ];
+    }
+
+    public function databaseType($notifiable): string
+    {
+        return 'library_deleted_by_super_admin';
     }
 }

@@ -6,6 +6,7 @@ import {
     Camera,
     X,
     Phone,
+    Clock,
 } from "lucide-react";
 import { router } from "@inertiajs/react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -24,6 +25,7 @@ export default function CreateLibrary() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const [pending, setPending] = useState(false); // 🔥 État pour "en attente"
     const fileInputRef = useRef(null);
 
     const handleImageClick = () => {
@@ -60,24 +62,45 @@ export default function CreateLibrary() {
             const response = await api.createLibrary(formDataToSend);
 
             if (response.success) {
-                setSuccess(true);
                 const newLibrary = response.data.library;
-
-                const key = `user_library_${user.id}`;
-                localStorage.setItem(key, JSON.stringify(newLibrary));
-
-                updateUser({
-                    ...user,
-                    managed_libraries: [{ id: newLibrary.id }],
-                });
-                setTimeout(() => {
-                    router.visit("/librarian/dashboard");
-                }, 2000);
+                
+                // 🔥 Vérifier le statut de la bibliothèque
+                if (newLibrary.status === 'pending') {
+                    // Bibliothèque en attente de validation
+                    setPending(true);
+                    setSuccess(false);
+                    
+                    // 🔥 Mettre à jour le contexte
+                    updateUser({
+                        ...user,
+                        has_pending_library: true,
+                    });
+                    
+                    // 🔥 Rediriger vers les paramètres après 3 secondes
+                    setTimeout(() => {
+                        router.visit('/profile/settings');
+                    }, 3000);
+                } else {
+                    // Bibliothèque approuvée directement (cas rare)
+                    setSuccess(true);
+                    const key = `user_library_${user.id}`;
+                    localStorage.setItem(key, JSON.stringify(newLibrary));
+                    
+                    updateUser({
+                        ...user,
+                        managed_libraries: [{ id: newLibrary.id }],
+                    });
+                    
+                    setTimeout(() => {
+                        router.visit("/librarian/dashboard");
+                    }, 2000);
+                }
             } else {
                 setError(response.message);
             }
         } catch (err) {
             setError("Erreur lors de la création de la bibliothèque");
+            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -102,7 +125,7 @@ export default function CreateLibrary() {
             </div>
 
             <div className="flex-1 px-6 py-8">
-                {!success ? (
+                {!success && !pending ? (
                     <form
                         onSubmit={handleSubmit}
                         className="space-y-6 max-w-md mx-auto"
@@ -120,6 +143,9 @@ export default function CreateLibrary() {
                             <p className="text-gray-500 dark:text-gray-400 text-sm">
                                 Devenez bibliothécaire et gérez votre propre
                                 espace de lecture
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                                ⏳ Après création, votre demande sera validée par un Super Administrateur
                             </p>
                         </div>
 
@@ -255,7 +281,41 @@ export default function CreateLibrary() {
                                 : "Créer ma bibliothèque"}
                         </button>
                     </form>
+                ) : pending ? (
+                    // 🔥 État "Demande en attente"
+                    <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                        <div className="w-20 h-20 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mb-6">
+                            <Clock className="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            Demande envoyée !
+                        </h2>
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">
+                            Votre demande de création de bibliothèque a été envoyée avec succès.
+                        </p>
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6 w-full text-left">
+                            <div className="flex items-start gap-3">
+                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-yellow-800 dark:text-yellow-400 text-sm">
+                                        En attente de validation
+                                    </p>
+                                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                        Un Super Administrateur va examiner votre demande.
+                                        Vous serez notifié dès qu'une décision sera prise.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => router.visit("/profile/settings")}
+                            className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors"
+                        >
+                            Retour aux paramètres
+                        </button>
+                    </div>
                 ) : (
+                    // 🔥 État "Succès" (bibliothèque approuvée directement)
                     <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
                         <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6">
                             <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />

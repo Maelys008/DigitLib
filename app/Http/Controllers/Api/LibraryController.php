@@ -83,67 +83,64 @@ class LibraryController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'adress' => 'required|string',
-            'library_phone' => 'required|string',
-            'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:libraries,id',
-            'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
-            'loan_duration' => 'nullable|integer|min:1',
-            'daily_penalty_amount' => 'nullable|numeric|min:0',
-            // 'status' => 'pending',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'adress' => 'required|string',
+        'library_phone' => 'required|string',
+        'description' => 'nullable|string',
+        'parent_id' => 'nullable|exists:libraries,id',
+        'library_image' => 'image|mimes:jpg,jpeg,png|max:2048|nullable',
+        'loan_duration' => 'nullable|integer|min:1',
+        'daily_penalty_amount' => 'nullable|numeric|min:0',
+    ]);
 
-        $exists = Library::where('name', $request->name)->where('adress', $request->adress)->exists();
-        if ($exists) {
-            return response()->json(['message' => 'Cette bibliothèque existe déjà.'], 422);
-        }
-
-        $imagePath = $request->hasFile('library_image')
-            ? $request->file('library_image')->store('library_images', 'public')
-            : null;
-
-        return DB::transaction(function () use ($request, $imagePath) {
-            $user = $request->user();
-
-            $library = Library::create([
-                'name' => $request->name,
-                'library_image' => $imagePath,
-                'parent_id' => $request->parent_id,
-                'adress' => $request->adress,
-                'library_phone' => $request->library_phone,
-                'description' => $request->description,
-                'administrator_id' => $user->id,
-                'loan_duration' => $request->loan_duration ?? 14,
-                'daily_penalty_amount' => $request->daily_penalty_amount ?? 0,
-                'status' => 'pending',
-            ]);
-
-            // $user->update(['role' => 'admin']);
-
-            // $member = Internal_member::create([
-            //     'user_id'    => $user->id,
-            //     'library_id' => $library->id,
-            // ]);
-
-            // Role_assignment::create([
-            //     'internal_member_id' => $member->id,
-            //     'role_id'            => 1,
-            //     'date_assignment'    => now(),
-            // ]);
-            $user->assignRoleToLibrary(2, $library->id); // 2 = id du rôle Administrateur biblio
-
-            $superAdmins = User::where('is_super_admin', true)->get();
-            foreach ($superAdmins as $superAdmin) {
-                $superAdmin->notify(new LibraryCreationRequest($library));
-            }
-
-            return response()->json(['message' => 'Demande de création envoyée. En attente d\'approbation par un Super Administrateur.', 'library' => $library], 201);
-        });
+    $exists = Library::where('name', $request->name)->where('adress', $request->adress)->exists();
+    if ($exists) {
+        return response()->json(['message' => 'Cette bibliothèque existe déjà.'], 422);
     }
 
+    $imagePath = $request->hasFile('library_image')
+        ? $request->file('library_image')->store('library_images', 'public')
+        : null;
+
+    return DB::transaction(function () use ($request, $imagePath) {
+        $user = $request->user();
+
+        $library = Library::create([
+            'name' => $request->name,
+            'library_image' => $imagePath,
+            'parent_id' => $request->parent_id,
+            'adress' => $request->adress,
+            'library_phone' => $request->library_phone,
+            'description' => $request->description,
+            'administrator_id' => $user->id,
+            'loan_duration' => $request->loan_duration ?? 14,
+            'daily_penalty_amount' => $request->daily_penalty_amount ?? 0,
+            'status' => 'pending',
+        ]);
+
+        // 🔥 Récupérer l'ID du rôle "Administrateur biblio" dynamiquement
+        $adminRole = \App\Models\Role::where('name_role', 'Administrateur biblio')->first();
+        if ($adminRole) {
+            $user->assignRoleToLibrary($adminRole->id, $library->id);
+        } else {
+            // Fallback si le rôle n'existe pas
+            $user->assignRoleToLibrary(2, $library->id);
+        }
+
+        // Notifier les Super Admins
+        $superAdmins = User::where('is_super_admin', true)->get();
+        foreach ($superAdmins as $superAdmin) {
+            $superAdmin->notify(new LibraryCreationRequest($library));
+        }
+
+        return response()->json([
+            'message' => 'Demande de création envoyée. En attente d\'approbation par un Super Administrateur.',
+            'library' => $library
+        ], 201);
+    });
+}
     public function userLibraries(Request $request)
     {
         $user = $request->user();

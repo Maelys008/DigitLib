@@ -28,10 +28,14 @@ class LibraryRequestProcessed extends Notification
         }
 
         return [
-            'type' => 'library_request_' . $this->status,
             'title' => 'Demande de bibliothèque ' . $statusText,
             'message' => $message,
             'library_id' => $this->library->id,
         ];
+    }
+
+    public function databaseType($notifiable): string
+    {
+        return 'library_request_' . $this->status;
     }
 }
