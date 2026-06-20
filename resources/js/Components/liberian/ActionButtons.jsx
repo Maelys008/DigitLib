@@ -1,4 +1,4 @@
-import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users, DollarSign,MessageSquare } from 'lucide-react';
+import { Plus, UserCog, AlertTriangle, FileText, Settings, BookOpen, Users, DollarSign, MessageSquare, Library } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 export default function ActionButtons({ 
@@ -7,14 +7,13 @@ export default function ActionButtons({
   onViewIncidents, 
   onViewReports, 
   onBorrowingRules, 
-  onPartnerLibraries,
+  onChildLibraries,  // ← Renommé
   onManageInternalMembers,
   onManagePenalties,
   onViewCasier,
   onManageContestations
 }) {
   
-  // 🔥 SUPPRIME TOUTE VÉRIFICATION - AFFICHE TOUS LES BOUTONS
   const actions = [
     { 
       label: 'Gestion des livres', 
@@ -63,7 +62,7 @@ export default function ActionButtons({
       border: true,
     },
     { 
-      label: 'Règles d\'emprunt', 
+      label: "Règles d'emprunt", 
       icon: Settings, 
       onClick: onBorrowingRules, 
       bg: 'bg-white dark:bg-gray-800', 
@@ -71,9 +70,9 @@ export default function ActionButtons({
       border: true,
     },
     { 
-      label: 'Bibliothèques partenaires', 
-      icon: BookOpen, 
-      onClick: onPartnerLibraries, 
+      label: 'Bibliothèques filles',  // ← Nouveau nom
+      icon: Library,  // ← Nouvelle icône
+      onClick: onChildLibraries,  // ← Nouveau nom
       bg: 'bg-white dark:bg-gray-800', 
       textColor: 'text-green-600 dark:text-green-400', 
       border: true,
@@ -86,17 +85,16 @@ export default function ActionButtons({
       textColor: 'text-orange-600 dark:text-orange-400',
       border: true,
     },
-{ 
-  label: 'Contestations', 
-  icon: MessageSquare, 
-  onClick: onManageContestations, 
-  bg: 'bg-white dark:bg-gray-800', 
-  textColor: 'text-orange-600 dark:text-orange-400', 
-  border: true,
-},
+    { 
+      label: 'Contestations', 
+      icon: MessageSquare, 
+      onClick: onManageContestations, 
+      bg: 'bg-white dark:bg-gray-800', 
+      textColor: 'text-orange-600 dark:text-orange-400', 
+      border: true,
+    },
   ];
 
-  // 🔥 AFFICHE TOUS LES BOUTONS SANS FILTRE
   return (
     <div className="mb-6">
       <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Actions rapides :</h3>

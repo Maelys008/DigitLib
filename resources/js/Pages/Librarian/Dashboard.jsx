@@ -194,7 +194,8 @@ export default function Dashboard() {
   const handleViewIncidents = () => router.visit('/librarian/incidents');
   const handleViewReports = () => router.visit('/librarian/reports');
   const handleBorrowingRules = () => router.visit('/librarian/borrowing-rules');
-  const handlePartnerLibraries = () => router.visit('/librarian/partner-libraries');
+  //const handlePartnerLibraries = () => router.visit('/librarian/partner-libraries');
+  const handleChildLibraries = () => router.visit('/librarian/child-libraries');
   const handleViewCasier = () => router.visit('/librarian/library-records');
   const handleManageContestations = () => router.visit('/librarian/contestations');
 
@@ -240,7 +241,7 @@ export default function Dashboard() {
           onViewIncidents={handleViewIncidents}
           onViewReports={handleViewReports}
           onBorrowingRules={handleBorrowingRules}
-          onPartnerLibraries={handlePartnerLibraries}
+          onChildLibraries={handleChildLibraries} 
           onViewCasier={handleViewCasier}
           onManageContestations={handleManageContestations}
         />

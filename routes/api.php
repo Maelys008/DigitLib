@@ -67,7 +67,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/libraries/{library}/reports/top-users', [LibraryController::class, 'topUsers']);
     Route::get('/libraries/{library}/reports/genre-distribution', [LibraryController::class, 'genreDistribution']);
     Route::get('/libraries/{library}/reports/active-penalties', [LibraryController::class, 'activePenalties']);
-
+    Route::get('/libraries/children', [LibraryController::class, 'childrenLibraries']); 
     // Emprunts
     Route::get('/loans', [LoanController::class, 'index']);
     Route::post('/loans', [LoanController::class, 'store']);

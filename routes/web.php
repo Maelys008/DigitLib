@@ -215,9 +215,13 @@ Route::get('/clubs/{id}', function ($id) {
 Route::get('/librarian/incidents', function () {
     return Inertia::render('Librarian/Incidents');
 })->name('librarian.incidents');
-Route::get('/librarian/partner-libraries', function () {
+/*Route::get('/librarian/partner-libraries', function () {
     return Inertia::render('Librarian/PartnerLibraries');
-})->name('librarian.partner-libraries');
+})->name('librarian.partner-libraries');*/
+// Nouvelle route
+Route::get('/librarian/child-libraries', function () {
+    return Inertia::render('Librarian/ChildLibraries');
+})->name('librarian.child-libraries');
 Route::get('/auth/{provider}/callback', function ($provider) {
     // Le backend gère la redirection
     return Inertia::location('/api/auth/'.$provider.'/callback');
