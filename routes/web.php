@@ -27,10 +27,8 @@ Route::get('/complete-profile', function () {
 Route::get('/forgot-password', function () {
     return Inertia::render('Auth/ForgotPassword');
 })->name('password.request');
-
 Route::get('/', function () {
-    // Toujours retourner du JSON pour l'APK
-    return response()->json(['message' => 'DigiLib API is running', 'status' => 'ok']);
+    return Inertia::render('Home');
 })->name('home');
 Route::get('/best-of-month', function () {
     return Inertia::render('BestOfMonth');
@@ -225,7 +223,15 @@ Route::get('/auth/{provider}/callback', function ($provider) {
     return Inertia::location('/api/auth/'.$provider.'/callback');
 });
 Route::get('/auth/callback', function () {
-    return Inertia::render('Auth/Callback');
+    // Récupérer les paramètres de l'URL
+    $token = request()->query('token');
+    $isSuperAdmin = request()->query('is_super_admin', 0);
+    
+    // Passer les données à la vue Inertia
+    return Inertia::render('Auth/Callback', [
+        'token' => $token,
+        'is_super_admin' => $isSuperAdmin == 1,
+    ]);
 })->name('auth.callback');
 Route::get('/librarian/books/{book}/copies', function ($bookId) {
     // Récupère le livre pour avoir son titre et auteur
@@ -305,5 +311,20 @@ Route::get('/payment-callback', function () {
 Route::get('/librarian/reports', function () {
     return Inertia::render('Librarian/Reports');
 })->name('librarian.reports');
+Route::prefix('super-admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('SuperAdmin/Dashboard');
+    })->name('super-admin.dashboard');
     
+    Route::get('/users', function () {
+        return Inertia::render('SuperAdmin/Users');
+    })->name('super-admin.users');
+    
+    Route::get('/library-requests', function () {
+        return Inertia::render('SuperAdmin/LibraryRequests');
+    })->name('super-admin.library-requests');
+       Route::get('/notifications', function () {
+        return Inertia::render('SuperAdmin/Notifications');
+    })->name('super-admin.notifications');
+});
 require __DIR__.'/auth.php';

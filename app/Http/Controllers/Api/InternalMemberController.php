@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inscription;
 use App\Models\Internal_member;
 use App\Models\Library;
-use App\Models\Role_assignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,36 +20,21 @@ class InternalMemberController extends Controller
         ]);
 
         $userToAdd = User::where('email', $request->email)->first();
+        // $library = Library::findOrFail($request->library_id);
 
         return DB::transaction(function () use ($userToAdd, $request) {
-
+            // Ajouter comme membre interne
             $member = Internal_member::firstOrCreate([
                 'user_id' => $userToAdd->id,
                 'library_id' => $request->library_id,
-            ], []);
-
-            $roleExists = Role_assignment::where('internal_member_id', $member->id)
-                ->where('role_id', $request->role_id)
-                ->exists();
-
-            if ($roleExists) {
-                return response()->json(['message' => 'Cet utilisateur possède déjà ce rôle.'], 422);
-            }
-
-            Role_assignment::create([
-                'internal_member_id' => $member->id,
-                'role_id' => $request->role_id,
-                'date_assignment' => now(),
             ]);
 
-            Inscription::firstOrCreate([
-                'user_id' => $userToAdd->id,
-                'library_id' => $request->library_id,
-            ], ['date' => now()]);
+            // Assigner le rôle via la table role_user
+            $userToAdd->assignRoleToLibrary($request->role_id, $request->library_id);
 
             return response()->json([
                 'message' => 'Rôle attribué avec succès.',
-                'member' => $member->load(['user', 'role_assignments.role']),
+                'member' => $member->load('user'),
             ], 201);
         });
     }
@@ -60,14 +43,45 @@ class InternalMemberController extends Controller
     {
         $user = auth('sanctum')->user();
         $library = Library::findOrFail($libraryId);
-        
-        // 🔥 Seul l'admin (propriétaire) peut voir les membres internes
+
         if ($library->administrator_id !== $user->id) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
-        
-        return Internal_member::with(['user', 'role_assignments.role'])
+
+        $members = Internal_member::with(['user'])
             ->where('library_id', $libraryId)
-            ->get();
+            ->get()
+            ->map(function ($member) use ($libraryId) {
+                return [
+                    'id' => $member->id,
+                    'user_id' => $member->user_id,
+                    'user' => $member->user,
+                    'roles' => $member->user->roles()
+                        ->where('role_user.library_id', $libraryId)
+                        ->get(),
+                ];
+            });
+
+        return response()->json($members);
+    }
+
+    public function destroy($memberId)
+    {
+        $member = Internal_member::findOrFail($memberId);
+        $user = auth('sanctum')->user();
+
+        $library = Library::findOrFail($member->library_id);
+        if ($library->administrator_id !== $user->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Supprimer les rôles de l'utilisateur dans cette bibliothèque
+        $member->user->roles()
+            ->where('role_user.library_id', $member->library_id)
+            ->detach();
+
+        $member->delete();
+
+        return response()->json(['message' => 'Membre retiré avec succès']);
     }
 }

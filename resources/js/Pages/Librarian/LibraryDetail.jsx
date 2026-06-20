@@ -26,6 +26,18 @@ export default function LibraryDetail() {
     daily_penalty_amount: 0
   });
 
+  // Fonction pour obtenir l'URL correcte de l'image
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    if (imagePath.startsWith('/storage/')) {
+      return imagePath;
+    }
+    return `/storage/${imagePath}`;
+  };
+
   useEffect(() => {
     const fetchLibrary = async () => {
       try {
@@ -40,7 +52,7 @@ export default function LibraryDetail() {
           daily_penalty_amount: data.daily_penalty_amount || 0
         });
         if (data.library_image) {
-          setImagePreview(`/storage/${data.library_image}`);
+          setImagePreview(getImageUrl(data.library_image));
         }
         
         const booksResponse = await api.getBooks({ library_id: id, per_page: 1 });
@@ -55,10 +67,10 @@ export default function LibraryDetail() {
     fetchLibrary();
   }, [id]);
 
-  // 🔥 Mettre à jour l'aperçu quand library change
+  // Mettre à jour l'aperçu quand library change
   useEffect(() => {
     if (library?.library_image) {
-      setImagePreview(`/storage/${library.library_image}`);
+      setImagePreview(getImageUrl(library.library_image));
     }
   }, [library]);
 
@@ -85,7 +97,6 @@ export default function LibraryDetail() {
     formDataToSend.append('loan_duration', formData.loan_duration);
     formDataToSend.append('daily_penalty_amount', formData.daily_penalty_amount);
     
-    // Seulement si une nouvelle image est sélectionnée
     if (newImageFile) {
       formDataToSend.append('library_image', newImageFile);
     }
@@ -94,13 +105,11 @@ export default function LibraryDetail() {
     
     if (result.success) {
       setIsEditing(false);
-      // Recharger les données à jour
       const updatedLibrary = await api.getLibrary(id);
       setLibrary(updatedLibrary);
       
-      // Mettre à jour l'aperçu de l'image
       if (updatedLibrary.library_image) {
-        setImagePreview(`/storage/${updatedLibrary.library_image}`);
+        setImagePreview(getImageUrl(updatedLibrary.library_image));
       } else {
         setImagePreview(null);
       }
@@ -114,7 +123,6 @@ export default function LibraryDetail() {
         daily_penalty_amount: updatedLibrary.daily_penalty_amount || 0
       });
       
-      // Réinitialiser le fichier sélectionné
       setNewImageFile(null);
     } else {
       setError(result.message);
@@ -141,6 +149,8 @@ export default function LibraryDetail() {
       </div>
     );
   }
+
+  const imageUrl = getImageUrl(library.library_image);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -310,11 +320,14 @@ export default function LibraryDetail() {
             {/* Image */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
               <div className="w-full h-48 bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                {library.library_image ? (
+                {imageUrl ? (
                   <img 
-                    src={`/storage/${library.library_image}`} 
+                    src={imageUrl} 
                     alt={library.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <LibraryIcon className="w-16 h-16 text-orange-300 dark:text-orange-500" />
@@ -351,8 +364,9 @@ export default function LibraryDetail() {
               )}
             </div>
 
-            {/* Statistiques */}
+            {/* Statistiques - Version corrigée sans "Membres inscrits" */}
             <div className="grid grid-cols-2 gap-4">
+              {/* Livres disponibles */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
@@ -365,18 +379,7 @@ export default function LibraryDetail() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Membres inscrits</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{library.members_count || 0}</p>
-                  </div>
-                </div>
-              </div>
-
+              {/* Durée d'emprunt */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
@@ -389,6 +392,7 @@ export default function LibraryDetail() {
                 </div>
               </div>
 
+              {/* Pénalité / jour */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
@@ -397,6 +401,19 @@ export default function LibraryDetail() {
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Pénalité / jour</p>
                     <p className="text-xl font-bold text-gray-900 dark:text-white">{library.daily_penalty_amount || 0} FCFA</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Accès universel (remplace "Membres inscrits") */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Accès</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">Universel</p>
                   </div>
                 </div>
               </div>

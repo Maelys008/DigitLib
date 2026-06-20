@@ -9,21 +9,32 @@ export default function TopBar() {
   const { user, isAuthenticated } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchUnreadCount();
-    }
-  }, [isAuthenticated]);
+ useEffect(() => {
+  if (isAuthenticated) {
+    fetchUnreadCount();
+    
+    // Écouter les événements de mise à jour
+    const handleUpdate = () => fetchUnreadCount();
+    window.addEventListener('notifications-updated', handleUpdate);
+    
+    return () => window.removeEventListener('notifications-updated', handleUpdate);
+  }
+}, [isAuthenticated]);
 
-  const fetchUnreadCount = async () => {
-    try {
-      const notifications = await api.getNotifications();
-      const unread = notifications.filter(n => n.status === 'non lu').length;
-      setUnreadCount(unread);
-    } catch (error) {
-      console.error('Erreur notifications:', error);
-    }
-  };
+const fetchUnreadCount = async () => {
+  try {
+    const notifications = await api.getNotifications();
+    console.log('📋 Toutes les notifications:', notifications);
+    
+    // ✅ Correction : utiliser le champ 'status'
+    const unread = notifications.filter(n => n.status === 'unread').length;
+    
+    console.log('🔔 Non lues (status=unread):', unread);
+    setUnreadCount(unread);
+  } catch (error) {
+    console.error('Erreur notifications:', error);
+  }
+};
 
   return (
     <header className="bg-gradient-to-b from-gray-300 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700 shadow-xl w-full">
@@ -53,8 +64,8 @@ export default function TopBar() {
               >
                 <Bell className="w-5 h-5 text-gray-800 dark:text-gray-200" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full font-bold">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-bold px-1">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </Link>

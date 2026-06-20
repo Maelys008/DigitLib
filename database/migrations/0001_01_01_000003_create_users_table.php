@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -19,9 +20,9 @@ return new class extends Migration
             $table->integer('score')->default(0);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('role')->default('reader');
             $table->string('identity_hash')->nullable();
             $table->string('status')->default('active');
+            $table->boolean('is_super_admin')->default(false);
             $table->foreignId('badge_id')->nullable()->constrained('badges')->nullOnDelete();
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expires_at')->nullable();
@@ -43,6 +44,20 @@ return new class extends Migration
         //     $table->longText('payload');
         //     $table->integer('last_activity')->index();
         // });
+  DB::table('users')->insert([
+    [
+                'name'              => 'Super Admin',
+                'email'             => 'super.admin@digilib.test',
+                'tel'               => '+22997000002',
+                'score'             => 0,
+                'email_verified_at' => now(),
+                'password'          => bcrypt('password'),
+                'identity_hash'     => bcrypt('ANIP-ASST-002'),
+                'status'            => 'active',
+                'badge_id'          => null,
+                 'is_super_admin'    => true, 
+            ],
+        ]);
     }
 
     /**

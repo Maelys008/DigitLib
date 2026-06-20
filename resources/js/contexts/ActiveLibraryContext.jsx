@@ -18,36 +18,37 @@ export function ActiveLibraryProvider({ children }) {
       
       if (libraryId) {
         try {
-          // 🔥 Vérifie si la méthode getLibrary existe
-          // Sinon, utilise getUserLibraries et trouve par ID
+          // Tenter de récupérer la bibliothèque par ID
           let library = null;
           
           try {
             library = await api.getLibrary(libraryId);
           } catch (err) {
-            console.log('getLibrary a échoué, tentative avec getUserLibraries');
-            // Fallback: récupérer toutes les bibliothèques et trouver par ID
-            const libraries = await api.getUserLibraries();
-            library = libraries.find(lib => lib.id === parseInt(libraryId));
+            console.log('Bibliothèque introuvable:', err.message);
+            // Si la bibliothèque n'existe pas, on nettoie le localStorage
+            localStorage.removeItem('active_library_id');
+            localStorage.removeItem('active_library_name');
+            setActiveLibrary(null);
+            setIsLoading(false);
+            return;
           }
           
-          if (library) {
+          if (library && library.id) {
             setActiveLibrary(library);
-            console.log('✅ Bibliothèque active chargée:', library?.name);
+            console.log('✅ Bibliothèque active chargée:', library.name);
           } else {
-            console.log('⚠️ Bibliothèque non trouvée, utilisation du fallback');
-            setActiveLibrary({
-              id: parseInt(libraryId),
-              name: libraryName || 'Bibliothèque'
-            });
+            console.log('⚠️ Bibliothèque non trouvée');
+            setActiveLibrary(null);
           }
         } catch (error) {
           console.error('❌ Erreur chargement bibliothèque active:', error);
-          setActiveLibrary({
-            id: parseInt(libraryId),
-            name: libraryName || 'Bibliothèque'
-          });
+          localStorage.removeItem('active_library_id');
+          localStorage.removeItem('active_library_name');
+          setActiveLibrary(null);
         }
+      } else {
+        console.log('ℹ️ Aucune bibliothèque active sélectionnée');
+        setActiveLibrary(null);
       }
       setIsLoading(false);
     };
@@ -58,22 +59,18 @@ export function ActiveLibraryProvider({ children }) {
   const switchLibrary = (library) => {
     console.log('🔄 switchLibrary appelée:', library);
     setActiveLibrary(library);
-    localStorage.setItem('active_library_id', library.id);
-    localStorage.setItem('active_library_name', library.name);
+    if (library && library.id) {
+      localStorage.setItem('active_library_id', library.id);
+      localStorage.setItem('active_library_name', library.name);
+    }
   };
 
   const refreshActiveLibrary = async () => {
     const libraryId = localStorage.getItem('active_library_id');
     if (libraryId) {
       try {
-        let library = null;
-        try {
-          library = await api.getLibrary(libraryId);
-        } catch (err) {
-          const libraries = await api.getUserLibraries();
-          library = libraries.find(lib => lib.id === parseInt(libraryId));
-        }
-        if (library) {
+        const library = await api.getLibrary(libraryId);
+        if (library && library.id) {
           setActiveLibrary(library);
         }
       } catch (error) {

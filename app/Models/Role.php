@@ -9,15 +9,23 @@ class Role extends Model
     protected $fillable =
         [
             'name_role',
-            'permissions',
         ];
 
-    protected $casts = [
-        'permissions' => 'array',
-    ];
-
-    public function role_assignments()
+    // public function role_assignments()
+    // {
+    //     return $this->hasMany(Role_assignment::class);
+    // }
+    public function users()
     {
-        return $this->hasMany(Role_assignment::class);
+        return $this->belongsToMany(User::class, 'role_user')
+            ->withPivot('library_id')
+            ->withTimestamps();
+    }
+
+    public function libraries()
+    {
+        return $this->belongsToMany(Library::class, 'role_user')
+            ->withPivot('user_id')
+            ->withTimestamps();
     }
 }

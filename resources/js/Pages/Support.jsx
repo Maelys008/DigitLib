@@ -39,7 +39,7 @@ export default function Support() {
   };
   
   const handleGoBack = () => {
-    router.visit('/profile');
+    window.history.back(); // Retour à la page précédente
   };
 
   // ==================== DONNÉES DES BADGES ====================
@@ -137,7 +137,7 @@ export default function Support() {
   const faqs = [
     {
       question: "Comment emprunter un livre ?",
-      answer: "1. Trouvez le livre qui vous intéresse\n2. Vérifiez qu'il est disponible\n3. Cliquez sur 'Emprunter'\n4. Récupérez votre livre à la bibliothèque dans les 48h\n5. Profitez de votre lecture !"
+      answer: "1. Trouvez le livre qui vous intéresse\n2. Vérifiez qu'il est disponible\n3. Cliquez sur 'Emprunter'\n4. Récupérez votre livre à la bibliothèque dans les 24h\n5. Profitez de votre lecture !"
     },
     {
       question: "Combien de temps puis-je garder un livre ?",

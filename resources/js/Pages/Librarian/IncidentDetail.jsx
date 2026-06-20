@@ -56,11 +56,11 @@ export default function IncidentDetail() {
 
     const getStatusInfo = (status) => {
         const statuses = {
-            pending: { label: 'En attente', icon: '⏳', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
-            resolved: { label: 'Résolu', icon: '✅', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-            dismissed: { label: 'Ignoré', icon: '❌', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+            en_attente: { label: 'En attente', icon: '⏳', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
+            résolue: { label: 'Résolu', icon: '✅', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+            rejetée: { label: 'Ignoré', icon: '❌', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
         };
-        return statuses[status] || statuses.pending;
+        return statuses[status] || statuses.en_attente;
     };
 
     const handleResolve = async () => {
@@ -141,7 +141,7 @@ export default function IncidentDetail() {
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
                             {statusInfo.icon} {statusInfo.label}
                         </span>
-                        {incident.status === 'pending' && (
+                        {
                             <button
                                 onClick={() => setShowResolveConfirm(true)}
                                 className="ml-auto px-3 py-1 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-1"
@@ -149,7 +149,7 @@ export default function IncidentDetail() {
                                 <CheckCircle className="w-4 h-4" />
                                 Marquer comme résolu
                             </button>
-                        )}
+                        }
                     </div>
 
                     {/* Titre */}

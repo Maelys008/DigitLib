@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('external_id')->nullable(); // ID renvoyé par le prestataire
             $table->decimal('amount', 15, 2);
             $table->string('currency')->default('XOF');
-            $table->enum('status', ['pending', 'success', 'failed', 'canceled'])->default('pending');
+            $table->enum('status', ['en_attente', 'success', 'failed', 'canceled'])->default('en_attente');
             $table->json('metadata')->nullable();
 
             $table->timestamps();

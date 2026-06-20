@@ -6,25 +6,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    // Statuts possibles
+    const STATUS_PENDING_PICKUP = 'en_attente_de_retrait';
+    const STATUS_IN_PROGRESS    = 'en_cours';
+    const STATUS_RETURNED       = 'retourné';
+    const STATUS_CANCELLED      = 'annulé';
+    const STATUS_EXPIRED        = 'expiré';
+    const STATUS_RESERVED       = 'réservée';
+
     protected $fillable = [
         'user_id',
-        'returned_by',
         'copy_id',
+        'status',
+        'pickup_deadline',
         'loan_date',
         'expected_return_date',
         'actual_return_date',
-        'condition_on_return',
-        'status',
-        'pickup_deadline',
+        'returned_by',
+        'return_copy_state_id',
     ];
 
     protected $casts = [
+        'pickup_deadline'      => 'datetime',
         'loan_date'            => 'date',
         'expected_return_date' => 'date',
         'actual_return_date'   => 'date',
-        'pickup_deadline'      => 'datetime',
     ];
-
 
     public function user()
     {
@@ -36,18 +43,23 @@ class Loan extends Model
         return $this->belongsTo(Copy::class);
     }
 
+    public function returnedBy()
+    {
+        return $this->belongsTo(User::class, 'returned_by');
+    }
+
+    public function returnCopyState()
+    {
+        return $this->belongsTo(CopyState::class, 'return_copy_state_id');
+    }
+
     public function penalty()
     {
         return $this->hasOne(Penalty::class);
     }
 
-    public function library()
+    public function incidents()
     {
-        return $this->copy->book->library();
-    }
-
-    public function book()
-    {
-        return $this->copy->book();
+        return $this->hasMany(Incident::class);
     }
 }

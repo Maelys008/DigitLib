@@ -11,7 +11,7 @@ class Notification extends Model
         'type',
         'message',
         'object_type',
-        'object',
+        'object_id',
         'status',
         'date_sent',
     ];

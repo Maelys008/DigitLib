@@ -41,10 +41,6 @@ class Book extends Model
         return $this->hasMany(Copy::class);
     }
 
-    public function reservations()
-    {
-        return $this->hasMany(Reservation::class);
-    }
     public function genre()
     {
         return $this->belongsTo(Genre::class, 'genre_id');

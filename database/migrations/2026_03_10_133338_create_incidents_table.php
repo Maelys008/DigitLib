@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('date');
             
             // Statut
-            $table->enum('status', ['pending', 'resolved', 'dismissed'])->default('pending');
+            $table->enum('status', ['ouvert', 'en_attente', 'résolue','rejetée'])->default('en_attente');
             
             // Casier bibliothécaire (CRUCIAL)
             $table->boolean('is_library_record')->default(false);

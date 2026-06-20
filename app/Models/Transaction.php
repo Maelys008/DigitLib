@@ -45,7 +45,7 @@ class Transaction extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', 'en_attente');
     }
 
     public function scopeByProvider($query, $provider)

@@ -22,8 +22,10 @@ class Internal_member extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function role_assignments()
-    {
-        return $this->hasMany(Role_assignment::class);
-    }
+    // public function role_assignments()
+    // {
+    //     return $this->hasMany(Role_assignment::class);
+    // }
+
+    
 }

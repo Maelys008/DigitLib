@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Copy;
+use App\Models\CopyState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -58,76 +60,57 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'title' => 'required|string',
+                'author' => 'required|string',
+                'genre_id' => 'required|exists:genres,id',
+                'isbn' => 'required|string',
+                'description' => 'required|string',
+                'year_of_publication' => 'required|integer|min:1000|max:' . now()->year,
+                'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
+                'library_id' => 'required|exists:libraries,id',
+                'nb_available' => 'required|integer|min:0',
+                'nb_copy' => 'required|integer|min:0',
+            ]);
 
- public function store(Request $request)
-{
-    \Log::info('=== STORE BOOK ===');
-    \Log::info('Données reçues:', $request->all());
-    
-    try {
-        $request->validate([
-            'title' => 'required|string',
-            'author' => 'required|string',
-            'genre_id' => 'required|exists:genres,id',
-            'isbn' => 'required|string',
-            'description' => 'required|string',
-            'year_of_publication' => 'required|integer|min:1000|max:' . now()->year,
-            'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
-            'library_id' => 'required|exists:libraries,id',
-            'nb_available' => 'required|integer|min:0',
-            'nb_copy' => 'required|integer|min:0',
-        ]);
+            $isbnExists = Book::where('isbn', $request->isbn)
+                ->where('library_id', $request->library_id)
+                ->exists();
+                
+            if ($isbnExists) {
+                return response()->json(['message' => 'Un livre avec cet ISBN existe déjà.'], 422);
+            }
 
-        $isbnExists = Book::where('isbn', $request->isbn)
-            ->where('library_id', $request->library_id)
-            ->exists();
+            $data = $request->all();
+
+            if ($request->hasFile('cover_image')) {
+                $path = $request->file('cover_image')->store('covers', 'public');
+                $data['cover_image'] = $path;
+            }
+
+            $book = Book::create($data);
             
-        if ($isbnExists) {
-            return response()->json(['message' => 'Un livre avec cet ISBN existe déjà.'], 422);
+            $this->generateCopies($book, $data['nb_copy']);
+
+            return response()->json(['message' => 'Livre ajouté', 'data' => $book], 201);
+            
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur: ' . $e->getMessage()], 500);
         }
-
-        $data = $request->all();
-
-        if ($request->hasFile('cover_image')) {
-            $path = $request->file('cover_image')->store('covers', 'public');
-            $data['cover_image'] = $path;
-            \Log::info('Image sauvegardée:', ['path' => $path]);
-        }
-
-        // 🔥 N'écrase PAS nb_available
-        // $data['nb_available'] = $data['nb_copy'];
-
-        \Log::info('Création du livre avec:', $data);
-        
-        $book = Book::create($data);
-        
-        \Log::info('Livre créé avec ID: ' . $book->id);
-        
-        $this->generateCopies($book, $data['nb_copy']);
-        
-        \Log::info('Copies générées');
-
-        return response()->json(['message' => 'Livre ajouté', 'data' => $book], 201);
-        
-    } catch (\Exception $e) {
-        \Log::error('ERREUR STORE BOOK:', [
-            'message' => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => $e->getFile(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json(['message' => 'Erreur: ' . $e->getMessage()], 500);
     }
-}
 
     private function generateCopies(Book $book, int $count)
     {
+        $defaultState = CopyState::where('libelle_state', 'nouvelle')->first();
         $newCopies = [];
         for ($i = 0; $i < $count; $i++) {
             $newCopies[] = [
                 'book_id' => $book->id,
                 'codeQR' => 'QR-' . strtoupper(Str::random(8)),
-                'condition' => 'neuf',
+                'copy_state_id' => $defaultState->id,
                 'status' => 'disponible',
                 'date_added' => now(),
                 'created_at' => now(),
@@ -142,7 +125,7 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        $book = Book::with(['library', 'copies', 'genre', 'reviews.user'])->find($id);
+        $book = Book::with(['library', 'copies.copyState', 'genre', 'reviews.user'])->find($id);
 
         if (! $book) {
             return response()->json([
@@ -174,7 +157,6 @@ class BookController extends Controller
             'nb_copy' => 'sometimes|integer|min:0',
             'cover_image' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
 
         $data = $request->all();
 
@@ -209,34 +191,39 @@ class BookController extends Controller
             'data' => $book->fresh(),
         ]);
     }
-                /**
-             * Get all copies of a specific book
-             */
-            public function getCopies($bookId)
-            {
-                $book = Book::findOrFail($bookId);
-                
-                $copies = $book->copies()->get()->map(function($copy) {
-                    return [
-                        'id' => $copy->id,
-                        'codeQR' => $copy->codeQR,
-                        'condition' => $copy->condition,
-                        'status' => $copy->status,
-                        'date_added' => $copy->date_added?->format('Y-m-d'),
-                    ];
-                });
-                
-                return response()->json([
-                    'book' => [
-                        'id' => $book->id,
-                        'title' => $book->title,
-                        'author' => $book->author,
-                        'cover_url' => $book->cover_image ? '/storage/' . $book->cover_image : null,
-                    ],
-                    'copies' => $copies,
-                    'total_copies' => $copies->count(),
-                ]);
-            }
+    
+    /**
+     * Get all copies of a specific book
+     */
+    public function getCopies($bookId)
+    {
+        $book = Book::findOrFail($bookId);
+        
+        $copies = $book->copies()->with('copyState')->get()->map(function($copy) {
+            return [
+                'id' => $copy->id,
+                'codeQR' => $copy->codeQR,
+                'copy_state' => $copy->copyState ? [
+                    'id' => $copy->copyState->id,
+                    'libelle_state' => $copy->copyState->libelle_state,
+                    'color' => $copy->copyState->color,
+                ] : null,
+                'status' => $copy->status,
+                'date_added' => $copy->date_added?->format('Y-m-d'),
+            ];
+        });
+        
+        return response()->json([
+            'book' => [
+                'id' => $book->id,
+                'title' => $book->title,
+                'author' => $book->author,
+                'cover_url' => $book->cover_image ? '/storage/' . $book->cover_image : null,
+            ],
+            'copies' => $copies,
+            'total_copies' => $copies->count(),
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.

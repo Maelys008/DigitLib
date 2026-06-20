@@ -16,39 +16,61 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+   public function login(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        ]);
+    $user = User::where('email', $request->email)->first();
 
-        $user = User::where('email', $request->email)->first();
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Identifiants incorrects',
-            ], 401);
-        }
-
-        if (! $user->email_verified_at) {
-            return response()->json([
-                'message' => 'Veuillez vérifier votre email avant de vous connecter.',
-            ], 403);
-        }
-
-        $user->update([
-            'status' => 'active',
-        ]);
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+    if (! $user || ! Hash::check($request->password, $user->password)) {
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+            'message' => 'Identifiants incorrects',
+        ], 401);
     }
+
+    if (! $user->email_verified_at) {
+        return response()->json([
+            'message' => 'Veuillez vérifier votre email avant de vous connecter.',
+        ], 403);
+    }
+
+    $user->update([
+        'status' => 'active',
+    ]);
+    
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    // 🔥 Déterminer la redirection par défaut
+    $redirect = '/';
+    if ($user->is_super_admin) {
+        $redirect = '/super-admin/dashboard';
+    } elseif ($user->role === 'Administrateur biblio' || $user->role === 'Bibliothécaire') {
+        $redirect = '/librarian/dashboard';
+    }
+
+    // 🔥 FORCER is_super_admin en boolean dans la réponse
+    return response()->json([
+        'access_token' => $token,
+        'token_type' => 'Bearer',
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_super_admin' => (bool) $user->is_super_admin, // ← FORCÉ EN BOOLEAN
+            'badge_id' => $user->badge_id,
+            'score' => $user->score,
+            'tel' => $user->tel,
+            'status' => $user->status,
+            'email_verified_at' => $user->email_verified_at,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ],
+        'redirect' => $redirect,
+    ]);
+}
 
     public function register(Request $request)
     {
