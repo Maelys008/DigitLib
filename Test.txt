@@ -1,0 +1,664 @@
+================================================================================
+                     PLAN DE TEST FONCTIONNEL - DIGILIB
+================================================================================
+
+Ce fichier liste TOUTES les fonctionnalités identifiées dans l'application,
+avec pour chacune :
+  - Un scénario de test
+  - Les données / requêtes nécessaires (API, commande artisan, SQL)
+  - Le résultat attendu
+
+Format :
+  [Module] → Fonctionnalité
+    Test : ...à
+    Données : ...
+    Attendu : ...
+
+================================================================================
+1. COMPTES UTILISATEURS & AUTHENTIFICATION
+================================================================================
+
+1.1 Inscription par email
+    Test : Un utilisateur s'inscrit avec email + mot de passe.
+    Données : POST /api/register { email: "test@exemple.com", password: "12345678", password_confirmation: "12345678" }
+    Attendu : 201, message "Code envoyé par email", OTP stocké en base.
+
+1.2 Vérification email (OTP)
+    Test : L'utilisateur soumet le bon OTP.
+    Données : POST /api/verify-otp { email: "test@exemple.com", otp: "123456" }
+    Attendu : 200, token Sanctum, email_verified_at != null.
+
+1.3 Renvoi OTP
+    Test : L'utilisateur demande un nouvel OTP.
+    Données : POST /api/resend-otp { email: "test@exemple.com" }
+    Attendu : 200, nouveau OTP envoyé.
+
+1.4 Connexion classique
+    Test : L'utilisateur se connecte avec email + mot de passe.
+    Données : POST /api/login { email: "test@exemple.com", password: "12345678" }
+    Attendu : 200, token Sanctum.
+
+1.5 Complétion profil
+    Test : Après connexion, l'utilisateur complète son profil.
+    Données : POST /api/profil/complete { name: "Jean", tel: "771234567" }
+    Attendu : 200, nom et téléphone mis à jour.
+
+1.6 Forgot password
+    Test : L'utilisateur demande un lien de réinitialisation.
+    Données : POST /api/forgot-password { email: "test@exemple.com" }
+    Attendu : 200, email reçu.
+
+1.7 Reset password
+    Test : L'utilisateur réinitialise son mot de passe.
+    Données : POST /api/reset-password { token: "...", email: "...", password: "newpass", password_confirmation: "newpass" }
+    Attendu : 200, mot de passe changé.
+
+1.8 Connexion via réseau social (Google)
+    Test : L'utilisateur clique sur "Se connecter avec Google".
+    Données : GET /api/auth/google/redirect
+    Attendu : Redirection, puis callback, token généré.
+
+1.9 Consultation profil
+    Test : L'utilisateur connecté consulte son profil.
+    Données : GET /api/profil (avec token)
+    Attendu : 200, informations utilisateur + badge.
+
+1.10 Modification profil
+    Test : L'utilisateur modifie son nom.
+    Données : PUT /api/profil { name: "Jean Dupont" }
+    Attendu : 200, nom mis à jour.
+
+1.11 Changement mot de passe
+    Test : L'utilisateur change son mot de passe.
+    Données : PUT /api/profil/password { current_password: "old", password: "new", password_confirmation: "new" }
+    Attendu : 200, mot de passe mis à jour.
+
+1.12 Déconnexion
+    Test : L'utilisateur se déconnecte.
+    Données : POST /api/logout (token)
+    Attendu : 200, token révoqué, status = "desactive".
+
+================================================================================
+2. BADGES & GAMIFICATION
+================================================================================
+
+2.1 Attribution badge selon score
+    Test : Un utilisateur atteint 50 points.
+    Données : Mettre à jour score = 50, exécuter : php artisan tinker → $user->refreshUserGrade()
+    Attendu : badge_id devient "Argent", notification reçue.
+
+2.2 Limite d'emprunt par badge
+    Test : Badge Bronze (max 2 livres). L'utilisateur emprunte 2 livres.
+    Données : POST /api/loans (book_id) x2
+    Attendu : 403 au 3e emprunt, message de limite atteinte.
+
+2.3 Gain de points (retour anticipé)
+    Test : L'utilisateur rend un livre 2 jours avant expected_return_date.
+    Données : POST /api/loans/{loan}/return { return_copy_state_id: 1 }
+    Attendu : Score augmente, notification "score_gain".
+
+2.4 Perte de points (retard)
+    Test : L'utilisateur rend un livre avec 3 jours de retard.
+    Données : POST /api/loans/{loan}/return { return_copy_state_id: 1 }
+    Attendu : Score diminue, notification "score_loss".
+
+================================================================================
+3. BIBLIOTHÈQUES
+================================================================================
+
+3.1 Création d'une bibliothèque (demande)
+    Test : Un utilisateur crée une bibliothèque.
+    Données : POST /api/libraries { name: "Ma Biblio", adress: "Paris", library_phone: "0102030405" }
+    Attendu : 201, status = "pending", notification envoyée à tous les Super Admins.
+
+3.2 Liste des bibliothèques (public)
+    Test : Un utilisateur non connecté consulte les bibliothèques.
+    Données : GET /api/libraries
+    Attendu : Seulement les bibliothèques avec status = "approved".
+
+3.3 Détail d'une bibliothèque
+    Test : Un utilisateur consulte une bibliothèque approuvée.
+    Données : GET /api/libraries/{id}
+    Attendu : 200, infos bibliothèque + admin + membres.
+
+3.4 Modification bibliothèque
+    Test : L'administrateur de la bibliothèque modifie les infos.
+    Données : PUT /api/libraries/{id} { name: "Nouveau nom" }
+    Attendu : 200, nom mis à jour.
+
+3.5 Ajouter un membre interne (staff)
+    Test : L'admin de la bibliothèque ajoute un membre.
+    Données : POST /api/libraries/{library_id}/members { email: "staff@exemple.com", role_id: 3 }
+    Attendu : 201, membre ajouté, rôle attribué.
+
+3.6 Supprimer un membre interne
+    Test : L'admin supprime un membre.
+    Données : DELETE /api/internal-members/{memberId}
+    Attendu : 200, membre retiré.
+
+3.7 Demande d'approbation par Super Admin
+    Test : Un Super Admin voit les demandes pending.
+    Données : GET /api/admin/library-requests (token super admin)
+    Attendu : Liste des bibliothèques avec status "pending".
+
+3.8 Approuver une bibliothèque
+    Test : Super Admin approuve une demande.
+    Données : POST /api/admin/library-requests/{id}/approve
+    Attendu : 200, status = "approved", notification à l'admin de la bibliothèque.
+
+3.9 Rejeter une bibliothèque (avec raison)
+    Test : Super Admin rejette une demande.
+    Données : POST /api/admin/library-requests/{id}/reject { reason: "Nom inapproprié" }
+    Attendu : 200, status = "rejected", notification + raison.
+
+3.10 Supprimer une bibliothèque (Super Admin)
+    Test : Super Admin supprime une bibliothèque approuvée.
+    Données : DELETE /api/admin/libraries/{id} { reason: "Fermeture définitive" }
+    Attendu : 200, bibliothèque supprimée, notification à son admin.
+
+================================================================================
+4. LIVRES & EXEMPLAIRES
+================================================================================
+
+4.1 Lister les livres (public)
+    Test : Consultation du catalogue.
+    Données : GET /api/books?search=harry&library_id=1
+    Attendu : 200, pagination, filtres fonctionnels.
+
+4.2 Détail d'un livre
+    Test : Consultation d'un livre spécifique.
+    Données : GET /api/books/{id}
+    Attendu : 200, infos livre + exemplaires + avis.
+
+4.3 Ajouter un livre (staff)
+    Test : Un bibliothécaire ajoute un livre.
+    Données : POST /api/libraries/{library}/books { title: "Test", author: "Moi", genre_id:1, isbn:"123", description:"...", year_of_publication:2024, nb_copy:3 }
+    Attendu : 201, livre créé, 3 exemplaires générés.
+
+4.4 Modifier un livre
+    Test : Modification du titre.
+    Données : PUT /api/books/{id} { title: "Nouveau titre" }
+    Attendu : 200, titre modifié.
+
+4.5 Supprimer un livre
+    Test : Suppression d'un livre sans emprunt actif.
+    Données : DELETE /api/books/{id}
+    Attendu : 200, livre et ses copies supprimés.
+
+4.6 Gestion des exemplaires
+    Test : Consultation des exemplaires d'un livre.
+    Données : GET /api/books/{book}/copies
+    Attendu : Liste des copies avec QR code, état, statut.
+
+4.7 États des copies
+    Test : Vérification des états possibles.
+    Données : GET /api/copy-states
+    Attendu : ["nouvelle", "bon", "endommagé", "très_endommagé"].
+
+================================================================================
+5. EMPRUNTS & RETOURS
+================================================================================
+
+5.1 Emprunter un livre (exemplaire disponible)
+    Test : L'utilisateur emprunte un livre disponible.
+    Données : POST /api/loans { book_id: 1 }
+    Attendu : 201, loan créé avec status "en_attente_de_retrait", pickup_deadline = now+24h.
+
+5.2 Emprunter un livre (aucun exemplaire disponible)
+    Test : L'utilisateur emprunte un livre sans exemplaire dispo.
+    Données : POST /api/loans { book_id: 1 } (nb_available=0)
+    Attendu : 202, status = "réservée", ajouté en file d'attente.
+
+5.3 Limite d'emprunt atteinte
+    Test : L'utilisateur dépasse sa limite (badge Bronze = 2).
+    Données : POST /api/loans 3 fois
+    Attendu : 403, message indiquant la limite.
+
+5.4 Empêcher doublon d'un même livre
+    Test : L'utilisateur tente d'emprunter le même livre deux fois.
+    Données : POST /api/loans (même book_id) deux fois
+    Attendu : 422, "Vous avez déjà un exemplaire".
+
+5.5 Blocage si pénalités impayées
+    Test : L'utilisateur a une pénalité non payée.
+    Données : POST /api/loans
+    Attendu : 403, message "pénalités non payées".
+
+5.6 Confirmation retrait (pickup) par staff
+    Test : Un bibliothécaire confirme le retrait.
+    Données : POST /api/loans/{loan}/confirm-pickup
+    Attendu : 200, status = "en_cours", loan_date = now, copy.status = "emprunté".
+
+5.7 Retour de livre (sans retard, sans pénalité)
+    Test : Retour avant expected_return_date.
+    Données : POST /api/loans/{loan}/return { return_copy_state_id: 1 }
+    Attendu : 200, status = "retourné", score + points, nb_available++.
+
+5.8 Retour avec retard (pénalité automatique)
+    Test : Retour 5 jours après expected_return_date.
+    Données : POST /api/loans/{loan}/return { return_copy_state_id: 1 }
+    Attendu : Pénalité = 5 * daily_penalty_amount, status = "non_payé".
+
+5.9 Retour avec pénalité manuelle (livre endommagé)
+    Test : Le bibliothécaire ajoute une pénalité supplémentaire.
+    Données : POST /api/loans/{loan}/return { return_copy_state_id:3, additional_penalty_amount:2000, penalty_reason:"Page déchirée" }
+    Attendu : Pénalité totale = retard + 2000.
+
+5.10 Annulation automatique (non retiré dans 24h)
+    Test : Un loan en "en_attente_de_retrait" dépasse pickup_deadline.
+    Données : Exécuter php artisan loans:cancel-expired-pending
+    Attendu : status = "expiré", copy.status = "disponible" (ou attribué à la file).
+
+5.11 File d'attente : attribution automatique
+    Test : Un exemplaire devient disponible, un loan "réservée" existe.
+    Données : Retour d'un livre alors qu'une réservation existe.
+    Attendu : Le loan réservé passe à "en_attente_de_retrait", notification envoyée.
+
+================================================================================
+6. PÉNALITÉS & PAIEMENTS
+================================================================================
+
+6.1 Calcul automatique des pénalités (cron)
+    Test : Un emprunt a 3 jours de retard.
+    Données : php artisan loans:update-penalties
+    Attendu : Pénalité créée/mise à jour, notification envoyée.
+
+6.2 Création incident perte (>30j de retard)
+    Test : Un emprunt a 35 jours de retard.
+    Données : php artisan loans:update-penalties
+    Attendu : Incident créé, copy.status = "perdue".
+
+6.3 Voir ses pénalités (utilisateur)
+    Test : L'utilisateur consulte ses pénalités non payées.
+    Données : GET /api/my-penalties (token)
+    Attendu : Liste des pénalités avec montant, raison.
+
+6.4 Paiement d'une pénalité (initialisation)
+    Test : L'utilisateur initie un paiement.
+    Données : POST /api/payments/create-for-penalty { penalty_id: 1 }
+    Attendu : 200, transaction "en_attente" créée, retourne lien/instructions Kkiapay.
+
+6.5 Webhook Kkiapay (succès)
+    Test : Kkiapay notifie un paiement réussi.
+    Données : POST /api/webhooks/kkiapay { transactionId: "...", client_transaction_id: "...", isPaymentSucces: true }
+    Attendu : Transaction.status = "success", penalty.status = "payé", notification.
+
+6.6 Vérification manuelle d'un paiement
+    Test : L'utilisateur vérifie son paiement.
+    Données : GET /api/verify-payment/{transactionId}
+    Attendu : Statut du paiement mis à jour.
+
+================================================================================
+7. NOTIFICATIONS
+================================================================================
+
+7.1 Lister ses notifications
+    Test : L'utilisateur consulte ses notifications.
+    Données : GET /api/notifications
+    Attendu : Liste triée par date décroissante.
+
+7.2 Marquer une notification comme lue
+    Test : L'utilisateur clique sur une notification.
+    Données : PATCH /api/notifications/{id}/read
+    Attendu : status = "read".
+
+7.3 Tout marquer comme lu
+    Test : L'utilisateur utilise le bouton "Tout lire".
+    Données : POST /api/notifications/read-all
+    Attendu : Toutes les notifications "unread" passent à "read".
+
+7.4 Notification de rappel (cron)
+    Test : Un emprunt a expected_return_date = J+2.
+    Données : php artisan loans:send-reminders
+    Attendu : Notification "reminder" créée.
+
+================================================================================
+8. INCIDENTS & CONTESTATIONS
+================================================================================
+
+8.1 Créer un incident (bibliothécaire)
+    Test : Un bibliothécaire signale un incident.
+    Données : POST /api/library-records { title: "Livre dégradé", description: "...", severity: "warning", related_incident_id: 1 }
+    Attendu : 201, incident.is_library_record = true, notification à tous les bibliothécaires.
+
+8.2 Lister les incidents (casier)
+    Test : Un bibliothécaire consulte le casier.
+    Données : GET /api/library-records
+    Attendu : Liste des incidents graves non résolus.
+
+8.3 Marquer incident comme résolu
+    Test : Le bibliothécaire résout un incident.
+    Données : PATCH /api/library-records/{id}/resolve
+    Attendu : status = "résolue", resolved_at not null.
+
+8.4 Contester un incident (utilisateur)
+    Test : Un utilisateur conteste un incident qui le concerne.
+    Données : POST /api/contestations { incident_id: 1, message: "...", justification: "..." }
+    Attendu : 201, contestation.status = "en attente", incident.status = "en_attente".
+
+8.5 Voir ses contestations (utilisateur)
+    Test : L'utilisateur liste ses contestations.
+    Données : GET /api/contestations
+    Attendu : Liste filtrée par user_id.
+
+8.6 Traiter une contestation (bibliothécaire)
+    Test : Le bibliothécaire accepte/rejette une contestation.
+    Données : POST /api/contestations-process/{id} { decision: "accepted", response_message: "..." }
+    Attendu : Contestation.status = "acceptée/rejetée", incident mis à jour, notification à l'utilisateur.
+
+8.7 Statistiques des contestations
+    Test : Le bibliothécaire consulte le dashboard.
+    Données : GET /api/contestations-library-stats
+    Attendu : total, en_attente, acceptees, rejetees, ce_mois.
+
+================================================================================
+9. CLUBS DE LECTURE
+================================================================================
+
+9.1 Créer un club
+    Test : Un utilisateur crée un club.
+    Données : POST /api/clubs { name: "Club SF", description: "..." }
+    Attendu : 201, club créé, créateur automatiquement membre.
+
+9.2 Lister les clubs
+    Test : Un utilisateur consulte la liste.
+    Données : GET /api/clubs
+    Attendu : Liste avec is_joined (si connecté).
+
+9.3 Rejoindre un club
+    Test : Un utilisateur rejoint un club.
+    Données : POST /api/clubs/{id}/join
+    Attendu : 200, club_member créé.
+
+9.4 Quitter un club
+    Test : Un utilisateur quitte un club.
+    Données : DELETE /api/clubs/{id}/leave
+    Attendu : 200, club_member supprimé.
+
+9.5 Envoyer un message
+    Test : Un membre envoie un message.
+    Données : POST /api/clubs/{id}/messages { message: "Bonjour à tous" }
+    Attendu : 201, message créé.
+
+9.6 Lire les messages d'un club
+    Test : Un membre consulte les messages.
+    Données : GET /api/clubs/{id}/messages
+    Attendu : Liste des messages avec auteur.
+
+9.7 Supprimer un message (auteur ou créateur)
+    Test : Le créateur du club supprime un message.
+    Données : DELETE /api/messages/{messageId}
+    Attendu : 200, message supprimé.
+
+9.8 Supprimer un club (créateur uniquement)
+    Test : Le créateur supprime le club.
+    Données : DELETE /api/clubs/{id}
+    Attendu : 200, club et ses messages supprimés.
+
+================================================================================
+10. AVIS & NOTES
+================================================================================
+
+10.1 Ajouter un avis
+    Test : Un utilisateur note un livre.
+    Données : POST /api/books/{book}/reviews { rating: 5, comment: "Excellent !" }
+    Attendu : 201, avis créé, note du livre recalculée.
+
+10.2 Modifier son avis
+    Test : L'utilisateur modifie son avis existant.
+    Données : POST /api/books/{book}/reviews { rating: 4, comment: "Très bien" } (même user)
+    Attendu : 200, avis mis à jour.
+
+10.3 Liker un avis
+    Test : Un utilisateur aime un avis.
+    Données : POST /api/reviews/{review}/like
+    Attendu : likes_count incrémenté.
+
+10.4 Lister les avis d'un livre
+    Test : Consultation des avis.
+    Données : GET /api/books/{book}/reviews
+    Attendu : Liste des avis avec utilisateur.
+
+================================================================================
+11. FAVORIS
+================================================================================
+
+11.1 Ajouter un favori
+    Test : L'utilisateur ajoute un livre en favori.
+    Données : POST /api/favorites/toggle/{book}
+    Attendu : favorited = true.
+
+11.2 Retirer un favori
+    Test : L'utilisateur retire un favori.
+    Données : POST /api/favorites/toggle/{book} (déjà favori)
+    Attendu : favorited = false.
+
+11.3 Vérifier si un livre est favori
+    Test : L'utilisateur consulte un livre.
+    Données : GET /api/favorites/check/{book}
+    Attendu : is_favorite = true/false.
+
+11.4 Lister ses favoris
+    Test : L'utilisateur voit tous ses favoris.
+    Données : GET /api/favorites
+    Attendu : Liste des livres favoris.
+
+================================================================================
+12. ÉTAGÈRES PERSONNELLES
+================================================================================
+
+12.1 Créer une étagère
+    Test : L'utilisateur crée une étagère.
+    Données : POST /api/shelves { name: "À lire", description: "...", shelf_image: (fichier) }
+    Attendu : 201, étagère créée.
+
+12.2 Lister ses étagères
+    Test : L'utilisateur voit ses étagères.
+    Données : GET /api/shelves
+    Attendu : Liste avec count des livres.
+
+12.3 Voir le contenu d'une étagère
+    Test : L'utilisateur consulte une étagère.
+    Données : GET /api/shelves/{id}
+    Attendu : Détail + livres associés.
+
+12.4 Ajouter un livre à une étagère
+    Test : L'utilisateur ajoute un livre.
+    Données : POST /api/shelves/{shelf}/books/{book}
+    Attendu : 200, relation créée.
+
+12.5 Retirer un livre d'une étagère
+    Test : L'utilisateur retire un livre.
+    Données : DELETE /api/shelves/{shelf}/books/{book}
+    Attendu : 200, relation supprimée.
+
+12.6 Modifier une étagère
+    Test : L'utilisateur modifie le nom.
+    Données : PUT /api/shelves/{shelf} { name: "Nouveau nom" }
+    Attendu : 200, étagère mise à jour.
+
+12.7 Supprimer une étagère
+    Test : L'utilisateur supprime une étagère.
+    Données : DELETE /api/shelves/{shelf}
+    Attendu : 200, étagère supprimée (les livres restent).
+
+================================================================================
+13. STATISTIQUES & RAPPORTS (BIBLIOTHÈQUE)
+================================================================================
+
+13.1 Dashboard stats
+    Test : L'admin de la bibliothèque consulte les stats.
+    Données : GET /api/libraries/{library}/reports/stats
+    Attendu : totalBooks, totalCopies, disponible, emprunté, waitlist, lateReturns, totalPenalties.
+
+13.2 Top livres
+    Test : Les livres les plus empruntés.
+    Données : GET /api/libraries/{library}/reports/top-books?limit=5
+    Attendu : 5 livres avec total emprunts.
+
+13.3 Top utilisateurs
+    Test : Les utilisateurs les plus actifs.
+    Données : GET /api/libraries/{library}/reports/top-users?limit=5
+    Attendu : 5 utilisateurs avec total emprunts.
+
+13.4 Distribution par genre
+    Test : Répartition des livres par genre.
+    Données : GET /api/libraries/{library}/reports/genre-distribution
+    Attendu : [ { name: "Fantasy", total: 12 }, ... ].
+
+13.5 Pénalités actives
+    Test : Liste des pénalités non payées.
+    Données : GET /api/libraries/{library}/reports/active-penalties
+    Attendu : Liste des pénalités avec utilisateur, livre, montant.
+
+================================================================================
+14. SCAN QR
+================================================================================
+
+14.1 Scanner un code QR d'exemplaire
+    Test : Un utilisateur scanne un QR.
+    Données : GET /api/scan/{token}
+    Attendu : 200, retourne livre + exemplaire + état.
+
+14.2 QR invalide
+    Test : Scan d'un QR inconnu.
+    Données : GET /api/scan/invalidtoken
+    Attendu : 404, message "aucun livre".
+
+================================================================================
+15. SUPER ADMIN
+================================================================================
+
+15.1 Dashboard Super Admin
+    Test : Le Super Admin consulte les stats globales.
+    Données : GET /api/admin/dashboard/stats (token super admin)
+    Attendu : total_users, total_libraries, pending_libraries, approved_libraries, rejected_libraries, super_admins.
+
+15.2 Lister tous les utilisateurs
+    Test : Le Super Admin voit tous les utilisateurs.
+    Données : GET /api/admin/users?search=jean&role=Bibliothécaire&is_super_admin=0
+    Attendu : Pagination, filtres fonctionnels.
+
+15.3 Nommer un Super Admin
+    Test : Le Super Admin promeut un utilisateur.
+    Données : POST /api/admin/users/make-super-admin { email: "user@exemple.com" }
+    Attendu : 200, is_super_admin = true.
+
+15.4 Retirer un Super Admin
+    Test : Le Super Admin révoque un autre Super Admin.
+    Données : DELETE /api/admin/users/{id}/remove-super-admin
+    Attendu : 200, is_super_admin = false.
+
+================================================================================
+16. TÂCHES AUTOMATISÉES (COMMANDS)
+================================================================================
+
+16.1 loans:send-reminders
+    Test : Envoi des rappels de retour J-2.
+    Commande : php artisan loans:send-reminders
+    Attendu : Notifications créées pour les emprunts concernés.
+
+16.2 loans:update-penalties
+    Test : Mise à jour des pénalités + incidents perte.
+    Commande : php artisan loans:update-penalties
+    Attendu : Pénalités mises à jour, incidents créés si >30j.
+
+16.3 loans:cancel-expired-pending
+    Test : Annulation des prêts non retirés dans 24h.
+    Commande : php artisan loans:cancel-expired-pending
+    Attendu : status = "expiré", exemplaire libéré ou réattribué.
+
+16.4 reservations:cancel-expired
+    Test : (Obsolète) Aucune action.
+    Commande : php artisan reservations:cancel-expired
+    Attendu : Message indiquant que la commande n'est plus utilisée.
+
+================================================================================
+17. FRONTEND (INERTIA) - PAGES À TESTER MANUELLEMENT
+================================================================================
+
+Accès public :
+  /                           → Home
+  /best-of-month              → BestOfMonth
+  /genres                     → Genres
+  /genres/{genre}             → GenreBooks
+  /nouveautes                 → NewReleases
+  /romans                     → Romans
+  /populaires                 → Populaires
+  /editeurs                   → Editeurs
+  /book/{id}                  → BookDetail
+  /book/{id}/reviews          → AllReviews
+  /search                     → SearchPage
+  /scanner                    → ScannerPage
+  /libraries                  → AllLibraries
+  /libraries/{id}             → LibraryDetails
+
+Authentifié (utilisateur) :
+  /profile                    → Profile
+  /profile/edit               → EditProfile
+  /profile/change-password    → ChangePassword
+  /profile/cards              → MyCards
+  /profile/settings           → Settings
+  /profile/support            → Support
+  /profile/contestations      → ContestationList
+  /profile/incidents          → MyIncidents
+  /notifications              → Notifications
+  /favorites                  → Favorites
+  /shelves                    → Shelves
+  /shelves/create             → CreateShelf
+  /shelves/{id}               → ShelfDetail
+  /read-books                 → ReadBooks
+  /clubs                      → Clubs/Index
+  /clubs/create               → Clubs/Create
+  /clubs/{id}                 → Clubs/Show
+
+Bibliothécaire / Admin :
+  /librarian/dashboard        → Librarian/Dashboard
+  /librarian/books            → Librarian/Books
+  /librarian/books/{id}/edit  → Librarian/EditBook
+  /librarian/books/{book}/copies → Librarian/ManageCopies
+  /librarian/internal-members → Librarian/InternalMembers
+  /librarian/manage-penalties → Librarian/ManagePenalties
+  /librarian/incidents        → Librarian/Incidents
+  /librarian/incidents/create → Librarian/CreateIncident
+  /librarian/contestations    → Librarian/ContestationManagement
+  /librarian/library-records  → Librarian/LibraryRecords
+  /librarian/borrowing-rules  → Librarian/BorrowingRules
+  /librarian/manage-users     → Librarian/ManageUsers
+  /librarian/partner-libraries → Librarian/PartnerLibraries
+  /librarian/settings         → Librarian/Settings
+  /librarian/reports          → Librarian/Reports
+
+Super Admin :
+  (à créer selon ton frontend) → SuperAdmin/Dashboard, UsersList, LibraryRequests
+
+Authentification :
+  /login, /register, /verify-otp, /complete-profile, /forgot-password, /reset-password, /auth/callback
+
+================================================================================
+18. SÉCURITÉ & MIDDLEWARES (TESTS D'ACCÈS)
+================================================================================
+
+18.1 Accès public vs protégé
+    Test : Tenter d'accéder à /api/profil sans token.
+    Attendu : 401 Unauthorized.
+
+18.2 Middleware verified
+    Test : Tenter d'accéder à une route protégée par verified sans email_verified_at.
+    Attendu : 403 ou redirection.
+
+18.3 Middleware check.lib.admin
+    Test : Un bibliothécaire (non admin) tente une route admin.
+    Attendu : 403.
+
+18.4 Middleware check.lib.staff
+    Test : Un simple utilisateur tente une route staff.
+    Attendu : 403.
+
+18.5 Middleware super.admin
+    Test : Un admin normal tente une route Super Admin.
+    Attendu : 403.
+
+================================================================================
+FIN DU PLAN DE TEST
+================================================================================
