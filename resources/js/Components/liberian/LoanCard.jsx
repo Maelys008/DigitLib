@@ -21,7 +21,7 @@ export default function LoanCard({
 
   const handleConfirmPickup = async (e) => {
     e.stopPropagation();
-    if (onConfirmPickup && loan.status === 'pending_pickup') {
+    if (onConfirmPickup && loan.status === 'en_attente_de_retrait') {
       setIsConfirming(true);
       await onConfirmPickup(loan);
       setIsConfirming(false);
@@ -49,7 +49,7 @@ export default function LoanCard({
   const loanDate = type === 'loan' ? loan.loan_date : loan.created_at;
   const expectedDate = type === 'loan' ? loan.expected_return_date : null;
   const status = type === 'reservation' ? loan.status : null;
-  const isPendingPickup = type === 'loan' && loan.status === 'pending_pickup';
+  const isPendingPickup = type === 'loan' && loan.status === 'en_attente_de_retrait';
 
   const daysInfo = expectedDate ? getDaysStatus(expectedDate) : null;
 
@@ -62,17 +62,53 @@ export default function LoanCard({
         ${className}
       `}
     >
-      {/* Image du livre */}
-      <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-        <img 
-          src={book?.cover_url || book?.cover_image || '/placeholder-book.jpg'} 
-          alt={book?.title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.target.src = '/placeholder-book.jpg';
-          }}
-        />
-      </div>
+    {/* Image du livre */}
+<div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700 relative">
+  {/* Récupérer l'image selon le type */}
+  {(() => {
+    let coverImage = null;
+    if (type === 'loan') {
+      coverImage = loan.copy?.book?.cover_image;
+    } else {
+      // Pour les réservations, essayer plusieurs chemins
+      coverImage = loan.book?.cover_image || loan.copy?.book?.cover_image;
+    }
+    
+    const imageUrl = coverImage ? `/storage/${coverImage}` : null;
+    
+    return imageUrl ? (
+      <img 
+        src={imageUrl}
+        alt={book?.title || 'Livre'}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          console.error('Erreur image:', imageUrl);
+          e.target.style.display = 'none';
+          const parent = e.target.parentElement;
+          if (parent) {
+            const icon = parent.querySelector('.fallback-icon');
+            if (icon) icon.style.display = 'flex';
+          }
+        }}
+      />
+    ) : null;
+  })()}
+  
+  <div 
+    className="fallback-icon absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700"
+    style={{ display: (() => {
+      let coverImage = null;
+      if (type === 'loan') {
+        coverImage = loan.copy?.book?.cover_image;
+      } else {
+        coverImage = loan.book?.cover_image || loan.copy?.book?.cover_image;
+      }
+      return coverImage ? 'none' : 'flex';
+    })() }}
+  >
+    <BookOpen className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+  </div>
+</div>
 
       <div className="flex-1 flex flex-col">
         {/* Titre du livre */}

@@ -33,7 +33,7 @@ class KkiapayController extends Controller
             return response()->json(['message' => 'Cette pénalité a déjà été payée.'], 422);
         }
 
-        // Créer une transaction locale "pending"
+        // Créer une transaction locale "en_attente"
         $transaction = Transaction::create([
             'user_id' => $user->id,
             'penalty_id' => $penalty->id,
@@ -41,7 +41,7 @@ class KkiapayController extends Controller
             'provider' => 'kkiapay',
             'amount' => $penalty->amount,
             'currency' => 'XOF',
-            'status' => 'pending',
+            'status' => 'en_attente',
             'metadata' => json_encode([
                 'penalty_id' => $penalty->id,
                 'user_id' => $user->id,
@@ -109,9 +109,9 @@ class KkiapayController extends Controller
         // Kkiapay met parfois la ref dans 'externalId' ou ne la met pas du tout
         $clientRef = $payload['client_transaction_id'] ?? $payload['externalId'] ?? null;
 
-        // Si vraiment on n'a pas de ref, on essaie de trouver par le montant et le statut pending
+        // Si vraiment on n'a pas de ref, on essaie de trouver par le montant et le statut en_attente
         if (! $clientRef) {
-            $transaction = Transaction::where('status', 'pending')
+            $transaction = Transaction::where('status', 'en_attente')
                 ->where('amount', $payload['amount'])
                 ->latest()
                 ->first();
@@ -226,7 +226,7 @@ class KkiapayController extends Controller
                         'type' => 'penalty_paid',
                         'message' => "Votre pénalité de {$penalty->amount} FCFA a été réglée avec succès.",
                         'object_type' => 'penalty',
-                        'object' => $penalty->id,
+                        'object_id' => $penalty->id,
                         'date_sent' => now(),
                     ]);
 
@@ -235,11 +235,48 @@ class KkiapayController extends Controller
                     if ($loan && ! $loan->actual_return_date && str_contains(strtolower($penalty->reason ?? ''), 'perdu')) {
                         $loan->update([
                             'actual_return_date' => now(),
-                            'status' => 'lost_settled',
+                            'status' => 'retourné',
                         ]);
                     }
                 }
             }
         });
+    }
+
+    public function userTransactions(Request $request)
+    {
+        $user = $request->user();
+
+        $transactions = Transaction::where('user_id', $user->id)
+            ->with(['penalty.loan.copy.book:id,title,author'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($transactions);
+    }
+
+    public function libraryTransactions(Request $request, $libraryId)
+    {
+        $user = $request->user();
+
+        $isAuthorized = \App\Models\Library::where('id', $libraryId)
+            ->where('administrator_id', $user->id)
+            ->exists()
+            || \App\Models\Internal_member::where('user_id', $user->id)
+            ->where('library_id', $libraryId)
+            ->exists();
+
+        if (! $isAuthorized) {
+            return response()->json(['message' => 'Accès non autorisé.'], 403);
+        }
+
+        $transactions = Transaction::whereHas('penalty.loan.copy.book', function ($q) use ($libraryId) {
+            $q->where('library_id', $libraryId);
+        })
+            ->with(['penalty.loan.copy.book:id,title', 'penalty.user:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($transactions);
     }
 }

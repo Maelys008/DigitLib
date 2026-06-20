@@ -1,6 +1,17 @@
-import { BookOpen, Users, Clock, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
+import { BookOpen, Users, Clock, AlertTriangle, TrendingUp, Calendar, BarChart3 } from 'lucide-react';
 
 export default function StatisticsGrid({ stats }) {
+  // 🔥 Calcul du taux d'occupation
+  const occupancyRate = stats.totalCopies > 0 
+    ? Math.round((stats.emprunté / stats.totalCopies) * 100) 
+    : 0;
+
+  const getOccupancyColor = () => {
+    if (occupancyRate >= 80) return 'text-red-600 dark:text-red-400';
+    if (occupancyRate >= 50) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-green-600 dark:text-green-400';
+  };
+
   const statItems = [
     { 
       label: 'Total livres', 
@@ -10,22 +21,22 @@ export default function StatisticsGrid({ stats }) {
       iconColor: 'text-blue-600 dark:text-blue-400' 
     },
     { 
-      label: 'Utilisateurs', 
-      value: stats.membersCount || 0, 
-      icon: Users, 
+      label: 'Taux d\'occupation',  // ← Remplacé "Utilisateurs"
+      value: `${occupancyRate}%`, 
+      icon: BarChart3, 
       bg: 'bg-purple-50 dark:bg-purple-900/20', 
-      iconColor: 'text-purple-600 dark:text-purple-400' 
+      iconColor: getOccupancyColor() 
     },
     { 
       label: 'Disponibles', 
-      value: stats.available || 0,  
+      value: stats.disponible || 0,  
       icon: BookOpen, 
       bg: 'bg-green-50 dark:bg-green-900/20', 
       iconColor: 'text-green-600 dark:text-green-400' 
     },
     { 
       label: 'Empruntés', 
-      value: stats.borrowed || 0, 
+      value: stats.emprunté || 0, 
       icon: Calendar, 
       bg: 'bg-orange-50 dark:bg-orange-900/20', 
       iconColor: 'text-orange-600 dark:text-orange-400' 
@@ -55,7 +66,9 @@ export default function StatisticsGrid({ stats }) {
             <TrendingUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{item.label}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{item.value}</p>
+          <p className={`text-2xl font-bold ${item.label === 'Taux d\'occupation' ? getOccupancyColor() : 'text-gray-900 dark:text-white'}`}>
+            {item.value}
+          </p>
         </div>
       ))}
     </div>

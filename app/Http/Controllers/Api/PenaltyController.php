@@ -99,7 +99,7 @@ class PenaltyController extends Controller
         
         $penalties = Penalty::with(['loan.copy.book', 'loan.copy.book.library'])
             ->where('user_id', $user->id)
-            ->where('status', 'non payé')
+            ->where('status', 'non_payé')
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -129,7 +129,7 @@ class PenaltyController extends Controller
             'type' => 'penalty_paid_notification',
             'message' => "💰 L'utilisateur {$user->name} a payé {$penalty->amount} FCFA pour la pénalité : {$penalty->reason}",
             'object_type' => 'penalty',
-            'object' => $penalty->id,
+            'object_id' => $penalty->id,
             'date_sent' => now(),
         ]);
     }
@@ -150,7 +150,7 @@ class PenaltyController extends Controller
         $count = Penalty::whereHas('loan.copy.book', function($query) use ($libraryId) {
             $query->where('library_id', $libraryId);
         })
-        ->where('status', 'non payé')
+        ->where('status', 'non_payé')
         ->count();
         
         return response()->json(['count' => $count]);

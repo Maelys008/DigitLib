@@ -31,57 +31,57 @@ class SocialAuthController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+public function handleProviderCallback($provider)
+{
+    try {
+        $guzzleClient = new Client([
+            'verify' => false,
+            'timeout' => 30,
+        ]);
+        
+        $socialUser = Socialite::driver($provider)
+            ->stateless()
+            ->setHttpClient($guzzleClient)
+            ->user();
+    } catch (\Exception $e) {
+        return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/auth/callback?error=' . urlencode($e->getMessage()));
+    }
 
-    public function handleProviderCallback($provider)
-    {
-        try {
-            $guzzleClient = new Client([
-                'verify' => false,  // ⚠️ Temporaire !
-                'timeout' => 30,
-            ]);
-            
-            $socialUser = Socialite::driver($provider)
-                ->stateless()
-                ->setHttpClient($guzzleClient)
-                ->user();
-        } catch (\Exception $e) {
-            // Redirige vers le callback avec l'erreur
-            return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/auth/callback?error=' . urlencode($e->getMessage()));
+    $user = DB::transaction(function () use ($socialUser, $provider) {
+        // 🔥 Vérifier si l'utilisateur existe déjà
+        $existingUser = User::where('email', $socialUser->getEmail())->first();
+        
+        if ($existingUser) {
+            // Si l'utilisateur existe, on le retourne tel quel (avec son statut Super Admin)
+            return $existingUser;
         }
 
-        $user = DB::transaction(function () use ($socialUser, $provider) {
-            $user = User::firstOrCreate(
-                ['email' => $socialUser->getEmail()],
-                [
-                    'name' => $socialUser->getName(),
-                    'password' => null,
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                ]
-            );
+        // Sinon, on crée un nouvel utilisateur
+        $user = User::create([
+            'name' => $socialUser->getName(),
+            'email' => $socialUser->getEmail(),
+            'password' => null,
+            'status' => 'active',
+            'email_verified_at' => now(),
+            'is_super_admin' => false, // Par défaut, pas Super Admin
+        ]);
 
-            if (! $user->email_verified_at) {
-                $user->email_verified_at = now();
-                $user->save();
-            }
+        // Sauvegarder le compte social
+        if (method_exists($user, 'socialAccounts')) {
+            $user->socialAccounts()->create([
+                'provider' => $provider,
+                'provider_id' => $socialUser->getId(),
+                'token' => $socialUser->token,
+            ]);
+        }
 
-            // Vérifie que la relation socialAccounts existe
-            if (method_exists($user, 'socialAccounts')) {
-                $user->socialAccounts()->firstOrCreate([
-                    'provider' => $provider,
-                    'provider_id' => $socialUser->getId(),
-                ], [
-                    'token' => $socialUser->token,
-                ]);
-            }
+        return $user;
+    });
 
-            return $user;
-        });
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-        
-        // Redirige vers la page de callback frontend avec le token
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-        return redirect($frontendUrl . '/auth/callback?token=' . $token);
-    }
+    $token = $user->createToken('auth_token')->plainTextToken;
+    
+    // 🔥 Passer is_super_admin dans l'URL
+    $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+    return redirect($frontendUrl . '/auth/callback?token=' . $token . '&is_super_admin=' . ($user->is_super_admin ? 1 : 0));
+}
 }

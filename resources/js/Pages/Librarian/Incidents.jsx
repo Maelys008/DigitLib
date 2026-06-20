@@ -5,6 +5,7 @@ import { router } from '@inertiajs/react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveLibrary } from '@/contexts/ActiveLibraryContext'; 
 import api from '../../services/api';
+import BottomNav from '@/Components/BottomNav';
 
 export default function Incidents() {
     const { user } = useAuth();
@@ -13,7 +14,7 @@ export default function Incidents() {
     const [incidents, setIncidents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filter, setFilter] = useState('all'); // all, lost, damaged
+    const [filter, setFilter] = useState('all'); // all, perdue, endommagé
 
     useEffect(() => {
         const loadIncidents = async () => {
@@ -92,8 +93,8 @@ export default function Incidents() {
             incident.loan?.copy?.book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filter === 'all') return matchesSearch;
-        if (filter === 'lost') return matchesSearch && incident.description?.toLowerCase().includes('perdu');
-        if (filter === 'damaged') return matchesSearch && (incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé'));
+        if (filter === 'perdue') return matchesSearch && incident.description?.toLowerCase().includes('perdu');
+        if (filter === 'endommagé') return matchesSearch && (incident.description?.toLowerCase().includes('dégradé') || incident.description?.toLowerCase().includes('abîmé'));
         
         return matchesSearch;
     });
@@ -104,7 +105,7 @@ export default function Incidents() {
     // Redirige ou affiche message si l'utilisateur n'est pas admin
     if (!isLoading && !libraryLoading && !isAdmin && library) {
         return (
-            <MobileLayout>
+            <>
                 <div className="p-6 text-center">
                     <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                     <p className="text-gray-700 dark:text-gray-300 font-medium">Accès non autorisé</p>
@@ -118,22 +119,22 @@ export default function Incidents() {
                         Retour au tableau de bord
                     </button>
                 </div>
-            </MobileLayout>
+            </>
         );
     }
 
     if (isLoading || libraryLoading) {
         return (
-            <MobileLayout>
+            <>
                 <div className="flex items-center justify-center h-screen">
                     <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
-            </MobileLayout>
+            </>
         );
     }
 
     return (
-        <MobileLayout>
+        <>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
@@ -191,9 +192,9 @@ export default function Incidents() {
                             Tous ({incidents.length})
                         </button>
                         <button
-                            onClick={() => setFilter('lost')}
+                            onClick={() => setFilter('perdue')}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                filter === 'lost'
+                                filter === 'perdue'
                                     ? 'bg-red-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
@@ -201,9 +202,9 @@ export default function Incidents() {
                             Livres perdus ({incidents.filter(i => i.description?.toLowerCase().includes('perdu')).length})
                         </button>
                         <button
-                            onClick={() => setFilter('damaged')}
+                            onClick={() => setFilter('endommagé')}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                filter === 'damaged'
+                                filter === 'endommagé'
                                     ? 'bg-orange-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                             }`}
@@ -305,6 +306,9 @@ export default function Incidents() {
                     )}
                 </div>
             </div>
-        </MobileLayout>
+            <BottomNav />
+        </>
     );
 }
+      
+   

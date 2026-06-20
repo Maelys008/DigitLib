@@ -8,6 +8,7 @@ import DashboardHeader from '@/Components/liberian/DashboardHeader';
 import LibraryInfoCard from '@/Components/liberian/LibraryInfoCard';
 import StatisticsGrid from '@/Components/liberian/StatisticsGrid';
 import ActionButtons from '@/Components/liberian/ActionButtons';
+import BottomNav from '@/Components/BottomNav';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -18,8 +19,8 @@ export default function Dashboard() {
     totalCopies: 0,
     totalBooks: 0,
     membersCount: 0,  
-    available: 0,
-    borrowed: 0,
+    disponible: 0,
+    emprunté: 0,
     reservations: 0,
     lateReturns: 0  
   });
@@ -84,8 +85,8 @@ export default function Dashboard() {
         ...prev,
         totalCopies: totalCopies,
         totalBooks: allBooks.length,
-        available: totalAvailable,
-        borrowed: totalCopies - totalAvailable
+        disponible: totalAvailable,
+        emprunté: totalCopies - totalAvailable
       }));
       
     } catch (error) {
@@ -93,24 +94,29 @@ export default function Dashboard() {
     }
   };
 
+  // ✅ MODIFIÉ : Plus d'inscriptions (accès universel)
   const loadMembers = async (lib) => {
     if (!lib) return;
     try {
-      const members = await api.getLibraryInscriptions(lib.id);
       setStats(prev => ({
         ...prev,
-        membersCount: members.length
+        membersCount: 0
       }));
     } catch (error) {
       console.error('Erreur chargement membres:', error);
+      setStats(prev => ({
+        ...prev,
+        membersCount: 0
+      }));
     }
   };
 
+  // ✅ MODIFIÉ : Utiliser la nouvelle route waitlist
   const loadReservations = async (lib) => {
     if (!lib) return;
     try {
-      const reservationsData = await api.getLibraryReservations(lib.id);
-      const reservationsCount = reservationsData.count || 0;
+      const response = await api.axios.get(`/libraries/${lib.id}/waitlist`);
+      const reservationsCount = response.data?.count || 0;
       setStats(prev => ({
         ...prev,
         reservations: reservationsCount
@@ -214,12 +220,13 @@ export default function Dashboard() {
             Créer une bibliothèque
           </button>
         </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <DashboardHeader />
       
       <div className="p-6">
@@ -238,6 +245,8 @@ export default function Dashboard() {
           onManageContestations={handleManageContestations}
         />
       </div>
+      
+      <BottomNav />
     </div>
   );
 }

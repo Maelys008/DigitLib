@@ -7,6 +7,7 @@ import { useActiveLibrary } from '@/contexts/ActiveLibraryContext';
 import api from '../../services/api';
 import CreatePartnerModal from '@/Components/liberian/CreatePartnerModal';
 import EditPartnerModal from '@/Components/liberian/EditPartnerModal';
+import BottomNav from '@/Components/BottomNav';
 
 export default function PartnerLibraries() {
     const { user } = useAuth();
@@ -104,16 +105,16 @@ export default function PartnerLibraries() {
 
     if (isLoading || libraryLoading) {
         return (
-            <MobileLayout>
+            <>
                 <div className="flex items-center justify-center h-screen">
                     <Loader2 className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                 </div>
-            </MobileLayout>
+            </>
         );
     }
 
     return (
-        <MobileLayout>
+        <>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
@@ -257,6 +258,8 @@ export default function PartnerLibraries() {
                     />
                 </>
             )}
-        </MobileLayout>
+            <BottomNav />
+        </>
     );
-}
+}   
+       

@@ -30,11 +30,11 @@ export default function MyIncidents() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case 'en_attente':
         return <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded-full text-xs">En contestation</span>;
-      case 'resolved':
+      case 'résolue':
         return <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full text-xs">Résolu</span>;
-      case 'dismissed':
+      case 'rejetée':
         return <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full text-xs">Annulé</span>;
       default:
         return <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-full text-xs">En attente</span>;
@@ -111,7 +111,7 @@ export default function MyIncidents() {
                     </div>
                     
                     {/* 🔥 BOUTON CONTESTER */}
-                    {incident.status !== 'resolved' && incident.status !== 'dismissed' && (
+                    {incident.status !== 'résolue' && incident.status !== 'rejetée' && (
                       <button
                         onClick={() => handleContester(incident)}
                         className="px-3 py-1 bg-orange-600 text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:bg-orange-700 transition-colors"

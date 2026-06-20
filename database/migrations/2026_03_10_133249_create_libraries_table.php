@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('libraries');
             $table->foreignId('administrator_id')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            //  $table->enum('status', ['en attente', 'approuvée', 'rejetée'])->default('en attente');
             $table->string('library_image')->nullable();
             $table->integer('loan_duration')->default(14);
             // $table->integer('max_books_per_user')->nullable();//infini

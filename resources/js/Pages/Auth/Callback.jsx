@@ -12,6 +12,7 @@ export default function Callback() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const errorParam = urlParams.get('error');
+      const isSuperAdmin = urlParams.get('is_super_admin') === '1';
       
       if (errorParam) {
         setError(decodeURIComponent(errorParam));
@@ -26,21 +27,15 @@ export default function Callback() {
         // Sauvegarder le token
         localStorage.setItem('auth_token', token);
         
-        // Attendre un peu et récupérer l'utilisateur
-        setTimeout(async () => {
+        // 🔥 Si c'est un Super Admin, on le stocke directement
+        if (isSuperAdmin) {
+          // Récupérer l'utilisateur depuis l'API pour avoir toutes les infos
           try {
             const userData = await api.getUser();
-            
             if (userData && userData.user) {
               localStorage.setItem('user', JSON.stringify(userData.user));
-              
-              if (!userData.user.tel) {
-                router.visit('/complete-profile');
-              } else {
-                const redirectUrl = localStorage.getItem('redirectAfterLogin');
-                localStorage.removeItem('redirectAfterLogin');
-                router.visit(redirectUrl || '/');
-              }
+              // Rediriger vers le choix Super Admin
+              router.visit('/login?super_admin=true');
             } else {
               router.visit('/login');
             }
@@ -48,7 +43,31 @@ export default function Callback() {
             console.error('Erreur:', err);
             router.visit('/login');
           }
-        }, 500);
+        } else {
+          // Attendre un peu et récupérer l'utilisateur
+          setTimeout(async () => {
+            try {
+              const userData = await api.getUser();
+              
+              if (userData && userData.user) {
+                localStorage.setItem('user', JSON.stringify(userData.user));
+                
+                if (!userData.user.tel) {
+                  router.visit('/complete-profile');
+                } else {
+                  const redirectUrl = localStorage.getItem('redirectAfterLogin');
+                  localStorage.removeItem('redirectAfterLogin');
+                  router.visit(redirectUrl || '/');
+                }
+              } else {
+                router.visit('/login');
+              }
+            } catch (err) {
+              console.error('Erreur:', err);
+              router.visit('/login');
+            }
+          }, 500);
+        }
       } else {
         router.visit('/login');
       }
