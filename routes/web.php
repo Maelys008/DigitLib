@@ -28,7 +28,7 @@ Route::get('/forgot-password', function () {
     return Inertia::render('Auth/ForgotPassword');
 })->name('password.request');
 Route::get('/', function () {
-    return Inertia::render('home');
+    return Inertia::render('Home');
 })->name('home');
 Route::get('/best-of-month', function () {
     return Inertia::render('BestOfMonth');
