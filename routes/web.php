@@ -28,11 +28,12 @@ Route::get('/forgot-password', function () {
     return Inertia::render('Auth/ForgotPassword');
 })->name('password.request');
 Route::get('/', function () {
-    return Inertia::render('Home');
+    return Inertia::render('home');
 })->name('home');
 Route::get('/best-of-month', function () {
     return Inertia::render('BestOfMonth');
 });
+
 
 Route::get('/genres', function () {
     return Inertia::render('Genres');
