@@ -184,7 +184,7 @@ class LoanController extends Controller
         return response()->json(['message' => 'Prêt confirmé, le livre est maintenant en possession du lecteur.', 'loan' => $loan]);
     }
 
-    public function returnBook(Request $request, $loanId)
+  public function returnBook(Request $request, $loanId)
 {
     // Vérification avant validation
     if (! $request->has('return_copy_state_id')) {
@@ -226,7 +226,6 @@ class LoanController extends Controller
         $library = $book->library;
         $returnStateId = $request->return_copy_state_id;
         
-        // Récupérer l'état pour le libellé (utile pour les raisons)
         $returnState = CopyState::find($returnStateId);
 
         $loan->update([
@@ -236,7 +235,6 @@ class LoanController extends Controller
             'status' => Loan::STATUS_RETURNED,
         ]);
 
-        // Mettre à jour l'état de l'exemplaire
         $copy->update(['copy_state_id' => $returnStateId]);
 
         // Gamification
@@ -274,29 +272,24 @@ class LoanController extends Controller
         }
 
         // ============================================================
-        // 🔥 MODIFICATION ICI : Plus de pénalité automatique pour dégradation
+        // 🔥 GESTION DES PÉNALITÉS - CORRECTION
         // ============================================================
         
         $totalPenalty = 0;
         $reasons = [];
-        
-        // 🔥 Supprimé : $isDamaged = in_array($returnState->libelle_state, ['endommagé', 'très_endommagé']);
-        // 🔥 Supprimé : le bloc qui ajoutait 2000 ou 5000 F automatiquement
 
         // 1. Pénalité de retard (si applicable)
-        if ($isLate) {
-            $daysLateForPenalty = max(1, $returnDate->diffInDays($expectedDate));
-            $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
-            $reasons[] = "Retard de {$daysLateForPenalty} jour(s)";
-        }
+        // if ($isLate) {
+        //     $daysLateForPenalty = max(1, $returnDate->diffInDays($expectedDate));
+        //     $totalPenalty += $daysLateForPenalty * ($library->daily_penalty_amount ?? 0);
+        //     $reasons[] = "Retard de {$daysLateForPenalty} jour(s)";
+        // }
 
-        // 2. 🔥 NOUVEAU : Pénalité supplémentaire (uniquement ce que le bibliothécaire saisit)
-        //    Peu importe l'état (neuf, bon, abimé, très abimé), c'est le bibliothécaire qui décide
+        // 2. Pénalité supplémentaire (ce que le bibliothécaire saisit)
         if ($request->filled('additional_penalty_amount') && $request->additional_penalty_amount > 0) {
             $totalPenalty += $request->additional_penalty_amount;
             $reasonText = $request->penalty_reason ?? "Frais supplémentaires";
             
-            // Ajouter l'état du livre à la raison si pertinent
             if ($returnState && in_array($returnState->libelle_state, ['endommagé', 'très_endommagé'])) {
                 $reasonText .= " (État : {$returnState->libelle_state})";
             }
@@ -307,19 +300,32 @@ class LoanController extends Controller
         $penalty = null;
 
         if ($totalPenalty > 0) {
-            $penalty = Penalty::firstOrNew(['loan_id' => $loan->id]);
-            $penalty->user_id = $user->id;
-            $penalty->amount = $totalPenalty;
-            $penalty->reason = implode(' | ', $reasons);
-            $penalty->status = $penalty->status ?? 'non_payé';
-            $penalty->save();
+            // 🔥 Récupérer la pénalité existante POUR CE PRÊT
+            $penalty = Penalty::where('loan_id', $loan->id)->first();
+            
+            if ($penalty && $penalty->status !== 'payé') {
+                // 🔥 Si une pénalité existe déjà et n'est pas payée, on AJOUTE le nouveau montant
+                $penalty->amount = $penalty->amount + $totalPenalty;
+                $penalty->reason = $penalty->reason . ' | ' . implode(' | ', $reasons);
+                $penalty->save();
+            } else {
+                // 🔥 Créer une nouvelle pénalité
+                $penalty = Penalty::create([
+                    'user_id' => $user->id,
+                    'loan_id' => $loan->id,
+                    'amount' => $totalPenalty,
+                    'reason' => implode(' | ', $reasons),
+                    'status' => 'non_payé',
+                ]);
+            }
 
+            // Créer l'incident
             $incident = Incident::create([
                 'user_id' => $user->id,
                 'library_id' => $library->id,
                 'loan_id' => $loan->id,
                 'title' => 'Sanction sur retour',
-                'description' => 'Sanction générée : '.implode(' | ', $reasons),
+                'description' => 'Sanction générée : '.$penalty->reason,
                 'date' => now(),
                 'status' => 'ouvert',
                 'notify_all_librarians' => false,
@@ -328,11 +334,34 @@ class LoanController extends Controller
             Notification::create([
                 'user_id' => $user->id,
                 'type' => 'penalty_final',
-                'message' => "Livre rendu. Pénalité : {$totalPenalty} FCFA pour \"{$book->title}\".",
+                'message' => "Livre rendu. Pénalité : {$penalty->amount} FCFA pour \"{$book->title}\".",
                 'object_type' => 'loan',
                 'object_id' => $loan->id,
                 'date_sent' => $now,
             ]);
+
+            Notification::create([
+                'user_id' => $returnValidatedBy->id,
+                'type' => 'return_confirmation',
+                'message' => "Vous avez validé le retour de '{$book->title}' (Utilisateur: {$user->name}). Pénalité de {$penalty->amount} FCFA enregistrée.",
+                'object_type' => 'loan',
+                'object_id' => $loan->id,
+                'date_sent' => $now,
+            ]);
+        } else {
+            // Si pas de nouvelle pénalité, on garde l'ancienne si elle existe
+            $existingPenalty = Penalty::where('loan_id', $loan->id)->first();
+            if ($existingPenalty && $existingPenalty->status === 'non_payé') {
+                // La pénalité reste en l'état
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'return_success',
+                    'message' => "Vous avez retourné '{$book->title}' avec succès.",
+                    'object_type' => 'loan',
+                    'object_id' => $loan->id,
+                    'date_sent' => $now,
+                ]);
+            }
         }
 
         // Libération de l'exemplaire → chercher file d'attente (loans réservée)
@@ -342,7 +371,6 @@ class LoanController extends Controller
             ->first();
 
         if ($nextInQueue) {
-            // Réassigner cet exemplaire au suivant
             $nextInQueue->update([
                 'copy_id' => $copy->id,
                 'status' => Loan::STATUS_PENDING_PICKUP,
@@ -367,8 +395,8 @@ class LoanController extends Controller
         }
 
         $message = 'Livre retourné avec succès.';
-        if ($totalPenalty > 0) {
-            $message .= ' Pénalité de '.number_format($totalPenalty, 0, ',', ' ').' FCFA enregistrée.';
+        if ($totalPenalty > 0 && isset($penalty)) {
+            $message .= ' Pénalité de '.number_format($penalty->amount, 0, ',', ' ').' FCFA enregistrée.';
         }
 
         return response()->json([
@@ -377,6 +405,7 @@ class LoanController extends Controller
                 'is_late' => $isLate,
                 'penalty_id' => $penalty?->id,
                 'penalty_amount' => $totalPenalty,
+                'penalty_total' => $penalty?->amount ?? 0,
                 'validated_by' => $returnValidatedBy->name,
             ],
         ], 200);

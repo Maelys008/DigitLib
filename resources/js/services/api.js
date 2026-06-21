@@ -1197,16 +1197,18 @@ class ApiService {
     }
     // ==================== AUTHENTIFICATION SOCIALE ====================
 
-    // Récupérer l'URL de redirection Google
-    async getGoogleRedirectUrl() {
-        try {
-            const response = await this.axios.get("/auth/google/redirect");
-            return response.data.url;
-        } catch (error) {
-            console.error("Error getting Google redirect URL:", error);
-            return null;
-        }
+   // Récupérer l'URL de redirection Google
+async getGoogleRedirectUrl() {
+    try {
+        const response = await this.axios.get("/auth/google/redirect");
+        const url = response.data.url;
+        // 🔥 Ajouter le paramètre pour forcer la sélection de compte
+        return url.includes('?') ? `${url}&prompt=select_account` : `${url}?prompt=select_account`;
+    } catch (error) {
+        console.error("Error getting Google redirect URL:", error);
+        return null;
     }
+}
 
     // Récupérer l'URL de redirection Facebook
     async getFacebookRedirectUrl() {
