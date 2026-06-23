@@ -303,15 +303,16 @@ export default function BookDetail() {
         </div>
            
         {/* BOUTON EMPRUNTER */}
-        <BorrowButton 
-          bookId={livre.id}
-          bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
-          isLibraryJoined={hasJoinedLibrary}
-          isAuthenticated={isAuthenticated}
-          onShowWarning={setShowJoinWarning}
-          onReservationCreated={handleReservationCreated}
-          isBookAvailable={livre.nb_disponibles > 0}
-        />
+       <BorrowButton 
+  bookId={livre.id}
+  bibliothequeNom={livre.library?.name || livre.bibliotheque?.nom || 'Bibliothèque'}
+  bibliothequeAdresse={livre.library?.adress || livre.bibliotheque?.adress || null}
+  isLibraryJoined={hasJoinedLibrary}
+  isAuthenticated={isAuthenticated}
+  onShowWarning={setShowJoinWarning}
+  onReservationCreated={handleReservationCreated}
+  isBookAvailable={livre.nb_disponibles > 0}
+/>
 
         {/* SECTION AVIS */}
         <ReviewSection 

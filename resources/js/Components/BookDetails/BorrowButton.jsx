@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Library, MapPin, Building2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import api from '../../services/api';
 
 export default function BorrowButton({ 
   bookId,
   bibliothequeNom,
+  bibliothequeAdresse,
+  bibliothequeImage,
   isLibraryJoined,
   isAuthenticated,
   onShowWarning,
@@ -150,6 +152,37 @@ export default function BorrowButton({
 
   return (
     <div className="relative mb-6">
+      {/* 🔥 CARTE DE LA BIBLIOTHÈQUE */}
+      {bibliothequeNom && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-2xl p-4 mb-4 border border-orange-200 dark:border-orange-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Library className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                <span className="text-[10px] font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                  Bibliothèque
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {bibliothequeNom}
+              </p>
+              {bibliothequeAdresse && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3 text-gray-400" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {bibliothequeAdresse}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+          </div>
+        </div>
+      )}
+
       {/* Message d'avertissement (bibliothèque non rejointe) */}
       {showWarning && (
         <div className="mb-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 animate-fade-in">
